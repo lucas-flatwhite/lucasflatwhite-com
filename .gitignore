@@ -1,0 +1,10 @@
+# Claude Code
+.claude/
+
+# Node / Astro (for future migration)
+node_modules/
+.astro/
+dist/
+
+# OS
+.DS_Store
