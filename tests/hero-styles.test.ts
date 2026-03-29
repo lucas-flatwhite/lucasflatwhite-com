@@ -21,4 +21,16 @@ describe('Hero style contract', () => {
     expect(globalStyles).toContain('.command-shelf-trigger');
     expect(globalStyles).toContain('@media (prefers-reduced-motion: reduce)');
   });
+
+  it('lays out the hero spinner beside the title block on desktop and stacks on mobile', () => {
+    expect(globalStyles).toContain('grid-template-columns: auto minmax(0, 1fr);');
+    expect(globalStyles).toContain('align-items: start;');
+    expect(globalStyles).toContain('.hero-spinner-wrap');
+    expect(globalStyles).toContain('.hero h1');
+    expect(globalStyles).toContain('.hero-actions');
+    expect(globalStyles).toContain('margin-left: calc(3.5rem + 1.4rem);');
+    expect(globalStyles).toContain('@media (max-width: 640px)');
+    expect(globalStyles).toContain('grid-template-columns: minmax(0, 1fr);');
+    expect(globalStyles).toContain('margin-left: 0;');
+  });
 });
