@@ -11,11 +11,12 @@ describe('Hero source contract', () => {
   it('uses the Quiet Monument composition markers', () => {
     expect(heroSource).toContain('siteProfile.heroTitle');
     expect(heroSource).toContain('siteProfile.heroTagline');
-    expect(heroSource).toContain('siteProfile.heroSpinnerLabel');
     expect(heroSource).toContain('class="hero-stage"');
     expect(heroSource).toContain('class="hero-spinner-wrap" aria-hidden="true"');
     expect(heroSource).toContain('class="hero-spinner"');
     expect(heroSource).toContain('class="hero-tagline"');
+    expect(heroSource).not.toContain('sr-only');
+    expect(heroSource).not.toContain('heroSpinnerLabel');
     expect(heroSource).not.toContain('coffee-trigger');
     expect(heroSource).not.toContain('Brew commands');
   });

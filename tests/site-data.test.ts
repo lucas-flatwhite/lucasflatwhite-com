@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   footerLinks,
+  homepageSections,
+  sectionIds,
   primaryLinks,
   recommendedCommands,
   siteProfile,
@@ -14,6 +16,15 @@ import {
 describe('site data', () => {
   it('exposes the expected homepage sections', () => {
     expect(getSectionIds()).toEqual(['hero', 'projects', 'links']);
+    expect(homepageSections).toEqual([
+      { id: 'hero', label: 'Intro' },
+      { id: 'projects', label: 'Selected Projects' },
+      { id: 'links', label: 'Links' },
+    ]);
+    expect(sectionIds).toEqual(['hero', 'projects', 'links']);
+    expect(getHomepageSections().map((section) => section.id)).toEqual(
+      sectionIds,
+    );
   });
 
   it('returns isolated section ids to callers', () => {
@@ -51,7 +62,6 @@ describe('site data', () => {
     expect(siteProfile.heroTagline).toBe(
       'Building calm, useful things on the web.',
     );
-    expect(siteProfile.heroSpinnerLabel).toBe('Thinking');
   });
 
   it('keeps the primary link order stable', () => {

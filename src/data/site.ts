@@ -1,6 +1,19 @@
-export const sectionIds = ['hero', 'projects', 'links'] as const;
+export type HomepageSection = {
+  id: string;
+  label: string;
+};
 
-export type SectionId = (typeof sectionIds)[number];
+export const homepageSections = [
+  { id: 'hero', label: 'Intro' },
+  { id: 'projects', label: 'Selected Projects' },
+  { id: 'links', label: 'Links' },
+] as const satisfies readonly HomepageSection[];
+
+export type SectionId = (typeof homepageSections)[number]['id'];
+
+export const sectionIds = homepageSections.map(
+  (section) => section.id,
+) as readonly SectionId[];
 
 export type PrimaryLink = {
   label: string;
@@ -29,7 +42,6 @@ export const siteProfile = {
   name: 'Lucas Flatwhite',
   heroTitle: '/lucas-flatwhite',
   heroTagline: 'Building calm, useful things on the web.',
-  heroSpinnerLabel: 'Thinking',
   title: 'Developer who loves flat whites and playful interfaces.',
   intro:
     'I build tools, translations, and small web experiences with a warm terminal-cafe attitude.',
