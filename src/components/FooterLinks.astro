@@ -6,7 +6,11 @@ import { footerLinks } from '../data/site';
   <h2 id="links-title">Links</h2>
   <div class="footer-links">
     {footerLinks.map((link) => (
-      <a href={link.href} target="_blank" rel="noreferrer">
+      <a
+        href={link.href}
+        target={link.external ? '_blank' : undefined}
+        rel={link.external ? 'noreferrer' : undefined}
+      >
         {link.label}
       </a>
     ))}

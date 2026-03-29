@@ -13,6 +13,7 @@ describe('Hero source contract', () => {
     expect(heroSource).toContain('siteProfile.heroTagline');
     expect(heroSource).toContain('siteProfile.heroSpinnerLabel');
     expect(heroSource).toContain('class="hero-stage"');
+    expect(heroSource).toContain('class="hero-spinner-wrap" aria-hidden="true"');
     expect(heroSource).toContain('class="hero-spinner"');
     expect(heroSource).toContain('class="hero-tagline"');
     expect(heroSource).not.toContain('coffee-trigger');
