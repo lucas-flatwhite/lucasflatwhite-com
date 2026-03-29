@@ -6,6 +6,7 @@
 node_modules/
 .astro/
 dist/
+coverage/
 
 # OS
 .DS_Store
