@@ -42,9 +42,9 @@ export const siteProfile = {
   name: 'Lucas Flatwhite',
   heroTitle: '/lucas-flatwhite',
   heroTagline: 'Building calm, useful things on the web.',
-  title: 'Developer who loves flat whites and playful interfaces.',
+  title: 'Developer building tools, translations, and useful web experiences.',
   intro:
-    'I build tools, translations, and small web experiences with a warm terminal-cafe attitude.',
+    'I build tools, translations, and small web experiences with a clear, terminal-forward feel.',
   availability: 'Available for interesting collaborations and experiments.',
 } as const;
 

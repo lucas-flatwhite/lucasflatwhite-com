@@ -8,9 +8,11 @@ const commandShelfSource = readFileSync(
 );
 
 describe('CommandShelf source contract', () => {
-  it('keeps the command panel usable without the hero trigger', () => {
+  it('keeps the command panel truthful without JavaScript', () => {
     expect(commandShelfSource).toContain('id="command-menu"');
     expect(commandShelfSource).toContain('class="command-shelf-trigger"');
+    expect(commandShelfSource).toContain('.command-shelf-trigger');
+    expect(commandShelfSource).toContain('display: none !important;');
     expect(commandShelfSource).not.toContain('coffee-trigger');
     expect(commandShelfSource).not.toContain("querySelectorAll('.coffee-trigger')");
   });

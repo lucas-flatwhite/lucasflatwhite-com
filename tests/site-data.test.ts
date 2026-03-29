@@ -57,7 +57,12 @@ describe('site data', () => {
 
   it('keeps the profile copy populated', () => {
     expect(siteProfile.handle).toBe('lucas.flatwhite');
-    expect(siteProfile.title.length).toBeGreaterThan(10);
+    expect(siteProfile.title).toBe(
+      'Developer building tools, translations, and useful web experiences.',
+    );
+    expect(siteProfile.intro).toBe(
+      'I build tools, translations, and small web experiences with a clear, terminal-forward feel.',
+    );
     expect(siteProfile.heroTitle).toBe('/lucas-flatwhite');
     expect(siteProfile.heroTagline).toBe(
       'Building calm, useful things on the web.',
