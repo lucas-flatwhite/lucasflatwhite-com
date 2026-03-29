@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  footerLinks,
   primaryLinks,
   recommendedCommands,
   siteProfile,
@@ -59,6 +60,11 @@ describe('site data', () => {
       'GitHub',
       'Contact',
     ]);
+  });
+
+  it('keeps the footer links external and separate from the hero row', () => {
+    expect(footerLinks.map((link) => link.label)).toEqual(['GitHub', 'X']);
+    expect(footerLinks.every((link) => link.external)).toBe(true);
   });
 
   it('keeps command ids unique', () => {

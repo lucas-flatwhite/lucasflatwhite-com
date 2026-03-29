@@ -54,6 +54,19 @@ export const primaryLinks = [
   },
 ] as const satisfies readonly PrimaryLink[];
 
+export const footerLinks = [
+  {
+    label: 'GitHub',
+    href: 'https://github.com/lucas-flatwhite/',
+    external: true,
+  },
+  {
+    label: 'X',
+    href: 'https://x.com/lucas_flatwhite',
+    external: true,
+  },
+] as const satisfies readonly PrimaryLink[];
+
 export const recommendedCommands = [
   {
     id: 'view-projects',
