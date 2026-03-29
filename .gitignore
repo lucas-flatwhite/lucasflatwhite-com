@@ -1,5 +1,6 @@
 # Claude Code
 .claude/
+.worktrees/
 
 # Node / Astro (for future migration)
 node_modules/
