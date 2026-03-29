@@ -5,19 +5,19 @@ type Props = {
   projects: CollectionEntry<'projects'>[];
 };
 
-const { projects } = Astro.props;
+const { projects }: Props = Astro.props;
 ---
 
 <section class="projects" id="projects" aria-labelledby="projects-title">
   <h2 id="projects-title">Selected Projects</h2>
 
   <div class="project-grid">
-    {projects.map((project) => (
+    {projects.map((project: CollectionEntry<'projects'>) => (
       <article class="project-card">
         <h3>{project.data.title}</h3>
         <p>{project.data.summary}</p>
         <ul class="project-tags" aria-label={`${project.data.title} tags`}>
-          {project.data.tags.map((tag) => (
+          {project.data.tags.map((tag: string) => (
             <li>{tag}</li>
           ))}
         </ul>
