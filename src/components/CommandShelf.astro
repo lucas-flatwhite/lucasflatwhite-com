@@ -12,6 +12,15 @@ const actions = recommendedCommands.map((command) => ({
 <section class="command-shelf" aria-labelledby="command-shelf-title">
   <h2 id="command-shelf-title">Recommended Commands</h2>
 
+  <button
+    class="command-shelf-trigger"
+    type="button"
+    aria-expanded="false"
+    aria-controls="command-menu"
+  >
+    Show recommended commands
+  </button>
+
   <div class="command-panel" id="command-menu" hidden>
     <ul>
       {actions.map(({ command, action }) => (
@@ -39,7 +48,7 @@ const actions = recommendedCommands.map((command) => ({
 </section>
 
 <script>
-  const triggers = document.querySelectorAll('.coffee-trigger');
+  const triggers = document.querySelectorAll('.command-shelf-trigger');
 
   for (const trigger of triggers) {
     if (!(trigger instanceof HTMLButtonElement)) {
