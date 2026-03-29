@@ -52,4 +52,8 @@ describe('site data', () => {
     const ids = recommendedCommands.map((command) => command.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
+
+  it('keeps every command description populated for accessibility and clarity', () => {
+    expect(recommendedCommands.every((command) => command.description.length > 8)).toBe(true);
+  });
 });

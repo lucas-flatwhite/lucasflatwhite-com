@@ -144,16 +144,236 @@ body {
   color: var(--accent);
 }
 
-@media (max-width: 720px) {
+.page-shell {
+  display: grid;
+  gap: 24px;
+}
+
+.hero-actions,
+.project-links,
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.project-tags,
+.command-list,
+.command-panel ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hero-link,
+.coffee-trigger,
+.command-item,
+.project-links a,
+.footer-links a {
+  border-radius: 999px;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.hero-link,
+.project-links a,
+.footer-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 44px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  box-shadow: 0 8px 16px rgba(92, 52, 27, 0.08);
+}
+
+.coffee-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  min-height: 44px;
+  box-shadow: 0 14px 28px rgba(60, 36, 21, 0.2);
+}
+
+.coffee-trigger img {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
+}
+
+.command-panel {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  background: rgba(240, 223, 199, 0.4);
+  border: 1px solid rgba(156, 92, 43, 0.18);
+  border-radius: 24px;
+}
+
+.command-panel ul {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.command-item {
+  display: flex;
+  min-width: 0;
+  border: 1px solid rgba(156, 92, 43, 0.16);
+  background: rgba(255, 250, 243, 0.96);
+  box-shadow: 0 10px 20px rgba(92, 52, 27, 0.08);
+}
+
+.command-item a {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.command-label {
+  font-family: 'Roboto Mono', monospace;
+}
+
+.command-description,
+.hero-copy > p:not(.eyebrow),
+.project-card p {
+  color: var(--muted);
+}
+
+.command-description {
+  max-width: 28ch;
+  text-align: right;
+}
+
+.project-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.project-card {
+  display: grid;
+  gap: 0.95rem;
+  height: 100%;
+  padding: 1.5rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 250, 243, 0.98)),
+    var(--surface);
+  border: 1px solid rgba(156, 92, 43, 0.18);
+  border-radius: 24px;
+  box-shadow: 0 18px 32px rgba(92, 52, 27, 0.1);
+}
+
+.project-card h3,
+.projects h2,
+.links h2 {
+  margin: 0;
+}
+
+.project-card p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.project-tags li {
+  padding: 0.35rem 0.8rem;
+  border: 1px solid rgba(156, 92, 43, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 250, 243, 0.85);
+  color: var(--accent);
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.85rem;
+}
+
+.hero-link:hover,
+.hero-link:focus-visible,
+.coffee-trigger:hover,
+.coffee-trigger:focus-visible,
+.command-item:hover,
+.command-item:focus-within,
+.project-links a:hover,
+.project-links a:focus-visible,
+.footer-links a:hover,
+.footer-links a:focus-visible,
+.project-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 34px rgba(92, 52, 27, 0.14);
+}
+
+@media (max-width: 900px) {
   .page-shell {
-    width: min(100vw - 1rem, 1100px);
-    padding-top: 1rem;
+    width: min(100vw - 1.5rem, 1100px);
+    padding-top: 2rem;
   }
 
   .hero,
   .projects,
   .links {
-    padding: 1.5rem;
+    padding: 1.75rem;
+  }
+
+  .project-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .command-item a {
+    flex-direction: column;
+  }
+
+  .command-description {
+    max-width: none;
+    text-align: left;
+  }
+}
+
+@media (max-width: 640px) {
+  .page-shell {
+    width: min(100vw - 1rem, 1100px);
+    padding: 1rem 0 3rem;
+  }
+
+  .hero,
+  .projects,
+  .links {
+    padding: 1.4rem;
     border-radius: 22px;
+  }
+
+  .hero-actions,
+  .hero-links,
+  .project-links,
+  .footer-links {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero-link,
+  .coffee-trigger,
+  .project-links a,
+  .footer-links a {
+    width: 100%;
+  }
+
+  .project-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .command-panel {
+    padding: 0.85rem;
   }
 }
