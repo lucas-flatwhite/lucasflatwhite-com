@@ -3,15 +3,18 @@ import { primaryLinks, siteProfile } from '../data/site';
 ---
 
 <section class="hero" id="hero" aria-labelledby="hero-title">
-  <div class="hero-copy">
-    <p class="eyebrow">$ brew --portfolio</p>
-    <p>{siteProfile.handle}</p>
-    <h1 id="hero-title">{siteProfile.title}</h1>
-    <p>{siteProfile.intro}</p>
-    <p>{siteProfile.availability}</p>
+  <div class="hero-stage">
+    <div class="hero-spinner-wrap">
+      <div class="hero-spinner" aria-hidden="true"></div>
+      <span class="sr-only">{siteProfile.heroSpinnerLabel}</span>
+    </div>
+
+    <h1 id="hero-title">{siteProfile.heroTitle}</h1>
+
+    <p class="hero-tagline">{siteProfile.heroTagline}</p>
   </div>
 
-  <div class="hero-actions">
+  <nav class="hero-actions" aria-label="Hero links">
     <div class="hero-links">
       {primaryLinks.map((link) => (
         <a
@@ -24,16 +27,5 @@ import { primaryLinks, siteProfile } from '../data/site';
         </a>
       ))}
     </div>
-
-    <button
-      class="coffee-trigger"
-      type="button"
-      aria-label="Brew commands: open recommended commands"
-      aria-expanded="false"
-      aria-controls="command-menu"
-    >
-      <img src="/assets/flatwhite.svg" alt="" width="20" height="20" />
-      <span>Brew commands</span>
-    </button>
-  </div>
+  </nav>
 </section>
