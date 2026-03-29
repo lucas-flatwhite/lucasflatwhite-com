@@ -31,10 +31,25 @@ const actions = recommendedCommands.map((command) => ({
 </section>
 
 <script>
-  const trigger = document.querySelector('.coffee-trigger');
-  const menu = document.querySelector('#command-menu');
+  const triggers = document.querySelectorAll('.coffee-trigger');
 
-  if (trigger instanceof HTMLButtonElement && menu instanceof HTMLDivElement) {
+  for (const trigger of triggers) {
+    if (!(trigger instanceof HTMLButtonElement)) {
+      continue;
+    }
+
+    const controls = trigger.getAttribute('aria-controls');
+
+    if (!controls) {
+      continue;
+    }
+
+    const menu = document.getElementById(controls);
+
+    if (!(menu instanceof HTMLElement)) {
+      continue;
+    }
+
     trigger.addEventListener('click', () => {
       const expanded = trigger.getAttribute('aria-expanded') === 'true';
       trigger.setAttribute('aria-expanded', String(!expanded));

@@ -3,6 +3,21 @@ import { resolveCommandAction } from '../src/lib/command-actions';
 import type { RecommendedCommand } from '../src/data/site';
 
 describe('resolveCommandAction', () => {
+  it('returns href values for link commands', () => {
+    const command: RecommendedCommand = {
+      id: 'open-github',
+      label: 'open github',
+      description: 'Open the GitHub profile.',
+      kind: 'link',
+      href: 'https://github.com/lucas-flatwhite/',
+    };
+
+    expect(resolveCommandAction(command, ['hero', 'projects', 'links'])).toEqual({
+      kind: 'link',
+      value: 'https://github.com/lucas-flatwhite/',
+    });
+  });
+
   it('resolves scroll commands to in-page anchors', () => {
     const command: RecommendedCommand = {
       id: 'view-projects',
