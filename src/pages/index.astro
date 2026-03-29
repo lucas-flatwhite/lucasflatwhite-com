@@ -1,0 +1,22 @@
+---
+import { getCollection } from 'astro:content';
+import FooterLinks from '../components/FooterLinks.astro';
+import Hero from '../components/Hero.astro';
+import ProjectGrid from '../components/ProjectGrid.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteProfile } from '../data/site';
+import { sortFeaturedProjects } from '../lib/projects';
+
+const projects = sortFeaturedProjects(await getCollection('projects'));
+---
+
+<BaseLayout
+  title={`${siteProfile.name} | ${siteProfile.handle}`}
+  description={siteProfile.intro}
+>
+  <main class="page-shell">
+    <Hero />
+    <ProjectGrid projects={projects} />
+    <FooterLinks />
+  </main>
+</BaseLayout>

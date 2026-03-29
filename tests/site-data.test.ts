@@ -4,7 +4,11 @@ import {
   recommendedCommands,
   siteProfile,
 } from '../src/data/site';
-import { getSectionIds, getScrollCommandTargets } from '../src/lib/site';
+import {
+  getHomepageSections,
+  getSectionIds,
+  getScrollCommandTargets,
+} from '../src/lib/site';
 
 describe('site data', () => {
   it('exposes the expected homepage sections', () => {
@@ -16,6 +20,14 @@ describe('site data', () => {
     sectionIds.pop();
 
     expect(getSectionIds()).toEqual(['hero', 'projects', 'links']);
+  });
+
+  it('keeps the homepage section order stable', () => {
+    expect(getHomepageSections()).toEqual([
+      { id: 'hero', label: 'Intro' },
+      { id: 'projects', label: 'Selected Projects' },
+      { id: 'links', label: 'Links' },
+    ]);
   });
 
   it('keeps primary links unique and non-empty', () => {

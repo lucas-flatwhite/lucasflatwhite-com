@@ -1,0 +1,16 @@
+---
+import { primaryLinks } from '../data/site';
+
+const footerLinks = primaryLinks.filter((link) => link.external);
+---
+
+<section class="links" id="links" aria-labelledby="links-title">
+  <h2 id="links-title">Links</h2>
+  <div class="footer-links">
+    {footerLinks.map((link) => (
+      <a href={link.href} target="_blank" rel="noreferrer">
+        {link.label}
+      </a>
+    ))}
+  </div>
+</section>
