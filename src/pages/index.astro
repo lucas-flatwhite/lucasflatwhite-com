@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import CommandShelf from '../components/CommandShelf.astro';
 import FooterLinks from '../components/FooterLinks.astro';
 import Hero from '../components/Hero.astro';
 import ProjectGrid from '../components/ProjectGrid.astro';
@@ -16,6 +17,7 @@ const projects = sortFeaturedProjects(await getCollection('projects'));
 >
   <main class="page-shell">
     <Hero />
+    <CommandShelf />
     <ProjectGrid projects={projects} />
     <FooterLinks />
   </main>

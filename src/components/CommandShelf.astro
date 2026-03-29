@@ -1,0 +1,44 @@
+---
+import { recommendedCommands } from '../data/site';
+import { resolveCommandAction } from '../lib/command-actions';
+import { getSectionIds } from '../lib/site';
+
+const actions = recommendedCommands.map((command) => ({
+  command,
+  action: resolveCommandAction(command, getSectionIds()),
+}));
+---
+
+<section class="command-shelf" aria-labelledby="command-shelf-title">
+  <h2 id="command-shelf-title">Recommended Commands</h2>
+
+  <div class="command-panel" id="command-menu" hidden>
+    <ul>
+      {actions.map(({ command, action }) => (
+        <li class="command-item">
+          <a
+            href={action.value}
+            target={action.kind === 'link' ? '_blank' : undefined}
+            rel={action.kind === 'link' ? 'noreferrer' : undefined}
+          >
+            <span class="command-label">{command.label}</span>
+            <span class="command-description">{command.description}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<script>
+  const trigger = document.querySelector('.coffee-trigger');
+  const menu = document.querySelector('#command-menu');
+
+  if (trigger instanceof HTMLButtonElement && menu instanceof HTMLDivElement) {
+    trigger.addEventListener('click', () => {
+      const expanded = trigger.getAttribute('aria-expanded') === 'true';
+      trigger.setAttribute('aria-expanded', String(!expanded));
+      menu.hidden = expanded;
+    });
+  }
+</script>
