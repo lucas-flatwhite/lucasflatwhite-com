@@ -46,6 +46,19 @@ describe('site data', () => {
   it('keeps the profile copy populated', () => {
     expect(siteProfile.handle).toBe('lucas.flatwhite');
     expect(siteProfile.title.length).toBeGreaterThan(10);
+    expect(siteProfile.heroTitle).toBe('/lucas-flatwhite');
+    expect(siteProfile.heroTagline).toBe(
+      'Building calm, useful things on the web.',
+    );
+    expect(siteProfile.heroSpinnerLabel).toBe('Thinking');
+  });
+
+  it('keeps the primary link order stable', () => {
+    expect(primaryLinks.map((link) => link.label)).toEqual([
+      'Projects',
+      'GitHub',
+      'Contact',
+    ]);
   });
 
   it('keeps command ids unique', () => {

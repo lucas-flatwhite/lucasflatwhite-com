@@ -27,6 +27,9 @@ export type RecommendedCommand =
 export const siteProfile = {
   handle: 'lucas.flatwhite',
   name: 'Lucas Flatwhite',
+  heroTitle: '/lucas-flatwhite',
+  heroTagline: 'Building calm, useful things on the web.',
+  heroSpinnerLabel: 'Thinking',
   title: 'Developer who loves flat whites and playful interfaces.',
   intro:
     'I build tools, translations, and small web experiences with a warm terminal-cafe attitude.',
@@ -35,18 +38,18 @@ export const siteProfile = {
 
 export const primaryLinks = [
   {
+    label: 'Projects',
+    href: '#projects',
+    external: false,
+  },
+  {
     label: 'GitHub',
     href: 'https://github.com/lucas-flatwhite/',
     external: true,
   },
   {
-    label: 'X',
-    href: 'https://x.com/lucas_flatwhite',
-    external: true,
-  },
-  {
-    label: 'Projects',
-    href: '#projects',
+    label: 'Contact',
+    href: '#links',
     external: false,
   },
 ] as const satisfies readonly PrimaryLink[];
