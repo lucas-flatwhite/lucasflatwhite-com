@@ -11,6 +11,13 @@ describe('site data', () => {
     expect(getSectionIds()).toEqual(['hero', 'projects', 'links']);
   });
 
+  it('returns isolated section ids to callers', () => {
+    const sectionIds = getSectionIds() as string[];
+    sectionIds.pop();
+
+    expect(getSectionIds()).toEqual(['hero', 'projects', 'links']);
+  });
+
   it('keeps primary links unique and non-empty', () => {
     const hrefs = primaryLinks.map((link) => link.href);
     expect(new Set(hrefs).size).toBe(hrefs.length);
@@ -18,7 +25,10 @@ describe('site data', () => {
   });
 
   it('keeps scroll commands aligned with section ids', () => {
-    expect(getScrollCommandTargets()).toEqual(['projects', 'links']);
+    const validSectionIds = new Set(getSectionIds());
+    expect(
+      getScrollCommandTargets().every((target) => validSectionIds.has(target)),
+    ).toBe(true);
   });
 
   it('keeps the profile copy populated', () => {

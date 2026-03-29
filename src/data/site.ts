@@ -1,4 +1,6 @@
-export type SectionId = 'hero' | 'projects' | 'links';
+export const sectionIds = ['hero', 'projects', 'links'] as const;
+
+export type SectionId = (typeof sectionIds)[number];
 
 export type PrimaryLink = {
   label: string;
@@ -31,7 +33,7 @@ export const siteProfile = {
   availability: 'Available for interesting collaborations and experiments.',
 } as const;
 
-export const primaryLinks: PrimaryLink[] = [
+export const primaryLinks = [
   {
     label: 'GitHub',
     href: 'https://github.com/lucas-flatwhite/',
@@ -47,9 +49,9 @@ export const primaryLinks: PrimaryLink[] = [
     href: '#projects',
     external: false,
   },
-];
+] as const satisfies readonly PrimaryLink[];
 
-export const recommendedCommands: RecommendedCommand[] = [
+export const recommendedCommands = [
   {
     id: 'view-projects',
     label: 'view projects',
@@ -71,4 +73,4 @@ export const recommendedCommands: RecommendedCommand[] = [
     kind: 'scroll',
     target: 'links',
   },
-];
+] as const satisfies readonly RecommendedCommand[];

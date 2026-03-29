@@ -1,13 +1,23 @@
-import { recommendedCommands, type SectionId } from '../data/site';
+import {
+  recommendedCommands,
+  sectionIds,
+  type SectionId,
+} from '../data/site';
 
-const sectionIds: SectionId[] = ['hero', 'projects', 'links'];
+type RecommendedCommand = (typeof recommendedCommands)[number];
+type ScrollCommand = Extract<RecommendedCommand, { kind: 'scroll' }>;
+type ScrollTarget = ScrollCommand['target'];
 
-export function getSectionIds(): SectionId[] {
-  return sectionIds;
+function isScrollCommand(
+  command: RecommendedCommand,
+): command is ScrollCommand {
+  return command.kind === 'scroll';
 }
 
-export function getScrollCommandTargets(): string[] {
-  return recommendedCommands
-    .filter((command) => command.kind === 'scroll')
-    .map((command) => command.target);
+export function getSectionIds(): readonly SectionId[] {
+  return [...sectionIds];
+}
+
+export function getScrollCommandTargets(): readonly ScrollTarget[] {
+  return recommendedCommands.filter(isScrollCommand).map((command) => command.target);
 }
