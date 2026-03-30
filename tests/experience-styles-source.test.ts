@@ -13,6 +13,7 @@ describe('experience styles source contract', () => {
     expect(globalStyles).toContain('.game-panel');
     expect(globalStyles).toContain('.identity-strip');
     expect(globalStyles).toContain('.experience-stage');
+    expect(globalStyles).toContain('touch-action: none;');
     expect(globalStyles).toContain('height: 100dvh;');
     expect(globalStyles).toContain('overflow: hidden;');
     expect(globalStyles).toContain('border-radius: 0;');
@@ -31,5 +32,6 @@ describe('experience styles source contract', () => {
     expect(globalStyles).toContain('@media (max-width: 720px)');
     expect(globalStyles).toContain("grid-template-areas:\n      'label links'\n      'score score';");
     expect(globalStyles).not.toContain('.fallback-copy');
+    expect(globalStyles).not.toContain('.experience-hud');
   });
 });

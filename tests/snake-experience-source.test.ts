@@ -23,5 +23,7 @@ describe('snake experience source contract', () => {
     expect(experienceSource).not.toContain('fallback-copy');
     expect(experienceSource).not.toContain('class="experience-overlay"');
     expect(experienceSource).not.toContain('data-experience-overlay');
+    expect(experienceSource).not.toContain('class="experience-hud"');
+    expect(experienceSource).not.toContain('data-experience-status');
   });
 });
