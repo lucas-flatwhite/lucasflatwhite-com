@@ -1,24 +1,14 @@
 ---
-import { getCollection } from 'astro:content';
-import CommandShelf from '../components/CommandShelf.astro';
-import FooterLinks from '../components/FooterLinks.astro';
-import Hero from '../components/Hero.astro';
-import ProjectGrid from '../components/ProjectGrid.astro';
+import SnakeExperience from '../components/SnakeExperience.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { siteProfile } from '../data/site';
-import { sortFeaturedProjects } from '../lib/projects';
-
-const projects = sortFeaturedProjects(await getCollection('projects'));
 ---
 
 <BaseLayout
   title={`${siteProfile.name} | ${siteProfile.handle}`}
-  description={siteProfile.intro}
+  description={siteProfile.experienceDescription}
 >
-  <main class="page-shell">
-    <Hero />
-    <CommandShelf />
-    <ProjectGrid projects={projects} />
-    <FooterLinks />
+  <main class="page-shell experience-page">
+    <SnakeExperience />
   </main>
 </BaseLayout>

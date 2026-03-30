@@ -1,0 +1,39 @@
+---
+import { identityLinks } from '../data/site';
+---
+
+<section class="experience-shell" aria-label="lucas-flatwhite snake experience">
+  <div class="identity-strip" aria-label="Identity links">
+    <span class="identity-label">/lucas-flatwhite</span>
+    <p class="identity-score" data-experience-score>length 3</p>
+    <nav class="identity-links" aria-label="External links">
+      {
+        identityLinks.map((link) => (
+          <a href={link.href} target="_blank" rel="noreferrer">
+            {link.label}
+          </a>
+        ))
+      }
+    </nav>
+  </div>
+
+  <div class="game-panel">
+    <div class="experience-stage" data-experience-root>
+      <canvas
+        class="experience-canvas"
+        data-experience-canvas
+        aria-label="Korean text snake experience"
+      ></canvas>
+
+      <div class="experience-hud" aria-live="polite">
+        <p data-experience-status>Arrow keys move. Collect the lit word.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { mountSnakeExperience } from '../lib/snake-experience';
+
+  mountSnakeExperience();
+</script>

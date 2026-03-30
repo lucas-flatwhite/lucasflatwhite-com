@@ -16,5 +16,8 @@
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
     "vitest": "^3.1.4"
+  },
+  "dependencies": {
+    "@chenglou/pretext": "^0.0.3"
   }
 }
