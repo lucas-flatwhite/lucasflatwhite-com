@@ -114,6 +114,7 @@ export const playfieldConfig = {
   baseSpeed: 7,
   maxSpeed: 12,
   speedRampEvery: 4,
+  cpuRespawnMs: 2600,
   burstDurationMs: 920,
   burstLockMs: 320,
   pulseRadius: 320,

@@ -46,7 +46,9 @@ describe('snake engine source contract', () => {
     expect(engineSource).toContain('if (state.over) {');
     expect(engineSource).toContain('renderSnake(ctx, state.snake, state.cellSize, worldNow);');
     expect(engineSource).toContain('renderGameOverOverlay(');
-    expect(engineSource).toContain("updateScoreText(state.over ? '' : `length ${state.score}`);");
+    expect(engineSource).toContain(
+      "updateScoreText(state.over ? '' : `length ${state.score} · cpu ${state.cpu.score}`);",
+    );
     expect(engineSource).toContain('if (lastScoreText !== text) {');
     expect(engineSource).toContain("event.key === 'Enter' || event.key === ' '");
     expect(engineSource).toContain('paused: boolean;');
@@ -116,6 +118,22 @@ describe('snake engine source contract', () => {
     expect(engineSource).toContain('function getBackgroundGradient(');
     expect(engineSource).toContain('color: `hsla(');
     expect(engineSource).toContain('ctx.fillStyle = word.color;');
+  });
+
+  it('runs a rival cpu snake competing for the same food', () => {
+    expect(engineSource).toContain('type CpuSnake = {');
+    expect(engineSource).toContain('function createCpuSnake(');
+    expect(engineSource).toContain('function respawnCpu(');
+    expect(engineSource).toContain('function chooseCpuDirection(');
+    expect(engineSource).toContain('function stepCpu(');
+    expect(engineSource).toContain('function renderCpuSnake(');
+    expect(engineSource).toContain('playfieldConfig.cpuRespawnMs');
+    expect(engineSource).toContain('if (random() < 0.12) {');
+    expect(engineSource).toContain('state.cpu.alive &&');
+    expect(engineSource).toContain('state.cpu.body.some((segment) => samePoint(segment, nextHead))');
+    expect(engineSource).toContain("const duel = score > cpuScore ? '승' : score < cpuScore ? '패' : '무';");
+    expect(engineSource).toContain('`vs cpu ${cpuScore} · ${duel}`');
+    expect(engineSource).toContain('renderCpuSnake(ctx, state.cpu, state.cellSize, worldNow);');
   });
 
   it('ignores height-only mobile url bar resizes', () => {
