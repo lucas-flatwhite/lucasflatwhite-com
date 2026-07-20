@@ -44,6 +44,7 @@ type BackgroundWord = {
   alpha: number;
   size: number;
   hue: number;
+  color: string;
   drift: number;
   avoidSnakeRadius: number;
 };
@@ -97,6 +98,15 @@ type SwipeState = {
   lastY: number;
 };
 
+type CpuSnake = {
+  body: Point[];
+  direction: Direction;
+  growth: number;
+  score: number;
+  alive: boolean;
+  respawnAt: number;
+};
+
 type GameState = {
   cols: number;
   rows: number;
@@ -106,6 +116,7 @@ type GameState = {
   pauseStartedAt: number;
   pausedDuration: number;
   snake: Point[];
+  cpu: CpuSnake;
   direction: Direction;
   queuedDirection: Direction;
   growth: number;
@@ -134,7 +145,37 @@ const FOOD_DOT_INSET = 4;
 const SNAKE_DOT_INSET = 4;
 const BACKGROUND_TEXT_PADDING = 6;
 const BACKGROUND_SNAKE_PADDING = 16;
-const STEP_MS = 1000 / playfieldConfig.baseSpeed;
+const WORD_SEPARATION_INTERVAL = 3;
+const MAX_DEVICE_PIXEL_RATIO = 2;
+const RESIZE_HEIGHT_TOLERANCE = 140;
+const BEST_SCORE_KEY = 'lucas-flatwhite:best-length';
+
+function currentStepMs(length: number): number {
+  const speed = Math.min(
+    playfieldConfig.maxSpeed,
+    playfieldConfig.baseSpeed +
+      Math.floor(Math.max(0, length - 3) / playfieldConfig.speedRampEvery),
+  );
+
+  return 1000 / speed;
+}
+
+function loadBestScore(): number {
+  try {
+    const stored = Number(window.localStorage.getItem(BEST_SCORE_KEY));
+    return Number.isFinite(stored) && stored > 0 ? Math.floor(stored) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function saveBestScore(score: number): void {
+  try {
+    window.localStorage.setItem(BEST_SCORE_KEY, String(score));
+  } catch {
+    // Private mode or blocked storage: the best score just stays in memory.
+  }
+}
 
 const DIRECTIONS = {
   up: { x: 0, y: -1 },
@@ -142,6 +183,21 @@ const DIRECTIONS = {
   left: { x: -1, y: 0 },
   right: { x: 1, y: 0 },
 } as const satisfies Record<string, Direction>;
+
+const KEY_DIRECTIONS: Record<string, Direction> = {
+  ArrowUp: DIRECTIONS.up,
+  ArrowDown: DIRECTIONS.down,
+  ArrowLeft: DIRECTIONS.left,
+  ArrowRight: DIRECTIONS.right,
+  w: DIRECTIONS.up,
+  W: DIRECTIONS.up,
+  s: DIRECTIONS.down,
+  S: DIRECTIONS.down,
+  a: DIRECTIONS.left,
+  A: DIRECTIONS.left,
+  d: DIRECTIONS.right,
+  D: DIRECTIONS.right,
+};
 
 function createRandom(seed: number): () => number {
   let value = seed >>> 0;
@@ -261,6 +317,9 @@ function createBackgroundWords(
       Math.min(height - 8, baseY + laneHeight * 0.74 + jitterY),
     );
 
+    const alpha = 0.16 + random() * 0.24;
+    const hue = 150 + random() * 220;
+
     words.push({
       text,
       prepared,
@@ -270,9 +329,10 @@ function createBackgroundWords(
       y,
       width: wordWidth,
       height: wordHeight,
-      alpha: 0.16 + random() * 0.24,
+      alpha,
       size: textSize,
-      hue: 150 + random() * 220,
+      hue,
+      color: `hsla(${hue % 360}, 96%, 72%, ${Math.min(0.96, alpha)})`,
       drift: random() * Math.PI * 2,
       avoidSnakeRadius: (44 + random() * 28) * Math.max(0.86, viewportScale),
     });
@@ -284,7 +344,7 @@ function createBackgroundWords(
 function pickFreeCell(
   cols: number,
   rows: number,
-  snake: readonly Point[],
+  occupied: readonly Point[],
   random: () => number,
 ): Point {
   for (let attempt = 0; attempt < 800; attempt += 1) {
@@ -293,12 +353,173 @@ function pickFreeCell(
       y: Math.floor(random() * rows),
     };
 
-    if (!snake.some((segment) => samePoint(segment, candidate))) {
+    if (!occupied.some((segment) => samePoint(segment, candidate))) {
       return candidate;
     }
   }
 
   return { x: cols - 2, y: rows - 2 };
+}
+
+function createCpuSnake(
+  cols: number,
+  rows: number,
+  occupied: readonly Point[],
+  random: () => number,
+): CpuSnake {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    const head = pickFreeCell(cols, rows, occupied, random);
+    const direction = head.x > cols / 2 ? DIRECTIONS.left : DIRECTIONS.right;
+    const body = [
+      head,
+      { x: head.x - direction.x, y: head.y },
+      { x: head.x - direction.x * 2, y: head.y },
+    ];
+    const valid = body.every(
+      (segment) =>
+        segment.x >= 0 &&
+        segment.x < cols &&
+        segment.y >= 0 &&
+        segment.y < rows &&
+        !occupied.some((point) => samePoint(point, segment)),
+    );
+
+    if (valid) {
+      return {
+        body,
+        direction,
+        growth: 0,
+        score: body.length,
+        alive: true,
+        respawnAt: 0,
+      };
+    }
+  }
+
+  const fallbackHead = pickFreeCell(cols, rows, occupied, random);
+
+  return {
+    body: [fallbackHead],
+    direction: DIRECTIONS.left,
+    growth: 0,
+    score: 1,
+    alive: true,
+    respawnAt: 0,
+  };
+}
+
+function respawnCpu(state: GameState, random: () => number): void {
+  state.cpu = createCpuSnake(
+    state.cols,
+    state.rows,
+    [...state.snake, state.food],
+    random,
+  );
+}
+
+function directionCandidates(current: Direction): Direction[] {
+  return [DIRECTIONS.up, DIRECTIONS.down, DIRECTIONS.left, DIRECTIONS.right].filter(
+    (direction) => !isReverse(direction, current),
+  );
+}
+
+function isCellBlocked(state: GameState, point: Point): boolean {
+  if (
+    point.x < 0 ||
+    point.y < 0 ||
+    point.x >= state.cols ||
+    point.y >= state.rows
+  ) {
+    return true;
+  }
+
+  if (state.snake.some((segment) => samePoint(segment, point))) {
+    return true;
+  }
+
+  return state.cpu.body.some((segment) => samePoint(segment, point));
+}
+
+function chooseCpuDirection(state: GameState, random: () => number): Direction {
+  const cpu = state.cpu;
+  const head = cpu.body[0]!;
+  const open = directionCandidates(cpu.direction).filter(
+    (direction) =>
+      !isCellBlocked(state, { x: head.x + direction.x, y: head.y + direction.y }),
+  );
+
+  if (open.length === 0) {
+    return cpu.direction;
+  }
+
+  if (random() < 0.12) {
+    return open[Math.floor(random() * open.length)]!;
+  }
+
+  let best = open[0]!;
+  let bestScore = Number.POSITIVE_INFINITY;
+
+  for (const direction of open) {
+    const nextX = head.x + direction.x;
+    const nextY = head.y + direction.y;
+    const distance =
+      Math.abs(nextX - state.food.x) + Math.abs(nextY - state.food.y);
+    const score = distance + random() * 0.8;
+
+    if (score < bestScore) {
+      bestScore = score;
+      best = direction;
+    }
+  }
+
+  return best;
+}
+
+function stepCpu(state: GameState, random: () => number, now: number): void {
+  const cpu = state.cpu;
+
+  if (!cpu.alive) {
+    if (now >= cpu.respawnAt) {
+      respawnCpu(state, random);
+    }
+
+    return;
+  }
+
+  cpu.direction = chooseCpuDirection(state, random);
+
+  const head = cpu.body[0]!;
+  const nextHead = {
+    x: head.x + cpu.direction.x,
+    y: head.y + cpu.direction.y,
+  };
+
+  if (isCellBlocked(state, nextHead)) {
+    cpu.alive = false;
+    cpu.respawnAt = now + playfieldConfig.cpuRespawnMs;
+    cpu.body = [];
+    return;
+  }
+
+  cpu.body.unshift(nextHead);
+
+  if (samePoint(nextHead, state.food)) {
+    cpu.growth += 2;
+    state.food = pickFreeCell(
+      state.cols,
+      state.rows,
+      [...state.snake, ...cpu.body],
+      random,
+    );
+  }
+
+  if (cpu.growth > 0) {
+    cpu.growth -= 1;
+  } else {
+    cpu.body.pop();
+  }
+
+  cpu.score = cpu.body.length;
 }
 
 function choosePaletteColor(
@@ -628,11 +849,30 @@ function drawBackgroundWord(
   ctx: CanvasRenderingContext2D,
   word: BackgroundWord,
 ): void {
-  ctx.font = WORD_FONT.replace('15px', `${word.size}px`);
-  ctx.shadowBlur = 0;
-  ctx.shadowColor = 'transparent';
-  ctx.fillStyle = `hsla(${word.hue % 360}, 96%, 72%, ${Math.min(0.96, word.alpha)})`;
+  ctx.fillStyle = word.color;
   ctx.fillText(word.text, word.x, word.y);
+}
+
+let cachedBackgroundGradient: CanvasGradient | null = null;
+let cachedBackgroundGradientKey = '';
+
+function getBackgroundGradient(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+): CanvasGradient {
+  const key = `${width}x${height}`;
+
+  if (!cachedBackgroundGradient || cachedBackgroundGradientKey !== key) {
+    const background = ctx.createLinearGradient(0, 0, width, height);
+    background.addColorStop(0, '#07040f');
+    background.addColorStop(0.4, '#12071c');
+    background.addColorStop(1, '#041c1e');
+    cachedBackgroundGradient = background;
+    cachedBackgroundGradientKey = key;
+  }
+
+  return cachedBackgroundGradient;
 }
 
 function renderBackground(
@@ -643,13 +883,10 @@ function renderBackground(
   now: number,
   cellSize: number,
   snake: readonly Point[],
+  frame: number,
   drawWords = true,
 ): void {
-  const background = ctx.createLinearGradient(0, 0, width, height);
-  background.addColorStop(0, '#07040f');
-  background.addColorStop(0.4, '#12071c');
-  background.addColorStop(1, '#041c1e');
-  ctx.fillStyle = background;
+  ctx.fillStyle = getBackgroundGradient(ctx, width, height);
   ctx.fillRect(0, 0, width, height);
 
   if (!drawWords) {
@@ -658,8 +895,14 @@ function renderBackground(
 
   ctx.textBaseline = 'alphabetic';
   ctx.textAlign = 'left';
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = 'transparent';
+
   const snakeRects = createSnakeRects(snake, cellSize);
-  resolveBackgroundLayout(words, snakeRects, width, height, now);
+  resolveBackgroundLayout(words, snakeRects, width, height, now, frame);
+
+  const wordSize = words[0]?.size ?? BACKGROUND_TEXT_SIZE;
+  ctx.font = WORD_FONT.replace('15px', `${wordSize}px`);
 
   for (const word of words) {
     if (intersectsSnakeBody(word, snakeRects)) {
@@ -668,8 +911,6 @@ function renderBackground(
 
     drawBackgroundWord(ctx, word);
   }
-
-  ctx.shadowBlur = 0;
 }
 
 function renderGameOverOverlay(
@@ -677,6 +918,10 @@ function renderGameOverOverlay(
   width: number,
   height: number,
   score: number,
+  cpuScore: number,
+  bestScore: number,
+  isNewBest: boolean,
+  now: number,
 ): void {
   const scoreSize = Math.max(72, Math.floor(Math.min(width, height) * 0.25));
   const titleSize = Math.max(22, Math.floor(scoreSize * 0.18));
@@ -701,6 +946,54 @@ function renderGameOverOverlay(
   ctx.fillStyle = 'rgba(255, 244, 210, 0.62)';
   ctx.font = `500 ${subtitleSize}px "Roboto Mono"`;
   ctx.fillText(subtitle, centerX, centerY + scoreSize * 1.08);
+
+  const duel = score > cpuScore ? '승' : score < cpuScore ? '패' : '무';
+  const duelColor =
+    score > cpuScore
+      ? 'rgba(122, 255, 208, 0.88)'
+      : score < cpuScore
+        ? 'rgba(255, 156, 87, 0.88)'
+        : 'rgba(255, 244, 210, 0.78)';
+  ctx.fillStyle = duelColor;
+  ctx.font = `700 ${subtitleSize}px "Roboto Mono"`;
+  ctx.fillText(`vs cpu ${cpuScore} · ${duel}`, centerX, centerY + scoreSize * 1.28);
+
+  const bestText = isNewBest ? `new record! best ${bestScore}` : `best ${bestScore}`;
+  const bestPulse = isNewBest ? 0.72 + (Math.sin(now * 0.008) + 1) * 0.14 : 0.58;
+  ctx.fillStyle = `rgba(122, 255, 208, ${bestPulse})`;
+  ctx.font = `700 ${subtitleSize}px "Roboto Mono"`;
+  ctx.fillText(bestText, centerX, centerY + scoreSize * 1.46);
+
+  const hintPulse = 0.4 + (Math.sin(now * 0.004) + 1) * 0.16;
+  ctx.fillStyle = `rgba(255, 244, 210, ${hintPulse})`;
+  ctx.font = `500 ${subtitleSize}px "Roboto Mono"`;
+  ctx.fillText('enter / tap → restart', centerX, centerY + scoreSize * 1.64);
+  ctx.restore();
+}
+
+function renderPauseOverlay(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+): void {
+  const titleSize = Math.max(26, Math.floor(Math.min(width, height) * 0.05));
+  const subtitleSize = Math.max(14, Math.floor(titleSize * 0.55));
+  const centerX = width * 0.5;
+  const centerY = height * 0.48;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(4, 3, 12, 0.45)';
+  ctx.fillRect(0, 0, width, height);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  ctx.fillStyle = 'rgba(255, 244, 210, 0.94)';
+  ctx.font = `700 ${titleSize}px "Roboto Mono"`;
+  ctx.fillText('일시정지', centerX, centerY - titleSize * 0.5);
+
+  ctx.fillStyle = 'rgba(255, 244, 210, 0.6)';
+  ctx.font = `500 ${subtitleSize}px "Roboto Mono"`;
+  ctx.fillText('paused — enter / space', centerX, centerY + titleSize * 0.75);
   ctx.restore();
 }
 
@@ -731,6 +1024,9 @@ function renderSnake(
   cellSize: number,
   now: number,
 ): void {
+  ctx.save();
+  ctx.shadowColor = 'rgba(117, 255, 206, 0.55)';
+
   snake.forEach((segment, index) => {
     const x = segment.x * cellSize + SNAKE_DOT_INSET;
     const y = segment.y * cellSize + SNAKE_DOT_INSET;
@@ -738,13 +1034,40 @@ function renderSnake(
     const lightness = 76 - index * 2.5;
     const hue = 184 + Math.sin(now * 0.003 + index * 0.35) * 34;
 
-    ctx.save();
     ctx.shadowBlur = index === 0 ? 18 : 0;
-    ctx.shadowColor = 'rgba(117, 255, 206, 0.55)';
     ctx.fillStyle = `hsl(${hue}, 96%, ${Math.max(lightness, 42)}%)`;
     drawDotCell(ctx, x, y, size);
-    ctx.restore();
   });
+
+  ctx.restore();
+}
+
+function renderCpuSnake(
+  ctx: CanvasRenderingContext2D,
+  cpu: CpuSnake,
+  cellSize: number,
+  now: number,
+): void {
+  if (!cpu.alive) {
+    return;
+  }
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(255, 156, 87, 0.5)';
+
+  cpu.body.forEach((segment, index) => {
+    const x = segment.x * cellSize + SNAKE_DOT_INSET;
+    const y = segment.y * cellSize + SNAKE_DOT_INSET;
+    const size = Math.max(6, cellSize - SNAKE_DOT_INSET * 2);
+    const lightness = 72 - index * 2.5;
+    const hue = 24 + Math.sin(now * 0.003 + index * 0.35) * 14;
+
+    ctx.shadowBlur = index === 0 ? 16 : 0;
+    ctx.fillStyle = `hsl(${hue}, 96%, ${Math.max(lightness, 44)}%)`;
+    drawDotCell(ctx, x, y, size);
+  });
+
+  ctx.restore();
 }
 
 function renderBursts(
@@ -825,6 +1148,7 @@ function resolveBackgroundLayout(
   width: number,
   height: number,
   now: number,
+  frame: number,
 ): void {
   for (const word of words) {
     let targetX = word.anchorX + Math.sin(now * 0.00055 + word.drift) * 10;
@@ -858,6 +1182,10 @@ function resolveBackgroundLayout(
 
       pushWordOutsideRect(word, collision);
     }
+  }
+
+  if (frame % WORD_SEPARATION_INTERVAL !== 0) {
+    return;
   }
 
   const sorted = [...words].sort((a, b) => a.y - b.y || a.x - b.x);
@@ -925,6 +1253,7 @@ function createGameState(
   const cols = Math.max(12, Math.floor(width / cellSize));
   const rows = Math.max(10, Math.floor(height / cellSize));
   const snake = createInitialSnake(cols, rows);
+  const cpu = createCpuSnake(cols, rows, snake, random);
 
   return {
     cols,
@@ -935,10 +1264,11 @@ function createGameState(
     pauseStartedAt: 0,
     pausedDuration: 0,
     snake,
+    cpu,
     direction: DIRECTIONS.right,
     queuedDirection: DIRECTIONS.right,
     growth: 0,
-    food: pickFreeCell(cols, rows, snake, random),
+    food: pickFreeCell(cols, rows, [...snake, ...cpu.body], random),
     score: snake.length,
     lastStepAt: 0,
     lockUntil: 0,
@@ -975,7 +1305,9 @@ function stepSnake(
     nextHead.y < 0 ||
     nextHead.x >= state.cols ||
     nextHead.y >= state.rows ||
-    state.snake.some((segment) => samePoint(segment, nextHead))
+    state.snake.some((segment) => samePoint(segment, nextHead)) ||
+    (state.cpu.alive &&
+      state.cpu.body.some((segment) => samePoint(segment, nextHead)))
   ) {
     state.over = true;
     state.gameOverAt = now;
@@ -1000,7 +1332,12 @@ function stepSnake(
       ),
     );
     state.burstId += 6;
-    state.food = pickFreeCell(state.cols, state.rows, state.snake, random);
+    state.food = pickFreeCell(
+      state.cols,
+      state.rows,
+      [...state.snake, ...state.cpu.body],
+      random,
+    );
   }
 
   if (state.growth > 0) {
@@ -1010,6 +1347,7 @@ function stepSnake(
   }
 
   state.score = state.snake.length;
+  stepCpu(state, random, now);
   state.bursts = state.bursts.filter(
     (cluster) => now - cluster.bornAt < cluster.durationMs,
   );
@@ -1042,9 +1380,23 @@ export function mountSnakeExperience(): void {
   let preparedPhrases: PreparedPhraseGroups = { ko: [], en: [] };
   let swipe: SwipeState | null = null;
   let state = createGameState(root.clientWidth, root.clientHeight, random);
+  let frame = 0;
+  let lastWidth = 0;
+  let lastHeight = 0;
+  let bestScore = loadBestScore();
+  let bestRecorded = false;
+  let isNewBest = false;
+  let lastScoreText: string | null = null;
+
+  const updateScoreText = (text: string): void => {
+    if (lastScoreText !== text) {
+      lastScoreText = text;
+      score.textContent = text;
+    }
+  };
 
   const syncCanvas = (): void => {
-    const ratio = window.devicePixelRatio || 1;
+    const ratio = Math.min(window.devicePixelRatio || 1, MAX_DEVICE_PIXEL_RATIO);
     const width = Math.max(root.clientWidth, 320);
     const height = Math.max(root.clientHeight, 320);
     canvas.width = Math.floor(width * ratio);
@@ -1054,11 +1406,31 @@ export function mountSnakeExperience(): void {
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     state = createGameState(width, height, random);
     root.style.setProperty('--experience-scale', state.viewportScale.toFixed(3));
-    score.textContent = `length ${state.score}`;
+    updateScoreText(`length ${state.score} · cpu ${state.cpu.score}`);
     swipe = null;
+    lastWidth = width;
+    lastHeight = height;
+    bestRecorded = false;
+    isNewBest = false;
+  };
+
+  const recordBestScore = (): void => {
+    if (bestRecorded) {
+      return;
+    }
+
+    bestRecorded = true;
+    isNewBest = state.score > bestScore;
+
+    if (isNewBest) {
+      bestScore = state.score;
+      saveBestScore(bestScore);
+    }
   };
 
   const render = (now: number): void => {
+    frame += 1;
+
     const worldNow = state.paused
       ? state.pauseStartedAt - state.pausedDuration
       : now - state.pausedDuration;
@@ -1068,11 +1440,18 @@ export function mountSnakeExperience(): void {
     }
 
     if (!state.over && !state.paused && worldNow >= state.lockUntil) {
-      while (worldNow - state.lastStepAt >= STEP_MS) {
+      let stepMs = currentStepMs(state.snake.length);
+
+      while (worldNow - state.lastStepAt >= stepMs) {
         stepSnake(state, random, preparedPhrases, worldNow);
-        state.lastStepAt += STEP_MS;
+        state.lastStepAt += stepMs;
+        stepMs = currentStepMs(state.snake.length);
       }
     }
+
+    const obstacles = state.cpu.alive
+      ? [...state.snake, ...state.cpu.body]
+      : state.snake;
 
     renderBackground(
       ctx,
@@ -1081,27 +1460,40 @@ export function mountSnakeExperience(): void {
       state.words,
       worldNow,
       state.cellSize,
-      state.snake,
+      obstacles,
+      frame,
       !state.over,
     );
 
     if (state.over) {
+      recordBestScore();
+      renderCpuSnake(ctx, state.cpu, state.cellSize, worldNow);
       renderSnake(ctx, state.snake, state.cellSize, worldNow);
       renderGameOverOverlay(
         ctx,
         root.clientWidth,
         root.clientHeight,
         state.score,
+        state.cpu.score,
+        bestScore,
+        isNewBest,
+        now,
       );
-      score.textContent = state.over ? '' : `length ${state.score}`;
+      updateScoreText(state.over ? '' : `length ${state.score} · cpu ${state.cpu.score}`);
       animationFrame = window.requestAnimationFrame(render);
       return;
     }
 
     renderFood(ctx, state.food, state.cellSize, worldNow);
+    renderCpuSnake(ctx, state.cpu, state.cellSize, worldNow);
     renderSnake(ctx, state.snake, state.cellSize, worldNow);
     renderBursts(ctx, state.bursts, worldNow);
-    score.textContent = state.over ? '' : `length ${state.score}`;
+
+    if (state.paused) {
+      renderPauseOverlay(ctx, root.clientWidth, root.clientHeight);
+    }
+
+    updateScoreText(state.over ? '' : `length ${state.score} · cpu ${state.cpu.score}`);
 
     animationFrame = window.requestAnimationFrame(render);
   };
@@ -1126,16 +1518,7 @@ export function mountSnakeExperience(): void {
       return;
     }
 
-    const nextDirection =
-      event.key === 'ArrowUp'
-        ? DIRECTIONS.up
-        : event.key === 'ArrowDown'
-          ? DIRECTIONS.down
-          : event.key === 'ArrowLeft'
-            ? DIRECTIONS.left
-            : event.key === 'ArrowRight'
-              ? DIRECTIONS.right
-              : null;
+    const nextDirection = KEY_DIRECTIONS[event.key] ?? null;
 
     if (!nextDirection || state.paused) {
       return;
@@ -1211,6 +1594,16 @@ export function mountSnakeExperience(): void {
   };
 
   const handleResize = (): void => {
+    const width = Math.max(root.clientWidth, 320);
+    const height = Math.max(root.clientHeight, 320);
+    const heightDelta = Math.abs(height - lastHeight);
+
+    // Mobile URL bars collapse and expand constantly; a height-only nudge
+    // should not reset a game in progress.
+    if (width === lastWidth && heightDelta < RESIZE_HEIGHT_TOLERANCE) {
+      return;
+    }
+
     syncCanvas();
   };
 
