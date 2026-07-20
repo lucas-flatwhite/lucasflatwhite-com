@@ -46,7 +46,8 @@ describe('snake engine source contract', () => {
     expect(engineSource).toContain('if (state.over) {');
     expect(engineSource).toContain('renderSnake(ctx, state.snake, state.cellSize, worldNow);');
     expect(engineSource).toContain('renderGameOverOverlay(');
-    expect(engineSource).toContain("score.textContent = state.over ? '' : `length ${state.score}`;");
+    expect(engineSource).toContain("updateScoreText(state.over ? '' : `length ${state.score}`);");
+    expect(engineSource).toContain('if (lastScoreText !== text) {');
     expect(engineSource).toContain("event.key === 'Enter' || event.key === ' '");
     expect(engineSource).toContain('paused: boolean;');
     expect(engineSource).toContain('state.paused = !state.paused;');
@@ -79,5 +80,46 @@ describe('snake engine source contract', () => {
     expect(engineSource).not.toContain('function computeFieldFoldState(');
     expect(engineSource).not.toContain('Math.cos(angle) * spread');
     expect(engineSource).not.toContain('Math.sin(angle) * spread');
+  });
+
+  it('ramps the step speed with snake length', () => {
+    expect(engineSource).toContain('function currentStepMs(');
+    expect(engineSource).toContain('playfieldConfig.maxSpeed');
+    expect(engineSource).toContain('playfieldConfig.speedRampEvery');
+    expect(engineSource).toContain('let stepMs = currentStepMs(state.snake.length);');
+    expect(engineSource).toContain('stepMs = currentStepMs(state.snake.length);');
+    expect(engineSource).not.toContain('const STEP_MS');
+  });
+
+  it('persists the best length and shows it on game over', () => {
+    expect(engineSource).toContain("const BEST_SCORE_KEY = 'lucas-flatwhite:best-length';");
+    expect(engineSource).toContain('function loadBestScore(');
+    expect(engineSource).toContain('function saveBestScore(');
+    expect(engineSource).toContain('const recordBestScore = (): void => {');
+    expect(engineSource).toContain("isNewBest ? `new record! best ${bestScore}` : `best ${bestScore}`");
+    expect(engineSource).toContain("'enter / tap → restart'");
+  });
+
+  it('shows a pause overlay and accepts wasd controls', () => {
+    expect(engineSource).toContain('function renderPauseOverlay(');
+    expect(engineSource).toContain("'일시정지'");
+    expect(engineSource).toContain('const KEY_DIRECTIONS: Record<string, Direction>');
+    expect(engineSource).toContain('w: DIRECTIONS.up');
+    expect(engineSource).toContain('d: DIRECTIONS.right');
+  });
+
+  it('keeps per-frame rendering costs bounded', () => {
+    expect(engineSource).toContain('const WORD_SEPARATION_INTERVAL = 3;');
+    expect(engineSource).toContain('frame % WORD_SEPARATION_INTERVAL');
+    expect(engineSource).toContain('const MAX_DEVICE_PIXEL_RATIO = 2;');
+    expect(engineSource).toContain('Math.min(window.devicePixelRatio || 1, MAX_DEVICE_PIXEL_RATIO)');
+    expect(engineSource).toContain('function getBackgroundGradient(');
+    expect(engineSource).toContain('color: `hsla(');
+    expect(engineSource).toContain('ctx.fillStyle = word.color;');
+  });
+
+  it('ignores height-only mobile url bar resizes', () => {
+    expect(engineSource).toContain('const RESIZE_HEIGHT_TOLERANCE = 140;');
+    expect(engineSource).toContain('if (width === lastWidth && heightDelta < RESIZE_HEIGHT_TOLERANCE) {');
   });
 });

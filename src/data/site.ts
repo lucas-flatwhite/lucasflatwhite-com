@@ -112,6 +112,8 @@ export const playfieldConfig = {
   rows: 18,
   backgroundWordCount: 1080,
   baseSpeed: 7,
+  maxSpeed: 12,
+  speedRampEvery: 4,
   burstDurationMs: 920,
   burstLockMs: 320,
   pulseRadius: 320,

@@ -44,6 +44,7 @@ type BackgroundWord = {
   alpha: number;
   size: number;
   hue: number;
+  color: string;
   drift: number;
   avoidSnakeRadius: number;
 };
@@ -134,7 +135,37 @@ const FOOD_DOT_INSET = 4;
 const SNAKE_DOT_INSET = 4;
 const BACKGROUND_TEXT_PADDING = 6;
 const BACKGROUND_SNAKE_PADDING = 16;
-const STEP_MS = 1000 / playfieldConfig.baseSpeed;
+const WORD_SEPARATION_INTERVAL = 3;
+const MAX_DEVICE_PIXEL_RATIO = 2;
+const RESIZE_HEIGHT_TOLERANCE = 140;
+const BEST_SCORE_KEY = 'lucas-flatwhite:best-length';
+
+function currentStepMs(length: number): number {
+  const speed = Math.min(
+    playfieldConfig.maxSpeed,
+    playfieldConfig.baseSpeed +
+      Math.floor(Math.max(0, length - 3) / playfieldConfig.speedRampEvery),
+  );
+
+  return 1000 / speed;
+}
+
+function loadBestScore(): number {
+  try {
+    const stored = Number(window.localStorage.getItem(BEST_SCORE_KEY));
+    return Number.isFinite(stored) && stored > 0 ? Math.floor(stored) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function saveBestScore(score: number): void {
+  try {
+    window.localStorage.setItem(BEST_SCORE_KEY, String(score));
+  } catch {
+    // Private mode or blocked storage: the best score just stays in memory.
+  }
+}
 
 const DIRECTIONS = {
   up: { x: 0, y: -1 },
@@ -142,6 +173,21 @@ const DIRECTIONS = {
   left: { x: -1, y: 0 },
   right: { x: 1, y: 0 },
 } as const satisfies Record<string, Direction>;
+
+const KEY_DIRECTIONS: Record<string, Direction> = {
+  ArrowUp: DIRECTIONS.up,
+  ArrowDown: DIRECTIONS.down,
+  ArrowLeft: DIRECTIONS.left,
+  ArrowRight: DIRECTIONS.right,
+  w: DIRECTIONS.up,
+  W: DIRECTIONS.up,
+  s: DIRECTIONS.down,
+  S: DIRECTIONS.down,
+  a: DIRECTIONS.left,
+  A: DIRECTIONS.left,
+  d: DIRECTIONS.right,
+  D: DIRECTIONS.right,
+};
 
 function createRandom(seed: number): () => number {
   let value = seed >>> 0;
@@ -261,6 +307,9 @@ function createBackgroundWords(
       Math.min(height - 8, baseY + laneHeight * 0.74 + jitterY),
     );
 
+    const alpha = 0.16 + random() * 0.24;
+    const hue = 150 + random() * 220;
+
     words.push({
       text,
       prepared,
@@ -270,9 +319,10 @@ function createBackgroundWords(
       y,
       width: wordWidth,
       height: wordHeight,
-      alpha: 0.16 + random() * 0.24,
+      alpha,
       size: textSize,
-      hue: 150 + random() * 220,
+      hue,
+      color: `hsla(${hue % 360}, 96%, 72%, ${Math.min(0.96, alpha)})`,
       drift: random() * Math.PI * 2,
       avoidSnakeRadius: (44 + random() * 28) * Math.max(0.86, viewportScale),
     });
@@ -628,11 +678,30 @@ function drawBackgroundWord(
   ctx: CanvasRenderingContext2D,
   word: BackgroundWord,
 ): void {
-  ctx.font = WORD_FONT.replace('15px', `${word.size}px`);
-  ctx.shadowBlur = 0;
-  ctx.shadowColor = 'transparent';
-  ctx.fillStyle = `hsla(${word.hue % 360}, 96%, 72%, ${Math.min(0.96, word.alpha)})`;
+  ctx.fillStyle = word.color;
   ctx.fillText(word.text, word.x, word.y);
+}
+
+let cachedBackgroundGradient: CanvasGradient | null = null;
+let cachedBackgroundGradientKey = '';
+
+function getBackgroundGradient(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+): CanvasGradient {
+  const key = `${width}x${height}`;
+
+  if (!cachedBackgroundGradient || cachedBackgroundGradientKey !== key) {
+    const background = ctx.createLinearGradient(0, 0, width, height);
+    background.addColorStop(0, '#07040f');
+    background.addColorStop(0.4, '#12071c');
+    background.addColorStop(1, '#041c1e');
+    cachedBackgroundGradient = background;
+    cachedBackgroundGradientKey = key;
+  }
+
+  return cachedBackgroundGradient;
 }
 
 function renderBackground(
@@ -643,13 +712,10 @@ function renderBackground(
   now: number,
   cellSize: number,
   snake: readonly Point[],
+  frame: number,
   drawWords = true,
 ): void {
-  const background = ctx.createLinearGradient(0, 0, width, height);
-  background.addColorStop(0, '#07040f');
-  background.addColorStop(0.4, '#12071c');
-  background.addColorStop(1, '#041c1e');
-  ctx.fillStyle = background;
+  ctx.fillStyle = getBackgroundGradient(ctx, width, height);
   ctx.fillRect(0, 0, width, height);
 
   if (!drawWords) {
@@ -658,8 +724,14 @@ function renderBackground(
 
   ctx.textBaseline = 'alphabetic';
   ctx.textAlign = 'left';
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = 'transparent';
+
   const snakeRects = createSnakeRects(snake, cellSize);
-  resolveBackgroundLayout(words, snakeRects, width, height, now);
+  resolveBackgroundLayout(words, snakeRects, width, height, now, frame);
+
+  const wordSize = words[0]?.size ?? BACKGROUND_TEXT_SIZE;
+  ctx.font = WORD_FONT.replace('15px', `${wordSize}px`);
 
   for (const word of words) {
     if (intersectsSnakeBody(word, snakeRects)) {
@@ -668,8 +740,6 @@ function renderBackground(
 
     drawBackgroundWord(ctx, word);
   }
-
-  ctx.shadowBlur = 0;
 }
 
 function renderGameOverOverlay(
@@ -677,6 +747,9 @@ function renderGameOverOverlay(
   width: number,
   height: number,
   score: number,
+  bestScore: number,
+  isNewBest: boolean,
+  now: number,
 ): void {
   const scoreSize = Math.max(72, Math.floor(Math.min(width, height) * 0.25));
   const titleSize = Math.max(22, Math.floor(scoreSize * 0.18));
@@ -701,6 +774,43 @@ function renderGameOverOverlay(
   ctx.fillStyle = 'rgba(255, 244, 210, 0.62)';
   ctx.font = `500 ${subtitleSize}px "Roboto Mono"`;
   ctx.fillText(subtitle, centerX, centerY + scoreSize * 1.08);
+
+  const bestText = isNewBest ? `new record! best ${bestScore}` : `best ${bestScore}`;
+  const bestPulse = isNewBest ? 0.72 + (Math.sin(now * 0.008) + 1) * 0.14 : 0.58;
+  ctx.fillStyle = `rgba(122, 255, 208, ${bestPulse})`;
+  ctx.font = `700 ${subtitleSize}px "Roboto Mono"`;
+  ctx.fillText(bestText, centerX, centerY + scoreSize * 1.32);
+
+  const hintPulse = 0.4 + (Math.sin(now * 0.004) + 1) * 0.16;
+  ctx.fillStyle = `rgba(255, 244, 210, ${hintPulse})`;
+  ctx.font = `500 ${subtitleSize}px "Roboto Mono"`;
+  ctx.fillText('enter / tap → restart', centerX, centerY + scoreSize * 1.52);
+  ctx.restore();
+}
+
+function renderPauseOverlay(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+): void {
+  const titleSize = Math.max(26, Math.floor(Math.min(width, height) * 0.05));
+  const subtitleSize = Math.max(14, Math.floor(titleSize * 0.55));
+  const centerX = width * 0.5;
+  const centerY = height * 0.48;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(4, 3, 12, 0.45)';
+  ctx.fillRect(0, 0, width, height);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  ctx.fillStyle = 'rgba(255, 244, 210, 0.94)';
+  ctx.font = `700 ${titleSize}px "Roboto Mono"`;
+  ctx.fillText('일시정지', centerX, centerY - titleSize * 0.5);
+
+  ctx.fillStyle = 'rgba(255, 244, 210, 0.6)';
+  ctx.font = `500 ${subtitleSize}px "Roboto Mono"`;
+  ctx.fillText('paused — enter / space', centerX, centerY + titleSize * 0.75);
   ctx.restore();
 }
 
@@ -731,6 +841,9 @@ function renderSnake(
   cellSize: number,
   now: number,
 ): void {
+  ctx.save();
+  ctx.shadowColor = 'rgba(117, 255, 206, 0.55)';
+
   snake.forEach((segment, index) => {
     const x = segment.x * cellSize + SNAKE_DOT_INSET;
     const y = segment.y * cellSize + SNAKE_DOT_INSET;
@@ -738,13 +851,12 @@ function renderSnake(
     const lightness = 76 - index * 2.5;
     const hue = 184 + Math.sin(now * 0.003 + index * 0.35) * 34;
 
-    ctx.save();
     ctx.shadowBlur = index === 0 ? 18 : 0;
-    ctx.shadowColor = 'rgba(117, 255, 206, 0.55)';
     ctx.fillStyle = `hsl(${hue}, 96%, ${Math.max(lightness, 42)}%)`;
     drawDotCell(ctx, x, y, size);
-    ctx.restore();
   });
+
+  ctx.restore();
 }
 
 function renderBursts(
@@ -825,6 +937,7 @@ function resolveBackgroundLayout(
   width: number,
   height: number,
   now: number,
+  frame: number,
 ): void {
   for (const word of words) {
     let targetX = word.anchorX + Math.sin(now * 0.00055 + word.drift) * 10;
@@ -858,6 +971,10 @@ function resolveBackgroundLayout(
 
       pushWordOutsideRect(word, collision);
     }
+  }
+
+  if (frame % WORD_SEPARATION_INTERVAL !== 0) {
+    return;
   }
 
   const sorted = [...words].sort((a, b) => a.y - b.y || a.x - b.x);
@@ -1042,9 +1159,23 @@ export function mountSnakeExperience(): void {
   let preparedPhrases: PreparedPhraseGroups = { ko: [], en: [] };
   let swipe: SwipeState | null = null;
   let state = createGameState(root.clientWidth, root.clientHeight, random);
+  let frame = 0;
+  let lastWidth = 0;
+  let lastHeight = 0;
+  let bestScore = loadBestScore();
+  let bestRecorded = false;
+  let isNewBest = false;
+  let lastScoreText: string | null = null;
+
+  const updateScoreText = (text: string): void => {
+    if (lastScoreText !== text) {
+      lastScoreText = text;
+      score.textContent = text;
+    }
+  };
 
   const syncCanvas = (): void => {
-    const ratio = window.devicePixelRatio || 1;
+    const ratio = Math.min(window.devicePixelRatio || 1, MAX_DEVICE_PIXEL_RATIO);
     const width = Math.max(root.clientWidth, 320);
     const height = Math.max(root.clientHeight, 320);
     canvas.width = Math.floor(width * ratio);
@@ -1054,11 +1185,31 @@ export function mountSnakeExperience(): void {
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     state = createGameState(width, height, random);
     root.style.setProperty('--experience-scale', state.viewportScale.toFixed(3));
-    score.textContent = `length ${state.score}`;
+    updateScoreText(`length ${state.score}`);
     swipe = null;
+    lastWidth = width;
+    lastHeight = height;
+    bestRecorded = false;
+    isNewBest = false;
+  };
+
+  const recordBestScore = (): void => {
+    if (bestRecorded) {
+      return;
+    }
+
+    bestRecorded = true;
+    isNewBest = state.score > bestScore;
+
+    if (isNewBest) {
+      bestScore = state.score;
+      saveBestScore(bestScore);
+    }
   };
 
   const render = (now: number): void => {
+    frame += 1;
+
     const worldNow = state.paused
       ? state.pauseStartedAt - state.pausedDuration
       : now - state.pausedDuration;
@@ -1068,9 +1219,12 @@ export function mountSnakeExperience(): void {
     }
 
     if (!state.over && !state.paused && worldNow >= state.lockUntil) {
-      while (worldNow - state.lastStepAt >= STEP_MS) {
+      let stepMs = currentStepMs(state.snake.length);
+
+      while (worldNow - state.lastStepAt >= stepMs) {
         stepSnake(state, random, preparedPhrases, worldNow);
-        state.lastStepAt += STEP_MS;
+        state.lastStepAt += stepMs;
+        stepMs = currentStepMs(state.snake.length);
       }
     }
 
@@ -1082,18 +1236,23 @@ export function mountSnakeExperience(): void {
       worldNow,
       state.cellSize,
       state.snake,
+      frame,
       !state.over,
     );
 
     if (state.over) {
+      recordBestScore();
       renderSnake(ctx, state.snake, state.cellSize, worldNow);
       renderGameOverOverlay(
         ctx,
         root.clientWidth,
         root.clientHeight,
         state.score,
+        bestScore,
+        isNewBest,
+        now,
       );
-      score.textContent = state.over ? '' : `length ${state.score}`;
+      updateScoreText(state.over ? '' : `length ${state.score}`);
       animationFrame = window.requestAnimationFrame(render);
       return;
     }
@@ -1101,7 +1260,12 @@ export function mountSnakeExperience(): void {
     renderFood(ctx, state.food, state.cellSize, worldNow);
     renderSnake(ctx, state.snake, state.cellSize, worldNow);
     renderBursts(ctx, state.bursts, worldNow);
-    score.textContent = state.over ? '' : `length ${state.score}`;
+
+    if (state.paused) {
+      renderPauseOverlay(ctx, root.clientWidth, root.clientHeight);
+    }
+
+    updateScoreText(state.over ? '' : `length ${state.score}`);
 
     animationFrame = window.requestAnimationFrame(render);
   };
@@ -1126,16 +1290,7 @@ export function mountSnakeExperience(): void {
       return;
     }
 
-    const nextDirection =
-      event.key === 'ArrowUp'
-        ? DIRECTIONS.up
-        : event.key === 'ArrowDown'
-          ? DIRECTIONS.down
-          : event.key === 'ArrowLeft'
-            ? DIRECTIONS.left
-            : event.key === 'ArrowRight'
-              ? DIRECTIONS.right
-              : null;
+    const nextDirection = KEY_DIRECTIONS[event.key] ?? null;
 
     if (!nextDirection || state.paused) {
       return;
@@ -1211,6 +1366,16 @@ export function mountSnakeExperience(): void {
   };
 
   const handleResize = (): void => {
+    const width = Math.max(root.clientWidth, 320);
+    const height = Math.max(root.clientHeight, 320);
+    const heightDelta = Math.abs(height - lastHeight);
+
+    // Mobile URL bars collapse and expand constantly; a height-only nudge
+    // should not reset a game in progress.
+    if (width === lastWidth && heightDelta < RESIZE_HEIGHT_TOLERANCE) {
+      return;
+    }
+
     syncCanvas();
   };
 
