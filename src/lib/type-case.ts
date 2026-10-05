@@ -65,7 +65,7 @@ const LINE_GAP = 0.08;
 const SPACE_EM = 0.32;
 const PUSH_RADIUS = 1.15;
 const SPRING = 20;
-const DAMPING = 5.5;
+const DAMPING = 7;
 const CAMERA_ELEVATION = (50 * Math.PI) / 180;
 /** How far the camera pulls back (as a share of its framing) to show the standing proof. */
 const WIDE_PULL = 0.48;
@@ -477,7 +477,19 @@ export function mountTypeCase(
       sort.spin *= Math.exp(-DAMPING * dt);
       sort.yaw += sort.spin * dt;
 
-      if (sort.velocity.lengthSq() > 1e-6 || sort.offset.lengthSq() > 1e-6 || Math.abs(sort.spin) > 1e-3) {
+      const settled =
+        sort.velocity.lengthSq() < 1e-6 &&
+        sort.offset.lengthSq() < 1e-6 &&
+        Math.abs(sort.spin) < 1e-3 &&
+        Math.abs(sort.yaw) < 1e-3;
+
+      // Once a sort is this close, seat it exactly at home so the forme comes to rest square.
+      if (settled) {
+        sort.velocity.set(0, 0);
+        sort.offset.set(0, 0);
+        sort.spin = 0;
+        sort.yaw = 0;
+      } else {
         moving = true;
       }
     }
@@ -617,9 +629,17 @@ export function mountTypeCase(
 
   const tick = (now: number) => {
     handle = 0;
-    const dt = Math.min(0.033, last ? (now - last) / 1000 : 0.016);
+    // Step the springs in fixed slices so slow devices see the same motion, not slow motion.
+    let remaining = Math.min(0.1, last ? (now - last) / 1000 : 1 / 60);
     last = now;
-    const moving = stepSorts(dt);
+    let moving = false;
+
+    while (remaining > 1e-4) {
+      const slice = Math.min(remaining, 1 / 60);
+      moving = stepSorts(slice);
+      remaining -= slice;
+    }
+
     const animating = stepPhase(now);
     renderer.render(scene, camera);
 
