@@ -311,6 +311,93 @@
   }
 }
 
+/* Type case ------------------------------------------------------------------- */
+
+.case {
+  padding: clamp(80px, 12vh, 140px) 0 0;
+}
+
+.case-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 30rem);
+  align-items: end;
+  gap: 1.5rem var(--gutter);
+  padding: 0 var(--gutter);
+}
+
+.case-title {
+  margin: 0;
+  font-size: clamp(3.6rem, 10vw, 8.5rem);
+  font-stretch: 128%;
+  font-weight: 800;
+  line-height: 0.86;
+}
+
+.case-intro p {
+  margin: 0;
+  color: var(--foam-dim);
+  font-size: clamp(1.05rem, 1.4vw, 1.2rem);
+}
+
+.case-button {
+  margin-top: 1.4rem;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.case-button[hidden] {
+  display: none;
+}
+
+.case-button:disabled {
+  cursor: progress;
+  opacity: 0.72;
+}
+
+.case-stage {
+  position: relative;
+  height: clamp(420px, 70vh, 760px);
+}
+
+.case-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+/* Until three.js is running (or where it never will), the proof stands in for the type. */
+.case-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  margin: 0;
+  color: var(--foam);
+  font-size: clamp(2.6rem, 8vw, 6rem);
+  font-weight: 800;
+  line-height: 0.95;
+  text-align: left;
+  pointer-events: none;
+  transition: opacity var(--dur-long) var(--ease-out);
+}
+
+.case-fallback span {
+  display: block;
+}
+
+.case-fallback span:lang(ko) {
+  margin-top: 0.3em;
+  font-family: var(--font-ko);
+  font-size: 0.58em;
+}
+
+.case[data-ready] .case-fallback {
+  opacity: 0;
+}
+
 /* Play band ------------------------------------------------------------------ */
 
 .play {
@@ -516,6 +603,14 @@
 
   .work-item {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .case-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .case-stage {
+    height: 62vh;
   }
 
   .colophon-link {
