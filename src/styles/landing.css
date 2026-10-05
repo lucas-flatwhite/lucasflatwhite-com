@@ -1,0 +1,530 @@
+/* Landing: a type specimen for Lucas Flatwhite. One ultramarine field, sharp corners. */
+
+.landing a {
+  text-decoration: none;
+}
+
+/* Top bar ------------------------------------------------------------------ */
+
+.topbar {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  height: 72px;
+  padding: 0 var(--gutter);
+}
+
+.topbar-mark {
+  font-stretch: 80%;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 2.4vw, 2rem);
+  font-size: 1rem;
+}
+
+.topbar-nav a,
+.topbar-mark {
+  transition:
+    font-stretch var(--dur-short) var(--ease-out),
+    color var(--dur-short) var(--ease-out);
+}
+
+.topbar-nav a:hover,
+.topbar-mark:hover {
+  color: var(--crema);
+  font-stretch: 125%;
+}
+
+/* First viewport: the specimen --------------------------------------------- */
+
+.specimen {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: 1fr auto;
+  column-gap: var(--gutter);
+  min-height: 100dvh;
+  padding: 96px var(--gutter) clamp(28px, 6vh, 64px);
+  overflow: hidden;
+}
+
+.field-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.specimen-copy {
+  position: relative;
+  z-index: 1;
+  grid-column: 1;
+  grid-row: 2;
+  align-self: end;
+  min-width: 0;
+}
+
+.specimen-name {
+  width: min(100%, 980px);
+  margin: 0;
+  font-weight: 800;
+  line-height: 0.82;
+}
+
+.name-line {
+  display: block;
+  width: max-content;
+  max-width: none;
+  font-size: clamp(64px, 12.5vw, 200px);
+  font-stretch: 100%;
+  white-space: nowrap;
+}
+
+:root:not([data-fitted]) .name-line {
+  font-stretch: 78%;
+}
+
+.name-ko {
+  display: block;
+  width: max-content;
+  margin-top: 0.85rem;
+  color: var(--foam-dim);
+  font-family: var(--font-ko);
+  font-size: clamp(1rem, 1.5vw, 1.3rem);
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.specimen-intro {
+  width: fit-content;
+  max-width: 34ch;
+  margin: 1.4rem 0 0;
+  font-size: clamp(1.1rem, 1.55vw, 1.4rem);
+  line-height: 1.4;
+  text-wrap: balance;
+}
+
+.specimen-links {
+  position: relative;
+  z-index: 1;
+  grid-column: 2;
+  grid-row: 2;
+  align-self: end;
+  display: grid;
+  justify-items: end;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32em;
+  padding: 0.08em 0;
+  font-size: clamp(2.2rem, 4.2vw, 3.8rem);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.link-glyph {
+  font-size: 0.82em;
+}
+
+.link-label {
+  font-stretch: 100%;
+  transition:
+    font-stretch var(--dur-long) var(--ease-out),
+    font-weight var(--dur-long) var(--ease-out),
+    color var(--dur-short) var(--ease-out);
+}
+
+.link-label-handle {
+  font-size: 0.6em;
+}
+
+.link-handle {
+  align-self: flex-end;
+  margin-bottom: 0.32em;
+  color: var(--foam-dim);
+  font-size: 0.3em;
+  font-weight: 500;
+}
+
+.glyph-host:is(:hover, :focus-visible) .link-label {
+  color: var(--crema);
+  font-stretch: 140%;
+  font-weight: 860;
+}
+
+/* Work --------------------------------------------------------------------- */
+
+.work {
+  padding: clamp(96px, 16vh, 180px) var(--gutter) clamp(96px, 14vh, 160px);
+}
+
+.section-title {
+  margin: 0;
+  font-size: clamp(4rem, 12vw, 10rem);
+  font-stretch: 58%;
+  font-weight: 800;
+  line-height: 0.84;
+}
+
+.section-lede {
+  max-width: 40ch;
+  margin: 1.4rem 0 0;
+  color: var(--foam-dim);
+  font-size: clamp(1.1rem, 1.5vw, 1.3rem);
+}
+
+.work-list {
+  display: grid;
+  gap: clamp(72px, 13vh, 150px);
+  margin: clamp(56px, 10vh, 112px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.work-item {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  gap: clamp(28px, 5vw, 96px);
+  align-items: start;
+}
+
+.work-name {
+  margin: 0;
+  font-size: clamp(1.7rem, 2.8vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.work-name a {
+  transition: font-stretch var(--dur-long) var(--ease-out);
+}
+
+.work-name a:hover,
+.work-name a:focus-visible {
+  font-stretch: 125%;
+}
+
+.work-out {
+  margin-left: 0.2em;
+  font-size: 0.6em;
+  color: var(--crema);
+  vertical-align: 0.15em;
+}
+
+.work-summary {
+  max-width: 38ch;
+  margin: 0.9rem 0 0;
+  color: var(--foam-dim);
+}
+
+.work-tags {
+  margin: 0.8rem 0 0;
+  color: var(--foam-dim);
+  font-size: 0.92rem;
+  font-stretch: 80%;
+}
+
+.pair {
+  display: grid;
+  justify-items: start;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.pair-source,
+.pair-target {
+  margin: 0;
+  font-size: clamp(1.7rem, 3.5vw, 3.3rem);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.pair-source {
+  font-weight: 500;
+}
+
+.pair-turn {
+  margin: 0.35rem 0;
+  color: var(--crema);
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+}
+
+.pair-target {
+  font-family: var(--font-ko);
+  font-weight: 700;
+  line-height: 1.3;
+  word-break: keep-all;
+}
+
+.pair-note {
+  margin-top: 0.7rem;
+  color: var(--foam-dim);
+  font-size: 0.9rem;
+}
+
+/* As a pair scrolls in, the Korean line is set left to right and the English recedes. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .pair-target {
+      animation: pair-set linear both;
+      animation-timeline: view();
+      animation-range: entry 10% entry 90%;
+    }
+
+    .pair-source {
+      animation: pair-recede linear both;
+      animation-timeline: view();
+      animation-range: entry 50% entry 100%;
+    }
+  }
+}
+
+@keyframes pair-set {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes pair-recede {
+  to {
+    color: var(--foam-dim);
+  }
+}
+
+/* Play band ------------------------------------------------------------------ */
+
+.play {
+  position: relative;
+  display: grid;
+  align-items: end;
+  min-height: clamp(560px, 82vh, 860px);
+  padding: var(--gutter);
+  background: var(--blue-deep);
+  overflow: hidden;
+}
+
+.play-canvas {
+  view-transition-name: text-field;
+}
+
+.play-copy {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  max-width: min(100%, 620px);
+}
+
+.play-title {
+  margin: 0;
+  font-size: clamp(2.8rem, 6.4vw, 5.8rem);
+  font-stretch: 68%;
+  font-weight: 800;
+  line-height: 0.9;
+  text-wrap: balance;
+}
+
+.play-text {
+  max-width: 40ch;
+  margin: 1.1rem 0 0;
+  color: var(--foam-dim);
+  font-size: clamp(1.05rem, 1.4vw, 1.2rem);
+}
+
+.play-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.8rem;
+}
+
+.button-primary,
+.button-quiet {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  min-height: 52px;
+  padding: 0 1.4em;
+  font-size: 1.1rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition:
+    font-stretch var(--dur-long) var(--ease-out),
+    background-color var(--dur-short) var(--ease-out),
+    color var(--dur-short) var(--ease-out);
+}
+
+.button-primary {
+  background: var(--crema);
+  color: var(--blue-ink);
+}
+
+.button-quiet {
+  border: 1px solid var(--foam-line);
+  color: var(--foam);
+}
+
+.button-primary:hover,
+.button-primary:focus-visible,
+.button-quiet:hover,
+.button-quiet:focus-visible {
+  font-stretch: 125%;
+}
+
+.button-quiet:hover,
+.button-quiet:focus-visible {
+  background: var(--foam);
+  color: var(--blue-ink);
+}
+
+.button-primary:active,
+.button-quiet:active {
+  transform: translateY(1px);
+}
+
+.button-primary .glyph,
+.button-quiet .glyph {
+  font-size: 1.25em;
+}
+
+/* Colophon --------------------------------------------------------------------- */
+
+.colophon {
+  display: grid;
+  gap: clamp(48px, 8vh, 96px);
+  padding: clamp(96px, 16vh, 180px) var(--gutter) var(--gutter);
+}
+
+.colophon-links ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.colophon-link {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.35em 0;
+  border-top: 1px solid var(--foam-line);
+  font-size: clamp(1.8rem, 3.4vw, 2.8rem);
+  font-weight: 600;
+}
+
+.colophon-link .glyph {
+  font-size: 0.8em;
+}
+
+.colophon-blurb {
+  justify-self: end;
+  color: var(--foam-dim);
+  font-size: max(0.95rem, 0.36em);
+  font-weight: 400;
+  text-align: right;
+}
+
+.colophon-mark {
+  margin: 0;
+  overflow: hidden;
+  font-weight: 800;
+  line-height: 0.8;
+}
+
+.colophon-mark span {
+  display: block;
+  width: max-content;
+  font-size: clamp(48px, 10vw, 180px);
+  white-space: nowrap;
+}
+
+.colophon-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem 2.5rem;
+  color: var(--foam-dim);
+  font-size: 0.95rem;
+}
+
+.colophon-meta p {
+  margin: 0;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .colophon-shortcut,
+  .topbar .palette-trigger {
+    display: none;
+  }
+}
+
+/* Small screens ---------------------------------------------------------------- */
+
+@media (max-width: 720px) {
+  .topbar {
+    height: 60px;
+  }
+
+  .specimen {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 1fr auto auto;
+    row-gap: 1.6rem;
+    padding-top: 80px;
+  }
+
+  .specimen-copy {
+    grid-row: 2;
+  }
+
+  .specimen-links {
+    grid-column: 1;
+    grid-row: 3;
+    justify-items: start;
+    gap: 0.4rem;
+  }
+
+  .link-row {
+    font-size: clamp(1.6rem, 8vw, 2.2rem);
+  }
+
+  .link-handle {
+    display: none;
+  }
+
+  .specimen-links .link-row .link-label {
+    white-space: nowrap;
+  }
+
+  .work-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .colophon-link {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .colophon-blurb {
+    grid-column: 1 / -1;
+    justify-self: start;
+    text-align: left;
+  }
+}

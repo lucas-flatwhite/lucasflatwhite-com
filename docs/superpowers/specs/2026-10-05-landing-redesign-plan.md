@@ -1,7 +1,7 @@
 # lucasflatwhite.com 랜딩 리디자인 계획
 
 날짜: 2026-10-05
-상태: 계획 (방향 확정 전)
+상태: 방향 확정, 1차 구현 완료
 참고: tasteskill (Leonxlnx/taste-skill), impeccable (pbakaus/impeccable) 원문 규칙
 
 ## 1. 지금 무엇이 문제인가
@@ -139,9 +139,20 @@ type SiteLink = {
 
 각 단계는 별도 커밋, 1~2단계와 3~6단계를 나눠서 PR 두 개를 권장 (게임 이전이 먼저 안전하게 배포되도록).
 
-## 9. 결정이 필요한 것
+## 9. 확정된 결정 (2026-10-05)
 
-1. **방향**: A 견본집 (추천) / B 사인 시스템 / C 마이크로폼
-2. **연결할 링크 전체 목록**: GitHub, X 외에 무엇이 있는지 (Threads, LinkedIn, 블로그, 이메일, 뉴스레터, 발표 자료 등). 각각 한 줄 설명.
-3. **소개 문구와 언어**: 한국어 우선 / 영어 우선 / 둘 다 나란히. 방문자가 한 시간 뒤에 기억했으면 하는 한 문장.
-4. **보존 여부**: 픽셀 컵 마크 유지, `Ctrl/Cmd+K` 커맨드 셸프 부활 여부.
+1. **방향**: A 활자 견본집
+2. **링크**: 우선 GitHub, X 두 개. `src/data/links.ts` 에 항목을 추가하면 첫 화면(`featured`), 푸터, 커맨드 메뉴에 함께 나타난다.
+3. **언어**: 영어 우선. 한국어 이름은 이름 아래 보조로.
+4. **보존**: `Cmd/Ctrl+K` 커맨드 메뉴만 유지. 픽셀 컵 마크는 제거하고 파비콘을 Anybody 로 조판한 `Lf` 로 교체.
+
+## 10. 구현 메모 (계획과 달라진 점)
+
+- **서체**: 라틴 Anybody Variable (wdth 50~150, wght 100~900), 한글 Noto Sans KR Variable. fontsource 로 설치해 Vite 가 base 경로까지 처리한다. 한글은 unicode-range 조각으로 쪼개져 화면에 쓰인 글자의 조각만 받는다.
+- **이름 맞춤**: 가장 긴 줄(Flatwhite)을 78% 폭으로 기준 크기를 잡고, 짧은 줄(Lucas)은 폭 축을 늘려 양 끝을 맞춘다 (`src/lib/specimen.ts`).
+- **텍스트 필드**: 게임 엔진(`snake-experience.ts`)을 쪼개는 대신, 같은 단어 풀과 pretext 를 쓰는 별도 모듈 `src/lib/text-field.ts` 를 만들었다. 게임과 랜딩은 장애물 처리 방식이 달라서 분리가 더 안전했다. 한글이 음절 사이에서 끊기지 않도록 pretext 를 0.0.9 로 올리고 `wordBreak: 'keep-all'` 을 쓴다.
+- **첫 화면 링크**: 링크가 두 개뿐이라 별도 링크 허브 섹션 대신 첫 화면 오른쪽 아래에 둔다. X 는 로고가 곧 이름이라 라벨 대신 핸들을 보여준다 (`wordmark`).
+- **작업 섹션**: 실제 저장소의 문자열 쌍을 사용했다. gstack-ko 는 upstream README 의 `/review` 설명과 한국어 README, obsidian-translations 는 `translations/ko.txt` 의 `setting.msg-restart-required`.
+- **놀이 밴드**: 스스로 움직이는 뱀 주위로 단어가 비켜간다. Play 를 누르면 cross-document View Transition 으로 밴드 캔버스가 게임 화면으로 이어진다 (지원 브라우저만, 나머지는 일반 이동).
+- **게임**: `/play` 로 이동, 동작 변경 없음. 상단 `/lucas-flatwhite` 가 랜딩으로 돌아가는 링크가 됐고, 커맨드 메뉴가 열려 있을 때는 게임 키 입력을 무시한다. 일시정지 문구의 em-dash 는 가운데점으로 교체.
+- **검증**: `tests/anti-slop.test.ts` 가 em/en dash, 금지 서체, 그라디언트 텍스트, 글래스, 둥근 모서리, 아이콘 패밀리 혼용을 막는다.

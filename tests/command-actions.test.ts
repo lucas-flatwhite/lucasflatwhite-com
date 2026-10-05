@@ -1,49 +1,44 @@
 import { describe, expect, it } from 'vitest';
-import { resolveCommandAction } from '../src/lib/command-actions';
-import type { RecommendedCommand } from '../src/data/site';
+import { siteLinks } from '../src/data/links';
+import { buildPaletteCommands, filterPaletteCommands } from '../src/lib/command-actions';
 
-describe('resolveCommandAction', () => {
-  it('returns href values for link commands', () => {
-    const command: RecommendedCommand = {
-      id: 'open-github',
-      label: 'open github',
-      description: 'Open the GitHub profile.',
-      kind: 'link',
-      href: 'https://github.com/lucas-flatwhite/',
-    };
+const commands = buildPaletteCommands('/', '/play/', ['top', 'work', 'play']);
 
-    expect(resolveCommandAction(command, ['hero', 'projects', 'links'])).toEqual({
-      kind: 'link',
-      value: 'https://github.com/lucas-flatwhite/',
-    });
+describe('command palette commands', () => {
+  it('lists sections, the game and every link', () => {
+    expect(commands.map((command) => command.id)).toEqual([
+      'work',
+      'play',
+      ...siteLinks.map((link) => link.id),
+    ]);
   });
 
-  it('resolves scroll commands to in-page anchors', () => {
-    const command: RecommendedCommand = {
-      id: 'view-projects',
-      label: 'view projects',
-      description: 'Jump to selected work.',
-      kind: 'scroll',
-      target: 'projects',
-    };
+  it('resolves section jumps against the landing page so they work from /play', () => {
+    const base = buildPaletteCommands('/lucasflatwhite-com/', '/lucasflatwhite-com/play/', ['top', 'work', 'play']);
 
-    expect(resolveCommandAction(command, ['hero', 'projects', 'links'])).toEqual({
-      kind: 'scroll',
-      value: '#projects',
-    });
+    expect(base.find((command) => command.id === 'work')?.href).toBe('/lucasflatwhite-com/#work');
+    expect(base.find((command) => command.id === 'play')?.href).toBe('/lucasflatwhite-com/play/');
   });
 
-  it('rejects scroll commands that point to missing sections', () => {
-    const command: RecommendedCommand = {
-      id: 'contact',
-      label: 'contact',
-      description: 'Jump to links and contact options.',
-      kind: 'scroll',
-      target: 'links',
-    };
-
-    expect(() => resolveCommandAction(command, ['hero', 'projects'])).toThrow(
-      'Unknown section target: links',
+  it('opens only the outside links in a new tab', () => {
+    expect(commands.filter((command) => command.external).map((command) => command.id)).toEqual(
+      siteLinks.map((link) => link.id),
     );
+  });
+
+  it('rejects a section command that points at a missing section', () => {
+    expect(() => buildPaletteCommands('/', '/play/', ['top'])).toThrow('Unknown section target: work');
+  });
+
+  it('keeps ids unique', () => {
+    const ids = commands.map((command) => command.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('filters by label or hint, ignoring case and outer space', () => {
+    expect(filterPaletteCommands(commands, '  GIT ').map((command) => command.id)).toEqual(['github']);
+    expect(filterPaletteCommands(commands, 'snake').map((command) => command.id)).toEqual(['play']);
+    expect(filterPaletteCommands(commands, '')).toHaveLength(commands.length);
+    expect(filterPaletteCommands(commands, 'nothing like this')).toEqual([]);
   });
 });

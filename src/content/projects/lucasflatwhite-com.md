@@ -1,6 +1,6 @@
 ---
 title: lucasflatwhite-com
-summary: Rebuilt personal home on the web with a playful terminal-cafe presentation and friendlier navigation.
+summary: 'My home on the web: a type specimen landing page and a snake game set in a field of words.'
 tags:
   - Astro
   - TypeScript
@@ -11,4 +11,4 @@ order: 1
 featured: true
 ---
 
-Personal website experiments, UI iteration, and the current Astro migration all live here.
+Built with Astro and pretext. The text on every page is laid out by hand, line by line, around whatever moves.

@@ -9,7 +9,7 @@ const experienceSource = readFileSync(
 
 describe('snake experience source contract', () => {
   it('keeps only the compact top strip and removes the left intro panel', () => {
-    expect(experienceSource).toContain('<span class="identity-label">/lucas-flatwhite</span>');
+    expect(experienceSource).toContain('<a class="identity-label" href={withBase()}>/lucas-flatwhite</a>');
     expect(experienceSource).toContain('class="identity-strip"');
     expect(experienceSource).toContain('class="identity-score" data-experience-score');
     expect(experienceSource).not.toContain('class="experience-copy"');

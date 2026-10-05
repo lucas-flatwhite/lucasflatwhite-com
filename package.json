@@ -18,6 +18,9 @@
     "vitest": "^3.1.4"
   },
   "dependencies": {
-    "@chenglou/pretext": "^0.0.3"
+    "@chenglou/pretext": "^0.0.9",
+    "@fontsource-variable/anybody": "^5.3.0",
+    "@fontsource-variable/noto-sans-kr": "^5.3.0",
+    "@phosphor-icons/core": "^2.1.1"
   }
 }
