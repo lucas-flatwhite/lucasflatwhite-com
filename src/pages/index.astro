@@ -1,14 +1,223 @@
 ---
-import SnakeExperience from '../components/SnakeExperience.astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import CommandPalette from '../components/CommandPalette.astro';
+import Glyph from '../components/Glyph.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { featuredLinks, siteLinks } from '../data/links';
 import { siteProfile } from '../data/site';
+import { withBase } from '../lib/paths';
+import { sortFeaturedProjects } from '../lib/projects';
+import '../styles/landing.css';
+
+const projects = sortFeaturedProjects<CollectionEntry<'projects'>>(
+  await getCollection('projects'),
+);
+const work = projects.filter((entry) => entry.data.specimen);
+const site = projects.find((entry) => entry.data.title === 'lucasflatwhite-com');
+const playHref = withBase('play/');
+const year = new Date().getFullYear();
 ---
 
-<BaseLayout
-  title={`${siteProfile.name} | ${siteProfile.handle}`}
-  description={siteProfile.experienceDescription}
->
-  <main class="page-shell experience-page">
-    <SnakeExperience />
+<BaseLayout title={siteProfile.name} description={siteProfile.description} bodyClass="landing">
+  <header class="topbar" data-field-obstacle="hero">
+    <a class="topbar-mark" href="#top">{siteProfile.handle}</a>
+    <nav class="topbar-nav" aria-label="Site">
+      <a href="#work">Work</a>
+      <a href={playHref}>Play</a>
+      <button
+        class="palette-trigger"
+        type="button"
+        data-palette-open
+        aria-haspopup="dialog"
+        aria-keyshortcuts="Meta+K Control+K"
+        hidden
+      >
+        <span class="sr-only">Open command menu</span>
+        <kbd aria-hidden="true" data-palette-key>Ctrl K</kbd>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="specimen" id="top" aria-labelledby="name" data-specimen>
+      <canvas class="field-canvas" data-field-canvas aria-hidden="true"></canvas>
+
+      <div class="specimen-copy">
+        <h1 id="name" class="specimen-name" data-fit-block data-fit-max="232">
+          <span class="name-line" data-fit-line data-field-obstacle="hero">Lucas</span>
+          <span class="name-line" data-fit-line data-field-obstacle="hero">Flatwhite</span>
+          <span class="name-ko" lang="ko" data-field-obstacle="hero">{siteProfile.nameKo}</span>
+        </h1>
+        <p class="specimen-intro" data-field-obstacle="hero">{siteProfile.intro}</p>
+      </div>
+
+      <ul class="specimen-links" aria-label="Elsewhere">
+        {
+          featuredLinks.map((link) => (
+            <li data-field-obstacle="hero">
+              <a class="link-row glyph-host" href={link.href} target="_blank" rel="noreferrer me">
+                <Glyph icon={link.icon} motion={link.motion} class="link-glyph" />
+                {link.wordmark ? (
+                  <>
+                    <span class="sr-only">{link.label}</span>
+                    <span class="link-label link-label-handle">{link.handle}</span>
+                  </>
+                ) : (
+                  <>
+                    <span class="link-label">{link.label}</span>
+                    <span class="link-handle">{link.handle}</span>
+                  </>
+                )}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="work" id="work" aria-labelledby="work-title">
+      <h2 id="work-title" class="section-title">Work</h2>
+      <p class="section-lede">
+        Translation, mostly. English in, Korean out, with every command and flag left exactly where
+        it was.
+      </p>
+
+      <ol class="work-list">
+        {
+          work.map((entry) => (
+            <li class="work-item">
+              <div class="work-meta">
+                <h3 class="work-name">
+                  <a class="glyph-host" href={entry.data.href} target="_blank" rel="noreferrer">
+                    {entry.data.title}
+                    <Glyph icon="arrow-up-right" class="work-out" />
+                  </a>
+                </h3>
+                <p class="work-summary">{entry.data.summary}</p>
+                <p class="work-tags">{entry.data.tags.join(', ')}</p>
+              </div>
+              <figure class="pair">
+                <p class="pair-source" lang="en">{entry.data.specimen?.source}</p>
+                <Glyph icon="translate" class="pair-turn" />
+                <p class="pair-target" lang="ko">{entry.data.specimen?.target}</p>
+                <figcaption class="pair-note">{entry.data.specimen?.note}</figcaption>
+              </figure>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section class="case" id="type" aria-labelledby="case-title" data-type-case>
+      <div class="case-head">
+        <h2 id="case-title" class="case-title">Set by hand</h2>
+        <div class="case-intro">
+          <p>
+            Every letter of the name is a block of metal, cast from the same outlines this page is
+            set in. Push them around. Then ink the forme and pull a proof.
+          </p>
+          <button class="button-primary case-button" type="button" data-case-proof hidden>
+            Pull a proof
+          </button>
+        </div>
+      </div>
+      <div class="case-stage">
+        <canvas
+          class="case-canvas"
+          data-case-canvas
+          role="img"
+          aria-label="Metal type sorts spelling Lucas Flatwhite and 루카스 플랫화이트, set in mirror image in a galley."
+        ></canvas>
+        <p class="case-fallback" aria-hidden="true">
+          <span>Lucas</span>
+          <span>Flatwhite</span>
+          <span lang="ko">루카스 플랫화이트</span>
+        </p>
+      </div>
+    </section>
+
+    <section class="play" id="play" aria-labelledby="play-title" data-play-band>
+      <canvas class="field-canvas play-canvas" data-field-canvas aria-hidden="true"></canvas>
+      <div class="play-copy" data-field-obstacle>
+        <h2 id="play-title" class="play-title">{siteProfile.playTitle}</h2>
+        <p class="play-text">
+          Race a CPU rival to the same pellet while the words get out of your way. Arrow keys,
+          WASD, or a swipe.
+        </p>
+        <div class="play-actions">
+          <a class="button-primary glyph-host" href={playHref}>
+            <Glyph icon="game-controller" />
+            Play
+          </a>
+          {
+            site && (
+              <a
+                class="button-quiet glyph-host"
+                href={site.data.repo ?? site.data.href}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Glyph icon="github-logo" motion="commit" />
+                Source
+              </a>
+            )
+          }
+        </div>
+      </div>
+    </section>
   </main>
+
+  <footer class="colophon">
+    <nav class="colophon-links" aria-label="Elsewhere">
+      <ul>
+        {
+          siteLinks.map((link) => (
+            <li>
+              <a class="colophon-link glyph-host" href={link.href} target="_blank" rel="noreferrer me">
+                <Glyph icon={link.icon} motion={link.motion} />
+                {link.wordmark && <span class="sr-only">{link.label}</span>}
+                <span class="link-label">{link.wordmark ? link.handle : link.label}</span>
+                <span class="colophon-blurb">{link.blurb}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <p class="colophon-mark" data-fit-block data-fit-stretch="128" aria-hidden="true">
+      <span data-fit-line>{siteProfile.name}</span>
+    </p>
+
+    <div class="colophon-meta">
+      <p>Set in Anybody and Noto Sans KR. Every line of moving text is laid out with pretext.</p>
+      <p class="colophon-shortcut">Press <kbd data-palette-key>Ctrl K</kbd> to jump anywhere.</p>
+      <p>&copy; {year} {siteProfile.name}</p>
+    </div>
+  </footer>
+
+  <CommandPalette />
 </BaseLayout>
+
+<script>
+  import { mountPlayBand } from '../lib/play-band';
+  import { mountSpecimen } from '../lib/specimen';
+  import { mountTypeCaseWhenNear } from '../lib/type-case-loader';
+
+  const specimen = document.querySelector<HTMLElement>('[data-specimen]');
+  const band = document.querySelector<HTMLElement>('[data-play-band]');
+
+  if (specimen) {
+    void mountSpecimen(specimen);
+  }
+
+  if (band) {
+    void mountPlayBand(band);
+  }
+
+  const typeCase = document.querySelector<HTMLElement>('[data-type-case]');
+
+  if (typeCase) {
+    mountTypeCaseWhenNear(typeCase);
+  }
+</script>

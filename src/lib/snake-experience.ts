@@ -993,7 +993,7 @@ function renderPauseOverlay(
 
   ctx.fillStyle = 'rgba(255, 244, 210, 0.6)';
   ctx.font = `500 ${subtitleSize}px "Roboto Mono"`;
-  ctx.fillText('paused — enter / space', centerX, centerY + titleSize * 0.75);
+  ctx.fillText('paused · enter / space', centerX, centerY + titleSize * 0.75);
   ctx.restore();
 }
 
@@ -1499,6 +1499,15 @@ export function mountSnakeExperience(): void {
   };
 
   const handleKeydown = (event: KeyboardEvent): void => {
+    // Leave shortcuts and typing in the command menu alone.
+    if (
+      event.metaKey ||
+      event.ctrlKey ||
+      (event.target instanceof Element && event.target.closest('dialog'))
+    ) {
+      return;
+    }
+
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
 

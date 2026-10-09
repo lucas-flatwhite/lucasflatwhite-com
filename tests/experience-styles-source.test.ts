@@ -3,9 +3,10 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const globalStyles = readFileSync(
-  resolve(process.cwd(), 'src/styles/global.css'),
+  resolve(process.cwd(), 'src/styles/play.css'),
   'utf8',
 );
+const siteStyles = readFileSync(resolve(process.cwd(), 'src/styles/global.css'), 'utf8');
 
 describe('experience styles source contract', () => {
   it('defines the one-screen game surface and identity overlay hooks', () => {
@@ -33,5 +34,13 @@ describe('experience styles source contract', () => {
     expect(globalStyles).toContain("grid-template-areas:\n      'label links'\n      'score score';");
     expect(globalStyles).not.toContain('.fallback-copy');
     expect(globalStyles).not.toContain('.experience-hud');
+  });
+
+  it('locks scrolling only on the game page and loads fonts through the bundler', () => {
+    expect(globalStyles).toContain('body.play {\n  overflow: hidden;');
+    expect(siteStyles).not.toMatch(/body\s*\{[^}]*overflow:\s*hidden/);
+    expect(globalStyles).toContain("url('../assets/fonts/roboto-mono-400.ttf')");
+    expect(globalStyles).not.toContain("url('/assets/");
+    expect(globalStyles).toContain('view-transition-name: text-field;');
   });
 });

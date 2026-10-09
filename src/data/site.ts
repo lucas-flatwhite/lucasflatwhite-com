@@ -1,12 +1,14 @@
+import { featuredLinks } from './links';
+
 export type HomepageSection = {
   id: string;
   label: string;
 };
 
 export const homepageSections = [
-  { id: 'hero', label: 'Intro' },
-  { id: 'projects', label: 'Selected Projects' },
-  { id: 'links', label: 'Links' },
+  { id: 'top', label: 'Intro' },
+  { id: 'work', label: 'Work' },
+  { id: 'play', label: 'Play' },
 ] as const satisfies readonly HomepageSection[];
 
 export type SectionId = (typeof homepageSections)[number]['id'];
@@ -15,16 +17,9 @@ export const sectionIds = homepageSections.map(
   (section) => section.id,
 ) as readonly SectionId[];
 
-export type PrimaryLink = {
-  label: string;
-  href: string;
-  external: boolean;
-};
-
 export type IdentityLink = {
   label: string;
   href: string;
-  external: true;
 };
 
 export type BurstPhrase = {
@@ -33,79 +28,23 @@ export type BurstPhrase = {
   intensity: number;
 };
 
-export type RecommendedCommand =
-  | {
-      id: string;
-      label: string;
-      description: string;
-      kind: 'scroll';
-      target: Exclude<SectionId, 'hero'>;
-    }
-  | {
-      id: string;
-      label: string;
-      description: string;
-      kind: 'link';
-      href: string;
-    };
-
 export const siteProfile = {
   handle: 'lucas.flatwhite',
   name: 'Lucas Flatwhite',
-  heroTitle: '/lucas-flatwhite',
-  heroTagline: 'Building calm, useful things on the web.',
-  title: 'Developer building tools, translations, and useful web experiences.',
-  intro:
-    'I build tools, translations, and small web experiences with a clear, terminal-forward feel.',
-  availability: 'Available for interesting collaborations and experiments.',
-  experienceTitle: 'A kinetic Korean text field for lucasflatwhite.',
-  experienceDescription:
-    'Steer through a dense field of Korean words and trigger loud typographic bursts built with pretext.',
+  nameKo: '루카스 플랫화이트',
+  intro: 'I build for the web, translate software into Korean, and make text move.',
+  description:
+    'Lucas Flatwhite builds for the web, translates developer software into Korean, and makes text move.',
+  playTitle: 'Snake, in a field of words',
+  playDescription:
+    'Steer through a dense field of Korean and English words, race a CPU rival to the same food, and set off typographic bursts built with pretext.',
 } as const;
 
-export const primaryLinks = [
-  {
-    label: 'Projects',
-    href: '#projects',
-    external: false,
-  },
-  {
-    label: 'GitHub',
-    href: 'https://github.com/lucas-flatwhite/',
-    external: true,
-  },
-  {
-    label: 'Contact',
-    href: '#links',
-    external: false,
-  },
-] as const satisfies readonly PrimaryLink[];
-
-export const footerLinks = [
-  {
-    label: 'GitHub',
-    href: 'https://github.com/lucas-flatwhite/',
-    external: true,
-  },
-  {
-    label: 'X',
-    href: 'https://x.com/lucas_flatwhite',
-    external: true,
-  },
-] as const satisfies readonly PrimaryLink[];
-
-export const identityLinks = [
-  {
-    label: 'GitHub',
-    href: 'https://github.com/lucas-flatwhite/',
-    external: true,
-  },
-  {
-    label: 'X',
-    href: 'https://x.com/lucas_flatwhite',
-    external: true,
-  },
-] as const satisfies readonly IdentityLink[];
+// The game strip reuses the featured links so the two pages never disagree.
+export const identityLinks = featuredLinks.map(({ label, href }) => ({
+  label,
+  href,
+})) satisfies readonly IdentityLink[];
 
 export const playfieldConfig = {
   columns: 30,
@@ -502,27 +441,3 @@ export const burstPhrasePoolEn = [
   { text: 'we shipped the feature and discovered three new definitions of done', palette: 'heat', intensity: 2 },
   { text: 'the roadmap was aligned and the universe filed an objection', palette: 'sunset', intensity: 1 },
 ] as const satisfies readonly BurstPhrase[];
-
-export const recommendedCommands = [
-  {
-    id: 'view-projects',
-    label: 'view projects',
-    description: 'Jump to selected work.',
-    kind: 'scroll',
-    target: 'projects',
-  },
-  {
-    id: 'open-github',
-    label: 'open github',
-    description: 'Open the GitHub profile.',
-    kind: 'link',
-    href: 'https://github.com/lucas-flatwhite/',
-  },
-  {
-    id: 'contact',
-    label: 'contact',
-    description: 'Jump to links and contact options.',
-    kind: 'scroll',
-    target: 'links',
-  },
-] as const satisfies readonly RecommendedCommand[];

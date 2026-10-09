@@ -1,16 +1,17 @@
 ---
+import '@fontsource-variable/anybody/wdth.css';
+import '@fontsource-variable/noto-sans-kr';
 import '../styles/global.css';
+import { withBase } from '../lib/paths';
 
 type Props = {
   title: string;
   description: string;
+  bodyClass?: string;
 };
 
-const { title, description } = Astro.props;
-const baseUrl = import.meta.env.BASE_URL.endsWith('/')
-  ? import.meta.env.BASE_URL
-  : `${import.meta.env.BASE_URL}/`;
-const faviconHref = `${baseUrl}assets/flatwhite.svg`;
+const { title, description, bodyClass } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
@@ -19,10 +20,19 @@ const faviconHref = `${baseUrl}assets/flatwhite.svg`;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <link rel="icon" type="image/svg+xml" href={faviconHref} />
+    <meta name="theme-color" content="#1f35b5" />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/png" href={withBase('favicon.png')} />
+    <link rel="apple-touch-icon" href={withBase('apple-touch-icon.png')} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@lucas_flatwhite" />
     <title>{title}</title>
   </head>
-  <body>
+  <body class={bodyClass}>
     <slot />
   </body>
 </html>

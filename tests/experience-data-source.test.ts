@@ -19,8 +19,7 @@ describe('experience data source contract', () => {
     expect(siteDataSource).toContain('speedRampEvery: 4');
     expect(siteDataSource).toContain('cpuRespawnMs: 2600');
     expect(siteDataSource).toContain('pulseRadius: 320');
-    expect(siteDataSource).toContain("label: 'GitHub'");
-    expect(siteDataSource).toContain("label: 'X'");
+    expect(siteDataSource).toContain('featuredLinks.map');
     expect(siteDataSource).toContain("'handoff'");
     expect(siteDataSource).toContain("'rollback'");
     expect(siteDataSource).toContain("'wireframe'");

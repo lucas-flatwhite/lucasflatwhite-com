@@ -1,93 +1,55 @@
 import { describe, expect, it } from 'vitest';
-import {
-  footerLinks,
-  homepageSections,
-  sectionIds,
-  primaryLinks,
-  recommendedCommands,
-  siteProfile,
-} from '../src/data/site';
-import {
-  getHomepageSections,
-  getSectionIds,
-  getScrollCommandTargets,
-} from '../src/lib/site';
+import { featuredLinks, siteLinks } from '../src/data/links';
+import { homepageSections, identityLinks, sectionIds, siteProfile } from '../src/data/site';
+import { icons } from '../src/lib/icons';
+import { getHomepageSections, getSectionIds } from '../src/lib/site';
+
+const wordCount = (text: string) => text.trim().split(/\s+/).length;
 
 describe('site data', () => {
-  it('exposes the expected homepage sections', () => {
-    expect(getSectionIds()).toEqual(['hero', 'projects', 'links']);
-    expect(homepageSections).toEqual([
-      { id: 'hero', label: 'Intro' },
-      { id: 'projects', label: 'Selected Projects' },
-      { id: 'links', label: 'Links' },
-    ]);
-    expect(sectionIds).toEqual(['hero', 'projects', 'links']);
-    expect(getHomepageSections().map((section) => section.id)).toEqual(
-      sectionIds,
-    );
+  it('exposes the landing sections in reading order', () => {
+    expect(getSectionIds()).toEqual(['top', 'work', 'play']);
+    expect(sectionIds).toEqual(['top', 'work', 'play']);
+    expect(getHomepageSections()).toEqual([...homepageSections]);
   });
 
   it('returns isolated section ids to callers', () => {
-    const sectionIds = getSectionIds() as string[];
-    sectionIds.pop();
+    const ids = getSectionIds() as string[];
+    ids.pop();
 
-    expect(getSectionIds()).toEqual(['hero', 'projects', 'links']);
+    expect(getSectionIds()).toEqual(['top', 'work', 'play']);
   });
 
-  it('keeps the homepage section order stable', () => {
-    expect(getHomepageSections()).toEqual([
-      { id: 'hero', label: 'Intro' },
-      { id: 'projects', label: 'Selected Projects' },
-      { id: 'links', label: 'Links' },
-    ]);
+  it('keeps the profile English first with the Korean name alongside', () => {
+    expect(siteProfile.name).toBe('Lucas Flatwhite');
+    expect(siteProfile.nameKo).toBe('루카스 플랫화이트');
+    expect(wordCount(siteProfile.intro)).toBeLessThanOrEqual(20);
+  });
+});
+
+describe('site links', () => {
+  it('links GitHub and X, both featured', () => {
+    expect(siteLinks.map((link) => link.id)).toEqual(['github', 'x']);
+    expect(featuredLinks.map((link) => link.id)).toEqual(['github', 'x']);
   });
 
-  it('keeps primary links unique and non-empty', () => {
-    const hrefs = primaryLinks.map((link) => link.href);
-    expect(new Set(hrefs).size).toBe(hrefs.length);
-    expect(primaryLinks.every((link) => link.label.length > 0)).toBe(true);
-  });
+  it('keeps every link unique, secure, iconed and briefly described', () => {
+    const ids = siteLinks.map((link) => link.id);
+    const hrefs = siteLinks.map((link) => link.href);
 
-  it('keeps scroll commands aligned with section ids', () => {
-    const validSectionIds = new Set(getSectionIds());
-    expect(
-      getScrollCommandTargets().every((target) => validSectionIds.has(target)),
-    ).toBe(true);
-  });
-
-  it('keeps the profile copy populated', () => {
-    expect(siteProfile.handle).toBe('lucas.flatwhite');
-    expect(siteProfile.title).toBe(
-      'Developer building tools, translations, and useful web experiences.',
-    );
-    expect(siteProfile.intro).toBe(
-      'I build tools, translations, and small web experiences with a clear, terminal-forward feel.',
-    );
-    expect(siteProfile.heroTitle).toBe('/lucas-flatwhite');
-    expect(siteProfile.heroTagline).toBe(
-      'Building calm, useful things on the web.',
-    );
-  });
-
-  it('keeps the primary link order stable', () => {
-    expect(primaryLinks.map((link) => link.label)).toEqual([
-      'Projects',
-      'GitHub',
-      'Contact',
-    ]);
-  });
-
-  it('keeps the footer links external and separate from the hero row', () => {
-    expect(footerLinks.map((link) => link.label)).toEqual(['GitHub', 'X']);
-    expect(footerLinks.every((link) => link.external)).toBe(true);
-  });
-
-  it('keeps command ids unique', () => {
-    const ids = recommendedCommands.map((command) => command.id);
     expect(new Set(ids).size).toBe(ids.length);
+    expect(new Set(hrefs).size).toBe(hrefs.length);
+
+    for (const link of siteLinks) {
+      expect(link.href.startsWith('https://')).toBe(true);
+      expect(Object.keys(icons)).toContain(link.icon);
+      expect(['commit', 'cross', 'lift']).toContain(link.motion);
+      expect(link.blurb.length).toBeGreaterThan(8);
+      expect(wordCount(link.blurb)).toBeLessThanOrEqual(20);
+    }
   });
 
-  it('keeps every command description populated for accessibility and clarity', () => {
-    expect(recommendedCommands.every((command) => command.description.length > 8)).toBe(true);
+  it('shares the featured links with the game strip', () => {
+    expect(identityLinks).toEqual(featuredLinks.map(({ label, href }) => ({ label, href })));
   });
 });

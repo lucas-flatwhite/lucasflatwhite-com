@@ -1,0 +1,18 @@
+---
+import CommandPalette from '../../components/CommandPalette.astro';
+import SnakeExperience from '../../components/SnakeExperience.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { siteProfile } from '../../data/site';
+import '../../styles/play.css';
+---
+
+<BaseLayout
+  title={`Play | ${siteProfile.name}`}
+  description={siteProfile.playDescription}
+  bodyClass="play"
+>
+  <main class="experience-page">
+    <SnakeExperience />
+  </main>
+  <CommandPalette />
+</BaseLayout>

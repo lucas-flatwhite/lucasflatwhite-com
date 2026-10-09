@@ -9,7 +9,15 @@ const projects = defineCollection({
     href: z.string().url(),
     repo: z.string().url().optional(),
     order: z.number().int().nonnegative(),
-    featured: z.boolean().default(true)
+    featured: z.boolean().default(true),
+    // A real source string and the shipped Korean translation, shown as the project's proof.
+    specimen: z
+      .object({
+        source: z.string(),
+        target: z.string(),
+        note: z.string()
+      })
+      .optional()
   })
 });
 

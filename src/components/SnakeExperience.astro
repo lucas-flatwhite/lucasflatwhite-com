@@ -1,10 +1,11 @@
 ---
 import { identityLinks } from '../data/site';
+import { withBase } from '../lib/paths';
 ---
 
 <section class="experience-shell" aria-label="lucas-flatwhite snake experience">
   <div class="identity-strip" aria-label="Identity links">
-    <span class="identity-label">/lucas-flatwhite</span>
+    <a class="identity-label" href={withBase()}>/lucas-flatwhite</a>
     <p class="identity-score" data-experience-score>length 3 · cpu 3</p>
     <nav class="identity-links" aria-label="External links">
       {
