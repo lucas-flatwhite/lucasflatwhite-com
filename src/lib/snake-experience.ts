@@ -15,6 +15,7 @@ import {
   burstPhrasePoolEn,
   burstPhrasePoolKo,
   playfieldConfig,
+  rivalDefeatPhrasePool,
 } from '../data/site';
 import type { BurstPhrase } from '../data/site';
 
@@ -28,6 +29,21 @@ type Direction = Point;
 type Rect = {
   x: number;
   y: number;
+  width: number;
+  height: number;
+};
+
+type SpecialFoodKind = 'espresso' | 'coldbrew';
+
+type SpecialFood = {
+  point: Point;
+  kind: SpecialFoodKind;
+  bornAt: number;
+  expiresAt: number;
+};
+
+type CachedWordMetric = {
+  prepared: PreparedText;
   width: number;
   height: number;
 };
@@ -59,6 +75,7 @@ type PreparedPhrase = BurstPhraseSource & {
 type PreparedPhraseGroups = {
   ko: PreparedPhrase[];
   en: PreparedPhrase[];
+  rival?: PreparedPhrase[];
 };
 
 type BurstLine = {
@@ -105,6 +122,8 @@ type CpuSnake = {
   score: number;
   alive: boolean;
   respawnAt: number;
+  slowUntil: number;
+  stepParity: number;
 };
 
 type GameState = {
@@ -119,8 +138,16 @@ type GameState = {
   cpu: CpuSnake;
   direction: Direction;
   queuedDirection: Direction;
+  directionQueue: Direction[];
   growth: number;
   food: Point;
+  specialFood: SpecialFood | null;
+  bonusDrops: Point[];
+  foodsEaten: number;
+  combo: number;
+  maxCombo: number;
+  comboExpiresAt: number;
+  cpuKills: number;
   score: number;
   lastStepAt: number;
   lockUntil: number;
@@ -148,7 +175,10 @@ const BACKGROUND_SNAKE_PADDING = 16;
 const WORD_SEPARATION_INTERVAL = 3;
 const MAX_DEVICE_PIXEL_RATIO = 2;
 const RESIZE_HEIGHT_TOLERANCE = 140;
+const MAX_DIRECTION_QUEUE = 2;
+const MAX_CATCHUP_STEPS = 3;
 const BEST_SCORE_KEY = 'lucas-flatwhite:best-length';
+const wordMeasurementCache = new Map<string, CachedWordMetric>();
 
 function currentStepMs(length: number): number {
   const speed = Math.min(
@@ -220,6 +250,20 @@ function isReverse(next: Direction, current: Direction): boolean {
   return next.x === -current.x && next.y === -current.y;
 }
 
+function queueDirection(state: GameState, nextDirection: Direction): void {
+  if (state.directionQueue.length >= MAX_DIRECTION_QUEUE) {
+    return;
+  }
+
+  const reference =
+    state.directionQueue[state.directionQueue.length - 1] ?? state.direction;
+
+  if (!sameDirection(nextDirection, reference) && !isReverse(nextDirection, reference)) {
+    state.directionQueue.push(nextDirection);
+    state.queuedDirection = state.directionQueue[0]!;
+  }
+}
+
 function getSwipeDirection(
   dx: number,
   dy: number,
@@ -256,6 +300,26 @@ function measurePreparedWidth(text: string, font: string): number {
   });
 
   return Math.max(12, Math.ceil(widest));
+}
+
+function getCachedWordMetric(
+  text: string,
+  font: string,
+  lineHeight: number,
+): CachedWordMetric {
+  const cacheKey = `${font}:${lineHeight}:${text}`;
+  const cached = wordMeasurementCache.get(cacheKey);
+
+  if (cached) {
+    return cached;
+  }
+
+  const prepared: PreparedText = prepare(text, font);
+  const width = measurePreparedWidth(text, font);
+  const height = layout(prepared, width + 4, lineHeight).height;
+  const metric = { prepared, width, height };
+  wordMeasurementCache.set(cacheKey, metric);
+  return metric;
 }
 
 function computeViewportScale(width: number, height: number): number {
@@ -302,9 +366,11 @@ function createBackgroundWords(
     const text =
       backgroundWordPool[Math.floor(random() * backgroundWordPool.length)] ??
       '파동';
-    const prepared = prepare(text, font);
-    const wordWidth = measurePreparedWidth(text, font);
-    const wordHeight = layout(prepared, wordWidth + 4, lineHeight).height;
+    const { prepared, width: wordWidth, height: wordHeight } = getCachedWordMetric(
+      text,
+      font,
+      lineHeight,
+    );
     const row = Math.floor(index / colCount);
     const col = index % colCount;
     const baseX = 4 + col * laneWidth;
@@ -361,6 +427,16 @@ function pickFreeCell(
   return { x: cols - 2, y: rows - 2 };
 }
 
+function getOccupiedCells(state: GameState): Point[] {
+  const cells = [...state.snake, ...state.cpu.body, state.food, ...state.bonusDrops];
+
+  if (state.specialFood) {
+    cells.push(state.specialFood.point);
+  }
+
+  return cells;
+}
+
 function createCpuSnake(
   cols: number,
   rows: number,
@@ -392,6 +468,8 @@ function createCpuSnake(
         score: body.length,
         alive: true,
         respawnAt: 0,
+        slowUntil: 0,
+        stepParity: 0,
       };
     }
   }
@@ -405,6 +483,8 @@ function createCpuSnake(
     score: 1,
     alive: true,
     respawnAt: 0,
+    slowUntil: 0,
+    stepParity: 0,
   };
 }
 
@@ -412,7 +492,7 @@ function respawnCpu(state: GameState, random: () => number): void {
   state.cpu = createCpuSnake(
     state.cols,
     state.rows,
-    [...state.snake, state.food],
+    [...state.snake, state.food, ...state.bonusDrops],
     random,
   );
 }
@@ -456,6 +536,7 @@ function chooseCpuDirection(state: GameState, random: () => number): Direction {
     return open[Math.floor(random() * open.length)]!;
   }
 
+  const target = state.specialFood ? state.specialFood.point : state.food;
   let best = open[0]!;
   let bestScore = Number.POSITIVE_INFINITY;
 
@@ -463,7 +544,7 @@ function chooseCpuDirection(state: GameState, random: () => number): Direction {
     const nextX = head.x + direction.x;
     const nextY = head.y + direction.y;
     const distance =
-      Math.abs(nextX - state.food.x) + Math.abs(nextY - state.food.y);
+      Math.abs(nextX - target.x) + Math.abs(nextY - target.y);
     const score = distance + random() * 0.8;
 
     if (score < bestScore) {
@@ -475,7 +556,12 @@ function chooseCpuDirection(state: GameState, random: () => number): Direction {
   return best;
 }
 
-function stepCpu(state: GameState, random: () => number, now: number): void {
+function stepCpu(
+  state: GameState,
+  random: () => number,
+  now: number,
+  preparedPhrases?: PreparedPhraseGroups,
+): void {
   const cpu = state.cpu;
 
   if (!cpu.alive) {
@@ -484,6 +570,16 @@ function stepCpu(state: GameState, random: () => number, now: number): void {
     }
 
     return;
+  }
+
+  if (now < cpu.slowUntil) {
+    cpu.stepParity = (cpu.stepParity + 1) % 2;
+
+    if (cpu.stepParity === 1) {
+      return;
+    }
+  } else {
+    cpu.stepParity = 0;
   }
 
   cpu.direction = chooseCpuDirection(state, random);
@@ -495,9 +591,47 @@ function stepCpu(state: GameState, random: () => number, now: number): void {
   };
 
   if (isCellBlocked(state, nextHead)) {
+    const killedByPlayer = state.snake.some((segment) =>
+      samePoint(segment, nextHead),
+    );
+    const droppedSegments = cpu.body.slice(0, 3);
+
     cpu.alive = false;
     cpu.respawnAt = now + playfieldConfig.cpuRespawnMs;
     cpu.body = [];
+
+    if (killedByPlayer) {
+      state.cpuKills += 1;
+      state.growth += playfieldConfig.cpuKillBonusGrowth;
+      state.combo = now <= state.comboExpiresAt && state.combo > 0 ? state.combo + 1 : 1;
+      state.maxCombo = Math.max(state.maxCombo, state.combo);
+      state.comboExpiresAt = now + playfieldConfig.comboWindowMs;
+
+      for (const drop of droppedSegments) {
+        if (
+          !state.snake.some((seg) => samePoint(seg, drop)) &&
+          !samePoint(state.food, drop) &&
+          !state.bonusDrops.some((existing) => samePoint(existing, drop))
+        ) {
+          state.bonusDrops.push({ x: drop.x, y: drop.y });
+        }
+      }
+
+      if (preparedPhrases) {
+        state.bursts.push(
+          ...createRivalDefeatBursts(
+            head,
+            state.cellSize,
+            preparedPhrases,
+            random,
+            state.burstId,
+            now,
+          ),
+        );
+        state.burstId += 4;
+      }
+    }
+
     return;
   }
 
@@ -508,9 +642,12 @@ function stepCpu(state: GameState, random: () => number, now: number): void {
     state.food = pickFreeCell(
       state.cols,
       state.rows,
-      [...state.snake, ...cpu.body],
+      getOccupiedCells(state),
       random,
     );
+  } else if (state.specialFood && samePoint(nextHead, state.specialFood.point)) {
+    cpu.growth += 3;
+    state.specialFood = null;
   }
 
   if (cpu.growth > 0) {
@@ -567,6 +704,7 @@ function createPreparedPhrases(): PreparedPhraseGroups {
   return {
     ko: prepareGroup(burstPhrasePoolKo),
     en: prepareGroup(burstPhrasePoolEn),
+    rival: prepareGroup(rivalDefeatPhrasePool),
   };
 }
 
@@ -630,6 +768,51 @@ function drawTakeoutCupGlyph(
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawSpecialCupGlyph(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  kind: SpecialFoodKind,
+): void {
+  const centerX = x + size * 0.5;
+  const centerY = y + size * 0.5;
+
+  ctx.save();
+  ctx.lineWidth = Math.max(1.2, size * 0.065);
+  ctx.strokeStyle =
+    kind === 'espresso' ? 'rgba(92, 38, 8, 0.95)' : 'rgba(12, 58, 74, 0.95)';
+  ctx.fillStyle =
+    kind === 'espresso' ? 'rgba(255, 244, 214, 0.96)' : 'rgba(232, 252, 255, 0.96)';
+
+  if (kind === 'espresso') {
+    const cupTop = y + size * 0.32;
+    const cupBottom = y + size * 0.76;
+    const topHalf = size * 0.26;
+    const bottomHalf = size * 0.16;
+
+    ctx.beginPath();
+    ctx.moveTo(centerX - topHalf, cupTop);
+    ctx.lineTo(centerX + topHalf, cupTop);
+    ctx.lineTo(centerX + bottomHalf, cupBottom);
+    ctx.lineTo(centerX - bottomHalf, cupBottom);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(214, 118, 36, 0.95)';
+    ctx.fillRect(centerX - topHalf * 0.8, cupTop + 1, topHalf * 1.6, size * 0.14);
+  } else {
+    const cubeSize = size * 0.24;
+    ctx.fillRect(centerX - cubeSize - 1, centerY - cubeSize * 0.8, cubeSize, cubeSize);
+    ctx.strokeRect(centerX - cubeSize - 1, centerY - cubeSize * 0.8, cubeSize, cubeSize);
+    ctx.fillRect(centerX + 1, centerY - cubeSize * 0.1, cubeSize, cubeSize);
+    ctx.strokeRect(centerX + 1, centerY - cubeSize * 0.1, cubeSize, cubeSize);
+  }
 
   ctx.restore();
 }
@@ -776,6 +959,54 @@ function createBurstClusters(
   });
 }
 
+function createRivalDefeatBursts(
+  origin: Point,
+  cellSize: number,
+  preparedPhrases: PreparedPhraseGroups,
+  random: () => number,
+  startId: number,
+  now: number,
+): BurstCluster[] {
+  const pool =
+    preparedPhrases.rival && preparedPhrases.rival.length > 0
+      ? preparedPhrases.rival
+      : preparedPhrases.ko;
+
+  if (pool.length === 0) {
+    return [];
+  }
+
+  const originX = (origin.x + 0.5) * cellSize;
+  const originY = (origin.y + 0.5) * cellSize;
+  const count = 2;
+
+  return Array.from({ length: count }, (_, index) => {
+    const phrase = pool[Math.floor(random() * pool.length)] ?? pool[0]!;
+    const looseWidth = 360 + random() * 180 + phrase.intensity * 54;
+    const tightWidth = findTightWidth(phrase.prepared, looseWidth);
+    const laneOffset = index - 0.5;
+    const lateral = laneOffset * 140;
+    const vertical = (index === 0 ? -1 : 1) * 32;
+    const lineHeight = BURST_LINE_HEIGHT + phrase.intensity * 2;
+    const twist = random() * Math.PI * 2;
+
+    return {
+      id: startId + index,
+      phrase,
+      x: originX + lateral,
+      y: originY + vertical,
+      bornAt: now,
+      durationMs: playfieldConfig.burstDurationMs + 340,
+      looseWidth,
+      tightWidth,
+      lineHeight,
+      rotation: (random() - 0.5) * 0.18,
+      twist,
+      keyframes: createBurstKeyframes(phrase, looseWidth, tightWidth, lineHeight, twist),
+    };
+  });
+}
+
 function createSnakeRects(
   snake: readonly Point[],
   cellSize: number,
@@ -787,6 +1018,31 @@ function createSnakeRects(
     width: cellSize + padding * 2,
     height: cellSize + padding * 2,
   }));
+}
+
+function computeSnakeBounds(snakeRects: readonly Rect[]): Rect | null {
+  if (snakeRects.length === 0) {
+    return null;
+  }
+
+  let minX = Number.POSITIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
+
+  for (const rect of snakeRects) {
+    if (rect.x < minX) minX = rect.x;
+    if (rect.y < minY) minY = rect.y;
+    if (rect.x + rect.width > maxX) maxX = rect.x + rect.width;
+    if (rect.y + rect.height > maxY) maxY = rect.y + rect.height;
+  }
+
+  return {
+    x: minX,
+    y: minY,
+    width: maxX - minX,
+    height: maxY - minY,
+  };
 }
 
 function createWordRect(word: BackgroundWord): Rect {
@@ -899,13 +1155,21 @@ function renderBackground(
   ctx.shadowColor = 'transparent';
 
   const snakeRects = createSnakeRects(snake, cellSize);
-  resolveBackgroundLayout(words, snakeRects, width, height, now, frame);
+  const bounds = computeSnakeBounds(snakeRects);
+  resolveBackgroundLayout(words, snakeRects, width, height, now, frame, bounds);
 
   const wordSize = words[0]?.size ?? BACKGROUND_TEXT_SIZE;
   ctx.font = WORD_FONT.replace('15px', `${wordSize}px`);
 
   for (const word of words) {
-    if (intersectsSnakeBody(word, snakeRects)) {
+    if (
+      bounds !== null &&
+      word.x + word.width + BACKGROUND_TEXT_PADDING > bounds.x &&
+      word.x - BACKGROUND_TEXT_PADDING < bounds.x + bounds.width &&
+      word.y + BACKGROUND_TEXT_PADDING > bounds.y &&
+      word.y - word.height - BACKGROUND_TEXT_PADDING < bounds.y + bounds.height &&
+      intersectsSnakeBody(word, snakeRects)
+    ) {
       continue;
     }
 
@@ -922,6 +1186,8 @@ function renderGameOverOverlay(
   bestScore: number,
   isNewBest: boolean,
   now: number,
+  maxCombo = 0,
+  cpuKills = 0,
 ): void {
   const scoreSize = Math.max(72, Math.floor(Math.min(width, height) * 0.25));
   const titleSize = Math.max(22, Math.floor(scoreSize * 0.18));
@@ -954,9 +1220,19 @@ function renderGameOverOverlay(
       : score < cpuScore
         ? 'rgba(255, 156, 87, 0.88)'
         : 'rgba(255, 244, 210, 0.78)';
+  const statsSuffix = [
+    maxCombo >= 2 ? `max ${maxCombo}x` : '',
+    cpuKills > 0 ? `ko ${cpuKills}` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ');
+  const duelLine = statsSuffix
+    ? `vs cpu ${cpuScore} · ${duel} · ${statsSuffix}`
+    : `vs cpu ${cpuScore} · ${duel}`;
+
   ctx.fillStyle = duelColor;
   ctx.font = `700 ${subtitleSize}px "Roboto Mono"`;
-  ctx.fillText(`vs cpu ${cpuScore} · ${duel}`, centerX, centerY + scoreSize * 1.28);
+  ctx.fillText(duelLine, centerX, centerY + scoreSize * 1.28);
 
   const bestText = isNewBest ? `new record! best ${bestScore}` : `best ${bestScore}`;
   const bestPulse = isNewBest ? 0.72 + (Math.sin(now * 0.008) + 1) * 0.14 : 0.58;
@@ -1018,6 +1294,113 @@ function renderFood(
   ctx.restore();
 }
 
+function renderSpecialFood(
+  ctx: CanvasRenderingContext2D,
+  specialFood: SpecialFood | null,
+  cellSize: number,
+  now: number,
+): void {
+  if (!specialFood) {
+    return;
+  }
+
+  const remaining = Math.max(0, specialFood.expiresAt - now);
+  const lifeRatio = Math.min(
+    1,
+    remaining / Math.max(1, specialFood.expiresAt - specialFood.bornAt),
+  );
+  const pulse = 0.5 + (Math.sin(now * 0.018) + 1) * 0.25;
+  const inset = Math.max(2, FOOD_DOT_INSET - 1);
+  const x = specialFood.point.x * cellSize + inset;
+  const y = specialFood.point.y * cellSize + inset;
+  const size = Math.max(8, cellSize - inset * 2);
+  const isEspresso = specialFood.kind === 'espresso';
+
+  ctx.save();
+  ctx.shadowBlur = 22;
+  ctx.shadowColor = isEspresso
+    ? 'rgba(255, 174, 43, 0.95)'
+    : 'rgba(84, 240, 255, 0.95)';
+  ctx.fillStyle = isEspresso
+    ? `rgba(255, 198, 66, ${0.82 + pulse * 0.16})`
+    : `rgba(110, 244, 255, ${0.82 + pulse * 0.16})`;
+  drawDotCell(ctx, x, y, size);
+  drawSpecialCupGlyph(ctx, x, y, size, specialFood.kind);
+
+  // Remaining lifetime bar beneath the special cup.
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = isEspresso
+    ? 'rgba(255, 240, 180, 0.92)'
+    : 'rgba(200, 255, 255, 0.92)';
+  ctx.fillRect(x, y + size + 2, Math.max(2, size * lifeRatio), 2);
+  ctx.restore();
+}
+
+function renderBonusDrops(
+  ctx: CanvasRenderingContext2D,
+  bonusDrops: readonly Point[],
+  cellSize: number,
+  now: number,
+): void {
+  if (bonusDrops.length === 0) {
+    return;
+  }
+
+  const pulse = 0.5 + (Math.sin(now * 0.016) + 1) * 0.25;
+  const inset = Math.max(5, Math.round(cellSize * 0.26));
+  const size = Math.max(5, cellSize - inset * 2);
+
+  ctx.save();
+  ctx.shadowBlur = 14;
+  ctx.shadowColor = 'rgba(122, 255, 208, 0.9)';
+  ctx.fillStyle = `rgba(148, 255, 214, ${0.78 + pulse * 0.2})`;
+
+  for (const drop of bonusDrops) {
+    const x = drop.x * cellSize + inset;
+    const y = drop.y * cellSize + inset;
+    drawDotCell(ctx, x, y, size);
+  }
+
+  ctx.restore();
+}
+
+function renderComboBadge(
+  ctx: CanvasRenderingContext2D,
+  state: GameState,
+  now: number,
+): void {
+  if (state.combo < 2 || now >= state.comboExpiresAt) {
+    return;
+  }
+
+  const head = state.snake[0];
+
+  if (!head) {
+    return;
+  }
+
+  const ratio = Math.max(
+    0,
+    Math.min(1, (state.comboExpiresAt - now) / playfieldConfig.comboWindowMs),
+  );
+  const headCenterX = (head.x + 0.5) * state.cellSize;
+  const badgeY = Math.max(22, head.y * state.cellSize - 10);
+
+  ctx.save();
+  ctx.font = '700 12px "Roboto Mono"';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillStyle = 'rgba(122, 255, 208, 0.96)';
+  ctx.fillText(`${state.combo}x`, headCenterX, badgeY);
+
+  const barWidth = 24;
+  ctx.fillStyle = 'rgba(122, 255, 208, 0.28)';
+  ctx.fillRect(headCenterX - barWidth * 0.5, badgeY + 2, barWidth, 2);
+  ctx.fillStyle = 'rgba(255, 214, 102, 0.94)';
+  ctx.fillRect(headCenterX - barWidth * 0.5, badgeY + 2, barWidth * ratio, 2);
+  ctx.restore();
+}
+
 function renderSnake(
   ctx: CanvasRenderingContext2D,
   snake: readonly Point[],
@@ -1052,15 +1435,20 @@ function renderCpuSnake(
     return;
   }
 
+  const chilled = now < cpu.slowUntil;
+
   ctx.save();
-  ctx.shadowColor = 'rgba(255, 156, 87, 0.5)';
+  ctx.shadowColor = chilled
+    ? 'rgba(104, 232, 255, 0.55)'
+    : 'rgba(255, 156, 87, 0.5)';
 
   cpu.body.forEach((segment, index) => {
     const x = segment.x * cellSize + SNAKE_DOT_INSET;
     const y = segment.y * cellSize + SNAKE_DOT_INSET;
     const size = Math.max(6, cellSize - SNAKE_DOT_INSET * 2);
     const lightness = 72 - index * 2.5;
-    const hue = 24 + Math.sin(now * 0.003 + index * 0.35) * 14;
+    const baseHue = chilled ? 196 : 24;
+    const hue = baseHue + Math.sin(now * 0.003 + index * 0.35) * 14;
 
     ctx.shadowBlur = index === 0 ? 16 : 0;
     ctx.fillStyle = `hsl(${hue}, 96%, ${Math.max(lightness, 44)}%)`;
@@ -1107,7 +1495,7 @@ function renderBursts(
     ctx.font = BURST_FONT;
     ctx.textBaseline = 'alphabetic';
     ctx.textAlign = 'left';
-    ctx.shadowBlur = isPrimaryCluster ? 20 + fade * 18 : 10 + fade * 8;
+    ctx.shadowBlur = energy > 0.35 ? (isPrimaryCluster ? 16 + fade * 14 : 8 + fade * 6) : 0;
 
     const renderFrame = (frame: BurstKeyframe, alpha: number): void => {
       if (alpha <= 0.01) {
@@ -1149,38 +1537,55 @@ function resolveBackgroundLayout(
   height: number,
   now: number,
   frame: number,
+  bounds: Rect | null = computeSnakeBounds(snakeRects),
 ): void {
   for (const word of words) {
     let targetX = word.anchorX + Math.sin(now * 0.00055 + word.drift) * 10;
     let targetY = word.anchorY + Math.cos(now * 0.00042 + word.drift) * 6;
     const centerX = targetX + word.width * 0.5;
     const centerY = targetY - word.height * 0.5;
+    const radius = word.avoidSnakeRadius;
+    const nearSnake =
+      bounds !== null &&
+      centerX + radius >= bounds.x &&
+      centerX - radius <= bounds.x + bounds.width &&
+      centerY + radius >= bounds.y &&
+      centerY - radius <= bounds.y + bounds.height;
 
-    for (const rect of snakeRects) {
-      const nearestX = Math.max(rect.x, Math.min(centerX, rect.x + rect.width));
-      const nearestY = Math.max(rect.y, Math.min(centerY, rect.y + rect.height));
-      const dx = centerX - nearestX;
-      const dy = centerY - nearestY;
-      const distance = Math.hypot(dx, dy) || 0.001;
+    if (nearSnake) {
+      const radiusSq = radius * radius;
 
-      if (distance < word.avoidSnakeRadius) {
-        const push = (word.avoidSnakeRadius - distance) * 0.85;
-        targetX += (dx / distance) * push;
-        targetY += (dy / distance) * push;
+      for (const rect of snakeRects) {
+        const nearestX = Math.max(rect.x, Math.min(centerX, rect.x + rect.width));
+        const nearestY = Math.max(rect.y, Math.min(centerY, rect.y + rect.height));
+        const dx = centerX - nearestX;
+        const dy = centerY - nearestY;
+        const distSq = dx * dx + dy * dy;
+
+        if (distSq < radiusSq) {
+          const distance = Math.sqrt(distSq) || 0.001;
+          const push = (radius - distance) * 0.85;
+          targetX += (dx / distance) * push;
+          targetY += (dy / distance) * push;
+        }
       }
     }
 
     word.x += (targetX - word.x) * 0.16;
     word.y += (targetY - word.y) * 0.16;
 
-    for (let pushAttempt = 0; pushAttempt < 4; pushAttempt += 1) {
-      const collision = snakeRects.find((rect) => rectsIntersect(createWordRect(word), rect));
+    if (nearSnake) {
+      for (let pushAttempt = 0; pushAttempt < 4; pushAttempt += 1) {
+        const collision = snakeRects.find((rect) =>
+          rectsIntersect(createWordRect(word), rect),
+        );
 
-      if (!collision) {
-        break;
+        if (!collision) {
+          break;
+        }
+
+        pushWordOutsideRect(word, collision);
       }
-
-      pushWordOutsideRect(word, collision);
     }
   }
 
@@ -1222,16 +1627,26 @@ function resolveBackgroundLayout(
       word.x = Math.max(10, Math.min(width - word.width - 10, word.x));
       word.y = Math.max(word.height + 12, Math.min(height - 8, word.y));
 
-      for (let pushAttempt = 0; pushAttempt < 3; pushAttempt += 1) {
-        const collision = snakeRects.find((rect) => rectsIntersect(createWordRect(word), rect));
+      if (
+        bounds !== null &&
+        word.x + word.width + BACKGROUND_TEXT_PADDING > bounds.x &&
+        word.x - BACKGROUND_TEXT_PADDING < bounds.x + bounds.width &&
+        word.y + BACKGROUND_TEXT_PADDING > bounds.y &&
+        word.y - word.height - BACKGROUND_TEXT_PADDING < bounds.y + bounds.height
+      ) {
+        for (let pushAttempt = 0; pushAttempt < 3; pushAttempt += 1) {
+          const collision = snakeRects.find((rect) =>
+            rectsIntersect(createWordRect(word), rect),
+          );
 
-        if (!collision) {
-          break;
+          if (!collision) {
+            break;
+          }
+
+          pushWordOutsideRect(word, collision);
+          word.x = Math.max(10, Math.min(width - word.width - 10, word.x));
+          word.y = Math.max(word.height + 12, Math.min(height - 8, word.y));
         }
-
-        pushWordOutsideRect(word, collision);
-        word.x = Math.max(10, Math.min(width - word.width - 10, word.x));
-        word.y = Math.max(word.height + 12, Math.min(height - 8, word.y));
       }
     }
   }
@@ -1241,6 +1656,7 @@ function createGameState(
   width: number,
   height: number,
   random: () => number,
+  existingWords?: BackgroundWord[],
 ): GameState {
   const viewportScale = computeViewportScale(width, height);
   const cellSize = Math.max(
@@ -1254,6 +1670,13 @@ function createGameState(
   const rows = Math.max(10, Math.floor(height / cellSize));
   const snake = createInitialSnake(cols, rows);
   const cpu = createCpuSnake(cols, rows, snake, random);
+  const words = existingWords
+    ? existingWords.map((word) => ({
+        ...word,
+        x: word.anchorX,
+        y: word.anchorY,
+      }))
+    : createBackgroundWords(width, height, random, viewportScale);
 
   return {
     cols,
@@ -1267,12 +1690,20 @@ function createGameState(
     cpu,
     direction: DIRECTIONS.right,
     queuedDirection: DIRECTIONS.right,
+    directionQueue: [],
     growth: 0,
     food: pickFreeCell(cols, rows, [...snake, ...cpu.body], random),
+    specialFood: null,
+    bonusDrops: [],
+    foodsEaten: 0,
+    combo: 0,
+    maxCombo: 0,
+    comboExpiresAt: 0,
+    cpuKills: 0,
     score: snake.length,
     lastStepAt: 0,
     lockUntil: 0,
-    words: createBackgroundWords(width, height, random, viewportScale),
+    words,
     bursts: [],
     gameOverAt: 0,
     gameOverOrigin: null,
@@ -1289,6 +1720,18 @@ function stepSnake(
 ): void {
   if (state.over) {
     return;
+  }
+
+  if (state.specialFood && now >= state.specialFood.expiresAt) {
+    state.specialFood = null;
+  }
+
+  if (state.combo > 0 && now > state.comboExpiresAt) {
+    state.combo = 0;
+  }
+
+  if (state.directionQueue.length > 0) {
+    state.queuedDirection = state.directionQueue.shift()!;
   }
 
   if (!isReverse(state.queuedDirection, state.direction)) {
@@ -1318,7 +1761,14 @@ function stepSnake(
   state.snake.unshift(nextHead);
 
   if (samePoint(nextHead, state.food)) {
-    state.growth += 2;
+    state.combo =
+      now <= state.comboExpiresAt && state.combo > 0 ? state.combo + 1 : 1;
+    state.comboExpiresAt = now + playfieldConfig.comboWindowMs;
+    state.maxCombo = Math.max(state.maxCombo, state.combo);
+
+    const comboBonus = Math.min(2, Math.floor(state.combo / 2));
+    state.growth += 2 + comboBonus;
+    state.foodsEaten += 1;
     state.score = state.snake.length;
     state.lockUntil = now + playfieldConfig.burstLockMs;
     state.bursts.push(
@@ -1335,9 +1785,67 @@ function stepSnake(
     state.food = pickFreeCell(
       state.cols,
       state.rows,
-      [...state.snake, ...state.cpu.body],
+      getOccupiedCells(state),
       random,
     );
+
+    if (
+      state.foodsEaten % playfieldConfig.specialFoodSpawnEvery === 0 &&
+      !state.specialFood
+    ) {
+      const kind: SpecialFoodKind =
+        (state.foodsEaten / playfieldConfig.specialFoodSpawnEvery) % 2 === 1
+          ? 'espresso'
+          : 'coldbrew';
+      state.specialFood = {
+        point: pickFreeCell(state.cols, state.rows, getOccupiedCells(state), random),
+        kind,
+        bornAt: now,
+        expiresAt: now + playfieldConfig.specialFoodDurationMs,
+      };
+    }
+  } else if (state.specialFood && samePoint(nextHead, state.specialFood.point)) {
+    const kind = state.specialFood.kind;
+    state.specialFood = null;
+
+    if (kind === 'espresso') {
+      state.growth += 4;
+      state.combo =
+        (now <= state.comboExpiresAt && state.combo > 0 ? state.combo : 0) + 2;
+    } else {
+      state.growth += 2;
+      state.combo =
+        (now <= state.comboExpiresAt && state.combo > 0 ? state.combo : 0) + 1;
+      state.cpu.slowUntil = now + playfieldConfig.cpuSlowDurationMs;
+    }
+
+    state.comboExpiresAt = now + playfieldConfig.comboWindowMs;
+    state.maxCombo = Math.max(state.maxCombo, state.combo);
+    state.lockUntil = now + playfieldConfig.burstLockMs;
+    state.bursts.push(
+      ...createBurstClusters(
+        nextHead,
+        state.cellSize,
+        preparedPhrases,
+        random,
+        state.burstId,
+        now,
+      ),
+    );
+    state.burstId += 6;
+  } else if (state.bonusDrops.length > 0) {
+    const dropIndex = state.bonusDrops.findIndex((drop) =>
+      samePoint(drop, nextHead),
+    );
+
+    if (dropIndex !== -1) {
+      state.bonusDrops.splice(dropIndex, 1);
+      state.growth += 2;
+      state.combo =
+        now <= state.comboExpiresAt && state.combo > 0 ? state.combo + 1 : 1;
+      state.comboExpiresAt = now + playfieldConfig.comboWindowMs;
+      state.maxCombo = Math.max(state.maxCombo, state.combo);
+    }
   }
 
   if (state.growth > 0) {
@@ -1347,10 +1855,21 @@ function stepSnake(
   }
 
   state.score = state.snake.length;
-  stepCpu(state, random, now);
+  stepCpu(state, random, now, preparedPhrases);
   state.bursts = state.bursts.filter(
     (cluster) => now - cluster.bornAt < cluster.durationMs,
   );
+}
+
+function formatHudScore(state: GameState, now: number): string {
+  const parts = [`length ${state.score}`];
+
+  if (state.combo >= 2 && now < state.comboExpiresAt) {
+    parts.push(`${state.combo}x`);
+  }
+
+  parts.push(`cpu ${state.cpu.score}`);
+  return parts.join(' · ');
 }
 
 export function mountSnakeExperience(): void {
@@ -1377,7 +1896,7 @@ export function mountSnakeExperience(): void {
 
   const random = createRandom(240330);
   let animationFrame = 0;
-  let preparedPhrases: PreparedPhraseGroups = { ko: [], en: [] };
+  let preparedPhrases: PreparedPhraseGroups = { ko: [], en: [], rival: [] };
   let swipe: SwipeState | null = null;
   let state = createGameState(root.clientWidth, root.clientHeight, random);
   let frame = 0;
@@ -1414,6 +1933,22 @@ export function mountSnakeExperience(): void {
     isNewBest = false;
   };
 
+  const restartGame = (): void => {
+    const width = Math.max(root.clientWidth, 320);
+    const height = Math.max(root.clientHeight, 320);
+
+    if (width !== lastWidth || height !== lastHeight) {
+      syncCanvas();
+      return;
+    }
+
+    state = createGameState(width, height, random, state.words);
+    updateScoreText(`length ${state.score} · cpu ${state.cpu.score}`);
+    swipe = null;
+    bestRecorded = false;
+    isNewBest = false;
+  };
+
   const recordBestScore = (): void => {
     if (bestRecorded) {
       return;
@@ -1441,6 +1976,10 @@ export function mountSnakeExperience(): void {
 
     if (!state.over && !state.paused && worldNow >= state.lockUntil) {
       let stepMs = currentStepMs(state.snake.length);
+
+      if (worldNow - state.lastStepAt > stepMs * MAX_CATCHUP_STEPS) {
+        state.lastStepAt = worldNow - stepMs;
+      }
 
       while (worldNow - state.lastStepAt >= stepMs) {
         stepSnake(state, random, preparedPhrases, worldNow);
@@ -1478,22 +2017,27 @@ export function mountSnakeExperience(): void {
         bestScore,
         isNewBest,
         now,
+        state.maxCombo,
+        state.cpuKills,
       );
       updateScoreText(state.over ? '' : `length ${state.score} · cpu ${state.cpu.score}`);
       animationFrame = window.requestAnimationFrame(render);
       return;
     }
 
+    renderBonusDrops(ctx, state.bonusDrops, state.cellSize, worldNow);
     renderFood(ctx, state.food, state.cellSize, worldNow);
+    renderSpecialFood(ctx, state.specialFood, state.cellSize, worldNow);
     renderCpuSnake(ctx, state.cpu, state.cellSize, worldNow);
     renderSnake(ctx, state.snake, state.cellSize, worldNow);
+    renderComboBadge(ctx, state, worldNow);
     renderBursts(ctx, state.bursts, worldNow);
 
     if (state.paused) {
       renderPauseOverlay(ctx, root.clientWidth, root.clientHeight);
     }
 
-    updateScoreText(state.over ? '' : `length ${state.score} · cpu ${state.cpu.score}`);
+    updateScoreText(formatHudScore(state, worldNow));
 
     animationFrame = window.requestAnimationFrame(render);
   };
@@ -1512,7 +2056,7 @@ export function mountSnakeExperience(): void {
       event.preventDefault();
 
       if (state.over) {
-        syncCanvas();
+        restartGame();
         return;
       }
 
@@ -1534,10 +2078,7 @@ export function mountSnakeExperience(): void {
     }
 
     event.preventDefault();
-
-    if (!sameDirection(nextDirection, state.direction) && !isReverse(nextDirection, state.direction)) {
-      state.queuedDirection = nextDirection;
-    }
+    queueDirection(state, nextDirection);
   };
 
   const handlePointerDown = (event: PointerEvent): void => {
@@ -1575,7 +2116,7 @@ export function mountSnakeExperience(): void {
     const restartOnTap = state.over && Math.hypot(dx, dy) < threshold * 0.65;
 
     if (restartOnTap) {
-      syncCanvas();
+      restartGame();
       swipe = null;
       return;
     }
@@ -1587,12 +2128,8 @@ export function mountSnakeExperience(): void {
 
     const nextDirection = getSwipeDirection(dx, dy, threshold);
 
-    if (
-      nextDirection &&
-      !sameDirection(nextDirection, state.direction) &&
-      !isReverse(nextDirection, state.direction)
-    ) {
-      state.queuedDirection = nextDirection;
+    if (nextDirection) {
+      queueDirection(state, nextDirection);
     }
 
     swipe = null;
@@ -1616,8 +2153,16 @@ export function mountSnakeExperience(): void {
     syncCanvas();
   };
 
+  const handleVisibilityChange = (): void => {
+    if (document.hidden && !state.over && !state.paused) {
+      state.paused = true;
+      state.pauseStartedAt = performance.now();
+    }
+  };
+
   window.addEventListener('keydown', handleKeydown);
   window.addEventListener('resize', handleResize);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
   root.addEventListener('pointerdown', handlePointerDown);
   root.addEventListener('pointermove', handlePointerMove);
   root.addEventListener('pointerup', handlePointerUp);
@@ -1641,6 +2186,7 @@ export function mountSnakeExperience(): void {
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('keydown', handleKeydown);
       window.removeEventListener('resize', handleResize);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       root.removeEventListener('pointerdown', handlePointerDown);
       root.removeEventListener('pointermove', handlePointerMove);
       root.removeEventListener('pointerup', handlePointerUp);

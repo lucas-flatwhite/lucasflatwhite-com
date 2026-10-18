@@ -140,4 +140,28 @@ describe('snake engine source contract', () => {
     expect(engineSource).toContain('const RESIZE_HEIGHT_TOLERANCE = 140;');
     expect(engineSource).toContain('if (width === lastWidth && heightDelta < RESIZE_HEIGHT_TOLERANCE) {');
   });
+
+  it('caches word measurements, culls snake bounds, and reuses words on restart', () => {
+    expect(engineSource).toContain('const wordMeasurementCache = new Map<string, CachedWordMetric>();');
+    expect(engineSource).toContain('function getCachedWordMetric(');
+    expect(engineSource).toContain('function computeSnakeBounds(');
+    expect(engineSource).toContain('const restartGame = (): void => {');
+    expect(engineSource).toContain('const MAX_CATCHUP_STEPS = 3;');
+    expect(engineSource).toContain("document.addEventListener('visibilitychange', handleVisibilityChange);");
+  });
+
+  it('supports a 2-step input queue, combos, special coffee items, and cpu cut-off rewards', () => {
+    expect(engineSource).toContain('const MAX_DIRECTION_QUEUE = 2;');
+    expect(engineSource).toContain('function queueDirection(');
+    expect(engineSource).toContain("type SpecialFoodKind = 'espresso' | 'coldbrew';");
+    expect(engineSource).toContain('function renderSpecialFood(');
+    expect(engineSource).toContain('function renderBonusDrops(');
+    expect(engineSource).toContain('function renderComboBadge(');
+    expect(engineSource).toContain('function createRivalDefeatBursts(');
+    expect(engineSource).toContain('playfieldConfig.comboWindowMs');
+    expect(engineSource).toContain('playfieldConfig.specialFoodSpawnEvery');
+    expect(engineSource).toContain('playfieldConfig.cpuSlowDurationMs');
+    expect(engineSource).toContain('playfieldConfig.cpuKillBonusGrowth');
+  });
 });
+

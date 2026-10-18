@@ -18,6 +18,12 @@ describe('experience data source contract', () => {
     expect(siteDataSource).toContain('maxSpeed: 12');
     expect(siteDataSource).toContain('speedRampEvery: 4');
     expect(siteDataSource).toContain('cpuRespawnMs: 2600');
+    expect(siteDataSource).toContain('burstLockMs: 0');
+    expect(siteDataSource).toContain('comboWindowMs: 4200');
+    expect(siteDataSource).toContain('specialFoodSpawnEvery: 3');
+    expect(siteDataSource).toContain('cpuSlowDurationMs: 4000');
+    expect(siteDataSource).toContain('cpuKillBonusGrowth: 3');
+    expect(siteDataSource).toContain('rivalDefeatPhrasePool');
     expect(siteDataSource).toContain('pulseRadius: 320');
     expect(siteDataSource).toContain('featuredLinks.map');
     expect(siteDataSource).toContain("'handoff'");

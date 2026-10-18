@@ -55,7 +55,12 @@ export const playfieldConfig = {
   speedRampEvery: 4,
   cpuRespawnMs: 2600,
   burstDurationMs: 920,
-  burstLockMs: 320,
+  burstLockMs: 0,
+  comboWindowMs: 4200,
+  specialFoodSpawnEvery: 3,
+  specialFoodDurationMs: 7500,
+  cpuSlowDurationMs: 4000,
+  cpuKillBonusGrowth: 3,
   pulseRadius: 320,
   lineHeight: 28,
 } as const;
@@ -441,3 +446,11 @@ export const burstPhrasePoolEn = [
   { text: 'we shipped the feature and discovered three new definitions of done', palette: 'heat', intensity: 2 },
   { text: 'the roadmap was aligned and the universe filed an objection', palette: 'sunset', intensity: 1 },
 ] as const satisfies readonly BurstPhrase[];
+
+export const rivalDefeatPhrasePool = [
+  { text: '경쟁 프로세스가 데드락에 걸려 먼저 퇴근했다', palette: 'mint', intensity: 3 },
+  { text: '라이벌 브랜치가 충돌을 이기지 못하고 revert됐다', palette: 'flare', intensity: 3 },
+  { text: 'rival process exited with code 1 and dropped its coffee', palette: 'heat', intensity: 3 },
+  { text: 'cpu thread hit a race condition and yielded the floor', palette: 'sunset', intensity: 3 },
+] as const satisfies readonly BurstPhrase[];
+
