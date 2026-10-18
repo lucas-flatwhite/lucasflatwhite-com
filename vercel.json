@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/ai-timeline-log/:path*", "destination": "https://ai-timeline-log.vercel.app/ai-timeline-log/:path*" }
+  ]
+}
