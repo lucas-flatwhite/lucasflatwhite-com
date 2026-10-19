@@ -27,6 +27,7 @@ import {
 } from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import sortData from '../data/type-sorts.json';
+import { clamp01, span, TIMELINE } from './press-timeline';
 
 type FaceKey = keyof typeof sortData;
 type GlyphData = { advance: number; bounds: number[]; path: string };
@@ -75,16 +76,6 @@ const TRANSLATION_SIZE_PORTRAIT = 1.2;
 /** Proof textures are redrawn in steps of this much of the translation's run, not every frame. */
 const TURN_STEP = 1 / 48;
 
-// Where each step falls along the section's scroll: 0 as the stage pins, 1 as it leaves.
-// The last fifth holds the finished Korean proof, so nobody scrolls past the point of it.
-const INK_FROM = 0.03;
-const INK_TO = 0.2;
-const PRESS_FROM = 0.22;
-const PRESS_TO = 0.34;
-const LIFT_FROM = 0.36;
-const LIFT_TO = 0.56;
-const TURN_FROM = 0.6;
-const TURN_TO = 0.8;
 /** Share of the press spent lowering the sheet; the rest is the bite into the type. */
 const CONTACT = 0.7;
 
@@ -183,15 +174,16 @@ function glyphShapes(glyph: GlyphData, scale: number, mid: number): Shape[] {
 
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
-const span = (t: number, from: number, to: number) => clamp01((t - from) / (to - from));
 
 export type TypeCase = {
   /** Moves the press to a point along its run, from bare type (0) to the translated proof (1). */
   scrub: (progress: number) => void;
 };
 
-export function mountTypeCase(canvas: HTMLCanvasElement): TypeCase {
+export function mountTypeCase(
+  canvas: HTMLCanvasElement,
+  onProgress: (progress: number) => void = () => {},
+): TypeCase {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   // A portrait stage sets each line in two, so the forme is narrower and every sort larger.
   const portrait = canvas.clientWidth < canvas.clientHeight * 0.8;
@@ -554,9 +546,11 @@ export function mountTypeCase(canvas: HTMLCanvasElement): TypeCase {
     pointer.active = false;
   });
 
-  // Where the press is along its run, and where the scroll wants it to be.
+  // Where the press is along its run, where the scroll wants it to be, and what the page
+  // was last told.
   let progress = 0;
   let goal = 0;
+  let reported = -1;
 
   const stepSorts = (dt: number): boolean => {
     let moving = false;
@@ -567,7 +561,7 @@ export function mountTypeCase(canvas: HTMLCanvasElement): TypeCase {
       const z = sort.home.y + sort.offset.y;
 
       // Hands off the type while the sheet is down on it.
-      if (pointer.active && (progress < PRESS_FROM || progress > LIFT_FROM)) {
+      if (pointer.active && (progress < TIMELINE.press[0] || progress > TIMELINE.lift[0])) {
         away.set(x - pointer.point.x, z - pointer.point.z);
         const distance = away.length();
 
@@ -648,7 +642,7 @@ export function mountTypeCase(canvas: HTMLCanvasElement): TypeCase {
   // so scrolling back up runs the press in reverse.
   const pose = () => {
     const rollerTravel = galleyWidth + 1.2;
-    const inking = easeInOut(span(progress, INK_FROM, INK_TO));
+    const inking = easeInOut(span(progress, 'ink'));
     const rollerX = galleyWidth / 2 + 0.6 - rollerTravel * inking;
     roller.visible = inking > 0 && inking < 1;
     roller.position.set(rollerX, TYPE_HIGH + RELIEF + rollerRadius, 0.05);
@@ -660,7 +654,7 @@ export function mountTypeCase(canvas: HTMLCanvasElement): TypeCase {
       setInk(sort, inking >= 1 ? 1 : clamp01((x - rollerX + sort.width / 2) / 0.4));
     }
 
-    const press = span(progress, PRESS_FROM, PRESS_TO);
+    const press = span(progress, 'press');
     hinge.visible = press > 0;
 
     if (press < CONTACT) {
@@ -691,7 +685,7 @@ export function mountTypeCase(canvas: HTMLCanvasElement): TypeCase {
       sort.group.position.y = -dip;
     }
 
-    const raw = span(progress, LIFT_FROM, LIFT_TO);
+    const raw = span(progress, 'lift');
     const lift = easeInOut(raw);
 
     if (raw > 0) {
@@ -709,10 +703,15 @@ export function mountTypeCase(canvas: HTMLCanvasElement): TypeCase {
     }
 
     // Each redraw uploads the whole sheet to the GPU again, so only step through the turn.
-    const turn = Math.round(span(progress, TURN_FROM, TURN_TO) / TURN_STEP) * TURN_STEP;
+    const turn = Math.round(span(progress, 'turn') / TURN_STEP) * TURN_STEP;
 
     if (impressions && turn !== printedTurn) {
       drawProof(turn);
+    }
+
+    if (progress !== reported) {
+      reported = progress;
+      onProgress(progress);
     }
   };
 

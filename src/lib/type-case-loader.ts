@@ -1,3 +1,5 @@
+import { clamp01, STEPS, stepAt, TIMELINE, type Step } from './press-timeline';
+
 function supportsWebGL(): boolean {
   try {
     const probe = document.createElement('canvas');
@@ -38,7 +40,27 @@ export function mountTypeCaseWhenNear(root: HTMLElement): void {
 
       try {
         const { mountTypeCase } = await import('./type-case');
-        const typeCase = mountTypeCase(canvas);
+        // The meter follows the press as drawn, not the scroll, so the two never disagree.
+        const meter = root.querySelector<HTMLElement>('[data-case-meter]');
+        const labels = [...root.querySelectorAll<HTMLElement>('[data-case-step]')];
+        let shown: Step | null = null;
+        const follow = (progress: number) => {
+          meter?.style.setProperty('--case-progress', String(clamp01(progress / TIMELINE.turn[1])));
+          const step = stepAt(progress);
+
+          if (step === shown) {
+            return;
+          }
+
+          shown = step;
+          const current = STEPS.indexOf(step);
+
+          for (const label of labels) {
+            const at = STEPS.indexOf(label.dataset.caseStep as Step);
+            label.dataset.state = at < current ? 'done' : at === current ? 'active' : 'upcoming';
+          }
+        };
+        const typeCase = mountTypeCase(canvas, follow);
         root.dataset.ready = 'true';
 
         if (reduceMotion) {

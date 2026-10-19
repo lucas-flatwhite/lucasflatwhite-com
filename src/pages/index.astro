@@ -6,6 +6,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { featuredLinks, siteLinks } from '../data/links';
 import { siteProfile } from '../data/site';
 import { withBase } from '../lib/paths';
+import { TIMELINE, type Step } from '../lib/press-timeline';
 import { sortFeaturedProjects } from '../lib/projects';
 import '../styles/landing.css';
 
@@ -16,6 +17,14 @@ const work = projects.filter((entry) => entry.data.specimen);
 const site = projects.find((entry) => entry.data.title === 'lucasflatwhite-com');
 const playHref = withBase('play/');
 const year = new Date().getFullYear();
+// Each label sits where its step starts along the meter, which fills as the proof is done.
+const pressSteps: { step: Step; label: string }[] = [
+  { step: 'ink', label: 'Ink' },
+  { step: 'press', label: 'Press' },
+  { step: 'lift', label: 'Proof' },
+  { step: 'turn', label: 'Translate' },
+];
+const pressEnd = TIMELINE.turn[1];
 ---
 
 <BaseLayout title={siteProfile.name} description={siteProfile.description} bodyClass="landing">
@@ -133,6 +142,21 @@ const year = new Date().getFullYear();
             <span>make it fast.</span>
             <span lang="ko">돌아가게, 제대로, 빠르게.</span>
           </p>
+          <div class="case-meter" data-case-meter aria-hidden="true">
+            <ol class="case-steps">
+              {
+                pressSteps.map(({ step, label }) => (
+                  <li
+                    class="case-step"
+                    data-case-step={step}
+                    style={`--at: ${((TIMELINE[step][0] / pressEnd) * 100).toFixed(2)}%`}
+                  >
+                    {label}
+                  </li>
+                ))
+              }
+            </ol>
+          </div>
         </div>
       </div>
     </section>

@@ -48,6 +48,13 @@ describe('type case', () => {
     expect(scene).toContain('scrub: (next) =>');
   });
 
+  it('keeps the timeline out of three.js and lets the meter follow the press', () => {
+    expect(read('src/lib/press-timeline.ts')).not.toMatch(/from 'three'/);
+    expect(scene).toContain("from './press-timeline'");
+    expect(loader).toContain('mountTypeCase(canvas, follow)');
+    expect(landing).toContain('data-case-meter');
+  });
+
   it('renders on demand and stops off screen', () => {
     expect(scene).toContain('new IntersectionObserver');
     expect(scene).toContain("document.addEventListener('visibilitychange', wake)");
