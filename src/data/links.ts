@@ -16,8 +16,13 @@ export type SiteLink = {
   motion: GlyphMotion;
   /** Featured links sit in the first viewport; every link appears in the footer and the command menu. */
   featured: boolean;
-  /** The icon already spells the service name (X), so the handle is shown in its place. */
+  /**
+   * The handle is shown in place of the label: X's icon already spells the name and an
+   * address says what it is. The label stays for screen readers.
+   */
   wordmark?: boolean;
+  /** What a click copies instead of following `href`, or null for a link that opens a page. */
+  copy: string | null;
 };
 
 export const siteLinks = [
@@ -31,6 +36,7 @@ export const siteLinks = [
     motion: 'commit',
     featured: true,
     wordmark: false,
+    copy: null,
   },
   {
     id: 'x',
@@ -42,6 +48,20 @@ export const siteLinks = [
     motion: 'cross',
     featured: true,
     wordmark: true,
+    copy: null,
+  },
+  {
+    id: 'email',
+    label: 'Email',
+    handle: 'lucas.flatwhite@gmail.com',
+    // Without script, or where the clipboard is refused, the address opens a mail app.
+    href: 'mailto:lucas.flatwhite@gmail.com',
+    blurb: 'Click to copy the address.',
+    icon: 'envelope',
+    motion: 'lift',
+    featured: true,
+    wordmark: true,
+    copy: 'lucas.flatwhite@gmail.com',
   },
 ] as const satisfies readonly SiteLink[];
 

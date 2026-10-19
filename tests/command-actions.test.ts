@@ -21,9 +21,25 @@ describe('command palette commands', () => {
   });
 
   it('opens only the outside links in a new tab', () => {
-    expect(commands.filter((command) => command.external).map((command) => command.id)).toEqual(
-      siteLinks.map((link) => link.id),
-    );
+    expect(commands.filter((command) => command.external).map((command) => command.id)).toEqual([
+      'github',
+      'x',
+    ]);
+  });
+
+  it('copies the email address instead of opening it', () => {
+    const email = commands.find((command) => command.id === 'email');
+
+    expect(email).toMatchObject({
+      label: 'Email',
+      hint: 'lucas.flatwhite@gmail.com',
+      href: 'mailto:lucas.flatwhite@gmail.com',
+      external: false,
+      copy: 'lucas.flatwhite@gmail.com',
+    });
+    expect(commands.filter((command) => command.copy !== null).map((command) => command.id)).toEqual([
+      'email',
+    ]);
   });
 
   it('rejects a section command that points at a missing section', () => {
@@ -38,6 +54,8 @@ describe('command palette commands', () => {
   it('filters by label or hint, ignoring case and outer space', () => {
     expect(filterPaletteCommands(commands, '  GIT ').map((command) => command.id)).toEqual(['github']);
     expect(filterPaletteCommands(commands, 'snake').map((command) => command.id)).toEqual(['play']);
+    expect(filterPaletteCommands(commands, 'mail').map((command) => command.id)).toEqual(['email']);
+    expect(filterPaletteCommands(commands, 'gmail').map((command) => command.id)).toEqual(['email']);
     expect(filterPaletteCommands(commands, '')).toHaveLength(commands.length);
     expect(filterPaletteCommands(commands, 'nothing like this')).toEqual([]);
   });

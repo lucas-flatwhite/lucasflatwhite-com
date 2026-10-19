@@ -1,0 +1,67 @@
+---
+import Glyph from './Glyph.astro';
+import type { GlyphMotion } from '../data/links';
+import type { IconName } from '../lib/icons';
+
+type Props = {
+  icon: IconName;
+  motion?: GlyphMotion;
+  class?: string;
+};
+
+const { icon, motion, class: className } = Astro.props;
+---
+
+<span class:list={['copy-mark', className]} aria-hidden="true">
+  <Glyph icon={icon} motion={motion} class="copy-mark-icon" />
+  <Glyph icon="check" class="copy-mark-check" />
+</span>
+
+<style is:global>
+  /*
+   * A copy link's icon. While its host carries [data-copied] the icon gives way to a
+   * crema check, in step with the "Copied" line in CopyRoll.
+   */
+  .copy-mark {
+    display: inline-grid;
+    flex: none;
+  }
+
+  .copy-mark > .glyph {
+    grid-area: 1 / 1;
+  }
+
+  .copy-mark-check {
+    color: var(--crema);
+    opacity: 0;
+  }
+
+  [data-copied] .copy-mark-icon {
+    opacity: 0;
+  }
+
+  [data-copied] .copy-mark-check {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .copy-mark-icon,
+    .copy-mark-check {
+      transition:
+        opacity var(--dur-short) var(--ease-out),
+        scale var(--dur-long) var(--ease-out);
+    }
+
+    .copy-mark-check {
+      scale: 0.4;
+    }
+
+    [data-copied] .copy-mark-icon {
+      scale: 0.6;
+    }
+
+    [data-copied] .copy-mark-check {
+      scale: 1;
+    }
+  }
+</style>

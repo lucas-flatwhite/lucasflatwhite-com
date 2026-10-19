@@ -1,4 +1,6 @@
 ---
+import CopyMark from './CopyMark.astro';
+import CopyRoll from './CopyRoll.astro';
 import Glyph from './Glyph.astro';
 import { sectionIds } from '../data/site';
 import { buildPaletteCommands } from '../lib/command-actions';
@@ -33,11 +35,14 @@ const commands = buildPaletteCommands(withBase(), withBase('play/'), sectionIds)
           aria-selected="false"
           data-href={command.href}
           data-external={command.external ? 'true' : undefined}
+          data-copy={command.copy ?? undefined}
           data-search={`${command.label} ${command.hint}`.toLowerCase()}
         >
-          <Glyph icon={command.icon} />
+          {command.copy !== null ? <CopyMark icon={command.icon} /> : <Glyph icon={command.icon} />}
           <span class="palette-label">{command.label}</span>
-          <span class="palette-hint">{command.hint}</span>
+          <span class="palette-hint">
+            {command.copy !== null ? <CopyRoll text={command.hint} /> : command.hint}
+          </span>
           {command.external && <Glyph icon="arrow-up-right" class="palette-out" />}
         </li>
       ))
@@ -209,6 +214,17 @@ const commands = buildPaletteCommands(withBase(), withBase('play/'), sectionIds)
     color: var(--foam-dim);
   }
 
+  /* Crema only reads on the selected blue row; the foam list keeps "Copied" in blue. */
+  .palette-option .copy-roll-done,
+  .palette-option .copy-mark-check {
+    color: var(--blue);
+  }
+
+  .palette-option[aria-selected='true'] .copy-roll-done,
+  .palette-option[aria-selected='true'] .copy-mark-check {
+    color: var(--crema);
+  }
+
   .palette-option[aria-selected='true'] .palette-label {
     font-stretch: 125%;
     font-weight: 800;
@@ -230,7 +246,11 @@ const commands = buildPaletteCommands(withBase(), withBase('play/'), sectionIds)
 </style>
 
 <script>
+  import { clearCopied, copyText, showCopied } from '../lib/copy-link';
+
   // Any button with [data-palette-open] opens the menu; Cmd/Ctrl+K works on every page.
+  // A copy command stays open long enough to show "Copied" in its own row, then closes.
+  const COPY_CLOSE_MS = 900;
   const dialog = document.querySelector<HTMLDialogElement>('[data-palette]');
   const input = document.querySelector<HTMLInputElement>('[data-palette-input]');
   const empty = document.querySelector<HTMLElement>('[data-palette-empty]');
@@ -275,10 +295,28 @@ const commands = buildPaletteCommands(withBase(), withBase('play/'), sectionIds)
     select(0);
   };
 
-  const run = (option: HTMLLIElement | undefined) => {
+  let closeTimer = 0;
+
+  const run = async (option: HTMLLIElement | undefined) => {
     const href = option?.dataset.href;
 
     if (!href || !dialog) {
+      return;
+    }
+
+    const copy = option.dataset.copy;
+
+    if (copy !== undefined) {
+      if (await copyText(copy)) {
+        showCopied(option, `Copied ${copy}`);
+        window.clearTimeout(closeTimer);
+        closeTimer = window.setTimeout(() => dialog.close(), COPY_CLOSE_MS);
+        return;
+      }
+
+      // The clipboard was refused, so the mailto opens a mail app instead.
+      dialog.close();
+      window.location.assign(href);
       return;
     }
 
@@ -296,6 +334,8 @@ const commands = buildPaletteCommands(withBase(), withBase('play/'), sectionIds)
       return;
     }
 
+    window.clearTimeout(closeTimer);
+    options.forEach(clearCopied);
     input.value = '';
     filter();
     dialog.showModal();
@@ -330,7 +370,7 @@ const commands = buildPaletteCommands(withBase(), withBase('play/'), sectionIds)
         select(active - 1);
       } else if (event.key === 'Enter') {
         event.preventDefault();
-        run(visible[active]);
+        void run(visible[active]);
       }
     });
 
@@ -342,7 +382,7 @@ const commands = buildPaletteCommands(withBase(), withBase('play/'), sectionIds)
           select(index);
         }
       });
-      option.addEventListener('click', () => run(option));
+      option.addEventListener('click', () => void run(option));
     });
 
     dialog.addEventListener('click', (event) => {

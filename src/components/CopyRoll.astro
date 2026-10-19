@@ -1,0 +1,49 @@
+---
+type Props = {
+  text: string;
+};
+
+const { text } = Astro.props;
+---
+
+<span class="copy-roll">
+  <span class="copy-roll-text">{text}</span>
+  <span class="copy-roll-done" aria-hidden="true">Copied</span>
+</span>
+
+<style is:global>
+  /*
+   * A copy link's text. While its host carries [data-copied] the line rolls up like a
+   * split-flap board and "Copied" comes up from underneath. Reduced motion swaps it in place.
+   */
+  .copy-roll {
+    display: inline-grid;
+    overflow: hidden;
+    vertical-align: bottom;
+    line-height: 1.2;
+  }
+
+  .copy-roll > span {
+    grid-area: 1 / 1;
+    white-space: nowrap;
+  }
+
+  .copy-roll-done {
+    color: var(--crema);
+    translate: 0 100%;
+  }
+
+  [data-copied] .copy-roll-text {
+    translate: 0 -100%;
+  }
+
+  [data-copied] .copy-roll-done {
+    translate: 0 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .copy-roll > span {
+      transition: translate var(--dur-long) var(--ease-out);
+    }
+  }
+</style>

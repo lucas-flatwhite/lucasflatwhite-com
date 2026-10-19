@@ -40,11 +40,11 @@ export const siteProfile = {
     'Steer through a dense field of Korean and English words, race a CPU rival to the same food, and set off typographic bursts built with pretext.',
 } as const;
 
-// The game strip reuses the featured links so the two pages never disagree.
-export const identityLinks = featuredLinks.map(({ label, href }) => ({
-  label,
-  href,
-})) satisfies readonly IdentityLink[];
+// The game strip reuses the featured links so the two pages never disagree. It opens each
+// one in a new tab, so a link a click copies stays in the command menu instead.
+export const identityLinks = featuredLinks
+  .filter((link) => link.copy === null)
+  .map(({ label, href }) => ({ label, href })) satisfies readonly IdentityLink[];
 
 export const playfieldConfig = {
   columns: 30,

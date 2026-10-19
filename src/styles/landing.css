@@ -586,6 +586,11 @@
   font-size: 0.8em;
 }
 
+/* The full address is the longest line in the footer, so it scales with the window. */
+.colophon-link .copy-roll {
+  font-size: min(1em, 2.6vw);
+}
+
 .colophon-blurb {
   justify-self: end;
   color: var(--foam-dim);
@@ -625,6 +630,17 @@
   .colophon-shortcut,
   .topbar .palette-trigger {
     display: none;
+  }
+}
+
+/*
+ * Widened on hover, the full address would run into the intro on a narrow window, and a
+ * tap leaves hover on: there it recolors but never widens.
+ */
+@media (max-width: 1000px), (hover: none), (pointer: coarse) {
+  .glyph-host:is(:hover, :focus-visible) .copy-roll {
+    font-stretch: 100%;
+    font-weight: 600;
   }
 }
 
@@ -679,6 +695,10 @@
 
   .colophon-link {
     grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .colophon-link .copy-roll {
+    font-size: min(1em, 5.4vw);
   }
 
   .colophon-blurb {

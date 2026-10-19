@@ -9,6 +9,8 @@ export type PaletteCommand = {
   icon: IconName;
   href: string;
   external: boolean;
+  /** What choosing the command copies instead of following `href`, or null. */
+  copy: string | null;
 };
 
 type SectionCommand = {
@@ -44,6 +46,7 @@ export function buildPaletteCommands(
       icon: command.icon,
       href: `${home}#${command.section}`,
       external: false,
+      copy: null,
     };
   });
 
@@ -56,6 +59,7 @@ export function buildPaletteCommands(
       icon: 'game-controller',
       href: playHref,
       external: false,
+      copy: null,
     },
     ...siteLinks.map((link) => ({
       id: link.id,
@@ -63,7 +67,8 @@ export function buildPaletteCommands(
       hint: link.handle,
       icon: link.icon,
       href: link.href,
-      external: true,
+      external: link.copy === null,
+      copy: link.copy,
     })),
   ];
 }

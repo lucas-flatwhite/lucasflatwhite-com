@@ -28,9 +28,18 @@ describe('site data', () => {
 });
 
 describe('site links', () => {
-  it('links GitHub and X, both featured', () => {
-    expect(siteLinks.map((link) => link.id)).toEqual(['github', 'x']);
-    expect(featuredLinks.map((link) => link.id)).toEqual(['github', 'x']);
+  it('links GitHub, X and email, all featured', () => {
+    expect(siteLinks.map((link) => link.id)).toEqual(['github', 'x', 'email']);
+    expect(featuredLinks.map((link) => link.id)).toEqual(['github', 'x', 'email']);
+  });
+
+  it('shows the email address in full and copies it, with a mailto to fall back on', () => {
+    const email = siteLinks.find((link) => link.id === 'email');
+
+    expect(email?.handle).toBe('lucas.flatwhite@gmail.com');
+    expect(email?.copy).toBe(email?.handle);
+    expect(email?.href).toBe(`mailto:${email?.copy}`);
+    expect(email?.wordmark).toBe(true);
   });
 
   it('keeps every link unique, secure, iconed and briefly described', () => {
@@ -41,7 +50,7 @@ describe('site links', () => {
     expect(new Set(hrefs).size).toBe(hrefs.length);
 
     for (const link of siteLinks) {
-      expect(link.href.startsWith('https://')).toBe(true);
+      expect(link.href.startsWith(link.copy === null ? 'https://' : 'mailto:')).toBe(true);
       expect(Object.keys(icons)).toContain(link.icon);
       expect(['commit', 'cross', 'lift']).toContain(link.motion);
       expect(link.blurb.length).toBeGreaterThan(8);
@@ -50,6 +59,9 @@ describe('site links', () => {
   });
 
   it('shares the featured links with the game strip', () => {
-    expect(identityLinks).toEqual(featuredLinks.map(({ label, href }) => ({ label, href })));
+    expect(identityLinks).toEqual(
+      featuredLinks.filter((link) => link.copy === null).map(({ label, href }) => ({ label, href })),
+    );
+    expect(identityLinks.map((link) => link.label)).toEqual(['GitHub', 'X']);
   });
 });

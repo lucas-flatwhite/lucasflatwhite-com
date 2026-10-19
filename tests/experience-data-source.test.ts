@@ -25,7 +25,7 @@ describe('experience data source contract', () => {
     expect(siteDataSource).toContain('cpuKillBonusGrowth: 3');
     expect(siteDataSource).toContain('rivalDefeatPhrasePool');
     expect(siteDataSource).toContain('pulseRadius: 320');
-    expect(siteDataSource).toContain('featuredLinks.map');
+    expect(siteDataSource).toContain('featuredLinks\n  .filter((link) => link.copy === null)');
     expect(siteDataSource).toContain("'handoff'");
     expect(siteDataSource).toContain("'rollback'");
     expect(siteDataSource).toContain("'wireframe'");

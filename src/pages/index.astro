@@ -1,6 +1,8 @@
 ---
 import { getCollection, type CollectionEntry } from 'astro:content';
 import CommandPalette from '../components/CommandPalette.astro';
+import CopyMark from '../components/CopyMark.astro';
+import CopyRoll from '../components/CopyRoll.astro';
 import Glyph from '../components/Glyph.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { featuredLinks, siteLinks } from '../data/links';
@@ -63,20 +65,30 @@ const pressEnd = TIMELINE.lift[1];
         {
           featuredLinks.map((link) => (
             <li data-field-obstacle="hero">
-              <a class="link-row glyph-host" href={link.href} target="_blank" rel="noreferrer me">
-                <Glyph icon={link.icon} motion={link.motion} class="link-glyph" />
-                {link.wordmark ? (
-                  <>
-                    <span class="sr-only">{link.label}</span>
-                    <span class="link-label link-label-handle">{link.handle}</span>
-                  </>
-                ) : (
-                  <>
-                    <span class="link-label">{link.label}</span>
-                    <span class="link-handle">{link.handle}</span>
-                  </>
-                )}
-              </a>
+              {link.copy !== null ? (
+                <a class="link-row glyph-host" href={link.href} data-copy={link.copy}>
+                  <CopyMark icon={link.icon} motion={link.motion} class="link-glyph" />
+                  <span class="sr-only">{link.label}</span>
+                  <span class="link-label link-label-handle">
+                    <CopyRoll text={link.handle} />
+                  </span>
+                </a>
+              ) : (
+                <a class="link-row glyph-host" href={link.href} target="_blank" rel="noreferrer me">
+                  <Glyph icon={link.icon} motion={link.motion} class="link-glyph" />
+                  {link.wordmark ? (
+                    <>
+                      <span class="sr-only">{link.label}</span>
+                      <span class="link-label link-label-handle">{link.handle}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span class="link-label">{link.label}</span>
+                      <span class="link-handle">{link.handle}</span>
+                    </>
+                  )}
+                </a>
+              )}
             </li>
           ))
         }
@@ -207,12 +219,23 @@ const pressEnd = TIMELINE.lift[1];
         {
           siteLinks.map((link) => (
             <li>
-              <a class="colophon-link glyph-host" href={link.href} target="_blank" rel="noreferrer me">
-                <Glyph icon={link.icon} motion={link.motion} />
-                {link.wordmark && <span class="sr-only">{link.label}</span>}
-                <span class="link-label">{link.wordmark ? link.handle : link.label}</span>
-                <span class="colophon-blurb">{link.blurb}</span>
-              </a>
+              {link.copy !== null ? (
+                <a class="colophon-link glyph-host" href={link.href} data-copy={link.copy}>
+                  <CopyMark icon={link.icon} motion={link.motion} />
+                  <span class="sr-only">{link.label}</span>
+                  <span class="link-label">
+                    <CopyRoll text={link.handle} />
+                  </span>
+                  <span class="colophon-blurb">{link.blurb}</span>
+                </a>
+              ) : (
+                <a class="colophon-link glyph-host" href={link.href} target="_blank" rel="noreferrer me">
+                  <Glyph icon={link.icon} motion={link.motion} />
+                  {link.wordmark && <span class="sr-only">{link.label}</span>}
+                  <span class="link-label">{link.wordmark ? link.handle : link.label}</span>
+                  <span class="colophon-blurb">{link.blurb}</span>
+                </a>
+              )}
             </li>
           ))
         }
@@ -234,6 +257,7 @@ const pressEnd = TIMELINE.lift[1];
 </BaseLayout>
 
 <script>
+  import { mountCopyLinks } from '../lib/copy-link';
   import { mountPlayBand } from '../lib/play-band';
   import { mountSpecimen } from '../lib/specimen';
   import { mountTypeCaseWhenNear } from '../lib/type-case-loader';
@@ -248,6 +272,8 @@ const pressEnd = TIMELINE.lift[1];
   if (band) {
     void mountPlayBand(band);
   }
+
+  mountCopyLinks();
 
   const typeCase = document.querySelector<HTMLElement>('[data-type-case]');
 
