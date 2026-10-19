@@ -1,6 +1,6 @@
 # lucasflatwhite.com
 
-Personal site for **Lucas Flatwhite (루카스 플랫화이트)**. I build for the web, translate developer software into Korean, and make text move.
+Personal site for **Lucas Flatwhite (루카스 플랫화이트)**. Endless curiosity. Spotting problems, then solving them. That's the kind of software engineer I am.
 
 The site is built as a working type specimen rather than a grid of static cards: every section uses English and Korean text as its primary material.
 

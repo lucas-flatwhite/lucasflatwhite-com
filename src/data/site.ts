@@ -32,9 +32,9 @@ export const siteProfile = {
   handle: 'lucas.flatwhite',
   name: 'Lucas Flatwhite',
   nameKo: '루카스 플랫화이트',
-  intro: 'I build for the web, translate software into Korean, and make text move.',
+  intro: "Endless curiosity. Spotting problems, then solving them. That's the kind of software engineer I am.",
   description:
-    'Lucas Flatwhite builds for the web, translates developer software into Korean, and makes text move.',
+    'Lucas Flatwhite is an endlessly curious software engineer who spots problems and solves them.',
   playTitle: 'Snake, in a field of words',
   playDescription:
     'Steer through a dense field of Korean and English words, race a CPU rival to the same food, and set off typographic bursts built with pretext.',
