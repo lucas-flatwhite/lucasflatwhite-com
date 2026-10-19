@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { span, stepAt, STEPS, TIMELINE } from '../src/lib/press-timeline';
 
 describe('press timeline', () => {
-  it('runs ink, press, lift and turn in that order, one after another', () => {
-    expect(STEPS).toEqual(['ink', 'press', 'lift', 'turn']);
+  it('runs ink, press and lift in that order, one after another', () => {
+    expect(STEPS).toEqual(['ink', 'press', 'lift']);
 
     for (const [index, step] of STEPS.entries()) {
       const [from, to] = TIMELINE[step];
@@ -19,11 +19,7 @@ describe('press timeline', () => {
 
   it('starts with the type bare and holds the finished proof at the end', () => {
     expect(TIMELINE.ink[0]).toBeGreaterThan(0);
-    expect(1 - TIMELINE.turn[1]).toBeGreaterThanOrEqual(0.15);
-  });
-
-  it('brings the Korean in within the first two thirds of the scroll', () => {
-    expect(TIMELINE.turn[0]).toBeLessThanOrEqual(2 / 3);
+    expect(1 - TIMELINE.lift[1]).toBeGreaterThanOrEqual(0.15);
   });
 
   it('measures each step from 0 before it to 1 after it', () => {
@@ -60,7 +56,6 @@ describe('press timeline', () => {
     expect(stepAt(0)).toBe('ink');
     expect(stepAt(TIMELINE.press[0])).toBe('press');
     expect(stepAt(TIMELINE.lift[0])).toBe('lift');
-    expect(stepAt(TIMELINE.turn[0])).toBe('turn');
-    expect(stepAt(1)).toBe('turn');
+    expect(stepAt(1)).toBe('lift');
   });
 });

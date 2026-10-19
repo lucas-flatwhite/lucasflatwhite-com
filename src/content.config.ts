@@ -10,11 +10,12 @@ const projects = defineCollection({
     repo: z.string().url().optional(),
     order: z.number().int().nonnegative(),
     featured: z.boolean().default(true),
-    // A real source string and the shipped Korean translation, shown as the project's proof.
-    specimen: z
+    // A real passage from the shipped work, set as it appears there, shown as the project's proof.
+    excerpt: z
       .object({
-        source: z.string(),
-        target: z.string(),
+        kicker: z.string(),
+        title: z.string(),
+        text: z.string(),
         note: z.string()
       })
       .optional()

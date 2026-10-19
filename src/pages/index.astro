@@ -13,8 +13,8 @@ import '../styles/landing.css';
 const projects = sortFeaturedProjects<CollectionEntry<'projects'>>(
   await getCollection('projects'),
 );
-const work = projects.filter((entry) => entry.data.specimen);
-const site = projects.find((entry) => entry.data.title === 'lucasflatwhite-com');
+const work = projects.filter((entry) => entry.data.excerpt);
+const site = projects.find((entry) => entry.slug === 'lucasflatwhite-com');
 const playHref = withBase('play/');
 const year = new Date().getFullYear();
 // Each label sits where its step starts along the meter, which fills as the proof is done.
@@ -22,9 +22,8 @@ const pressSteps: { step: Step; label: string }[] = [
   { step: 'ink', label: 'Ink' },
   { step: 'press', label: 'Press' },
   { step: 'lift', label: 'Proof' },
-  { step: 'turn', label: 'Translate' },
 ];
-const pressEnd = TIMELINE.turn[1];
+const pressEnd = TIMELINE.lift[1];
 ---
 
 <BaseLayout title={siteProfile.name} description={siteProfile.description} bodyClass="landing">
@@ -87,8 +86,7 @@ const pressEnd = TIMELINE.turn[1];
     <section class="work" id="work" aria-labelledby="work-title">
       <h2 id="work-title" class="section-title">Work</h2>
       <p class="section-lede">
-        Translation, mostly. English in, Korean out, with every command and flag left exactly where
-        it was.
+        Built, start to finish. I spot the problem, write the code, and set every line myself.
       </p>
 
       <ol class="work-list">
@@ -104,12 +102,23 @@ const pressEnd = TIMELINE.turn[1];
                 </h3>
                 <p class="work-summary">{entry.data.summary}</p>
                 <p class="work-tags">{entry.data.tags.join(', ')}</p>
+                {entry.data.repo && (
+                  <a
+                    class="button-quiet work-source glyph-host"
+                    href={entry.data.repo}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <Glyph icon="github-logo" motion="commit" />
+                    Source
+                  </a>
+                )}
               </div>
-              <figure class="pair">
-                <p class="pair-source" lang="en">{entry.data.specimen?.source}</p>
-                <Glyph icon="translate" class="pair-turn" />
-                <p class="pair-target" lang="ko">{entry.data.specimen?.target}</p>
-                <figcaption class="pair-note">{entry.data.specimen?.note}</figcaption>
+              <figure class="excerpt">
+                <p class="excerpt-kicker" lang="ko">{entry.data.excerpt?.kicker}</p>
+                <p class="excerpt-title" lang="ko">{entry.data.excerpt?.title}</p>
+                <p class="excerpt-text" lang="ko">{entry.data.excerpt?.text}</p>
+                <figcaption class="excerpt-note">{entry.data.excerpt?.note}</figcaption>
               </figure>
             </li>
           ))
@@ -123,7 +132,8 @@ const pressEnd = TIMELINE.turn[1];
         <div class="case-intro">
           <p>
             Kent Beck's three steps, cast in metal and set in mirror image, the way type stands in
-            a forme. Ink them and pull a proof, and it comes off the press in Korean.
+            a forme. Ink them and pull a proof, and the rule comes off the press the right way
+            round.
           </p>
         </div>
       </div>
@@ -133,13 +143,12 @@ const pressEnd = TIMELINE.turn[1];
             class="case-canvas"
             data-case-canvas
             role="img"
-            aria-label="Metal type sorts setting Make it work, make it right, make it fast in mirror image, and the proof pulled from them, which reads in Korean: 돌아가게, 제대로, 빠르게."
+            aria-label="Metal type sorts setting Make it work, make it right, make it fast in mirror image, and the proof pulled from them, which reads the right way round."
           ></canvas>
           <p class="case-fallback" aria-hidden="true">
             <span>Make it work,</span>
             <span>make it right,</span>
             <span>make it fast.</span>
-            <span lang="ko">돌아가게, 제대로, 빠르게.</span>
           </p>
           <p class="case-credit">Kent Beck</p>
           <div class="case-meter" data-case-meter aria-hidden="true">

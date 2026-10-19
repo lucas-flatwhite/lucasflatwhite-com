@@ -1,14 +1,13 @@
 """Extracts the glyph outlines for the metal type section.
 
 The 3D sorts in src/lib/type-case.ts are extruded from real outlines of the site's
-faces, instanced at the weight the section sets them in. The Latin face casts the sorts;
-the Hangul face sets the translation the proof turns into. Run this again only when the
-quote, its translation or the faces change:
+display face, instanced at the weight the section sets them in. Run this again only when
+the quote or the face changes:
 
     pip install fonttools
-    python scripts/build-type-sorts.py Anybody[wdth,wght].ttf NotoSansKR[wght].ttf
+    python scripts/build-type-sorts.py Anybody[wdth,wght].ttf
 
-Both fonts come from https://github.com/google/fonts (OFL).
+The font comes from https://github.com/google/fonts (OFL).
 """
 
 import json
@@ -21,7 +20,6 @@ from fontTools.ttLib import TTFont
 from fontTools.varLib.instancer import instantiateVariableFont
 
 LATIN = "Makeitwork,makeitright,makeitfast."
-HANGUL = "돌아가게,제대로,빠르게."
 OUT = Path(__file__).resolve().parent.parent / "src" / "data" / "type-sorts.json"
 
 
@@ -52,10 +50,9 @@ def extract(path: str, location: dict, characters: str) -> dict:
 
 
 def main() -> None:
-    anybody, noto = sys.argv[1], sys.argv[2]
+    anybody = sys.argv[1]
     data = {
         "latin": extract(anybody, {"wdth": 100, "wght": 800}, LATIN),
-        "hangul": extract(noto, {"wght": 800}, HANGUL),
     }
     OUT.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     print(f"wrote {OUT} ({OUT.stat().st_size} bytes)")

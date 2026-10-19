@@ -199,14 +199,14 @@
 
 .work-item {
   display: grid;
-  grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
   gap: clamp(28px, 5vw, 96px);
   align-items: start;
 }
 
 .work-name {
   margin: 0;
-  font-size: clamp(1.7rem, 2.8vw, 2.5rem);
+  font-size: clamp(1.5rem, 2.8vw, 2.5rem);
   font-weight: 700;
   line-height: 1.05;
 }
@@ -240,74 +240,71 @@
   font-stretch: 80%;
 }
 
-.pair {
+.work-source {
+  margin-top: 1.6rem;
+}
+
+.excerpt {
   display: grid;
   justify-items: start;
-  gap: 0.5rem;
+  gap: 0.6rem;
   margin: 0;
 }
 
-.pair-source,
-.pair-target {
+.excerpt-kicker,
+.excerpt-title,
+.excerpt-text {
   margin: 0;
-  font-size: clamp(1.7rem, 3.5vw, 3.3rem);
-  line-height: 1.12;
-  text-wrap: balance;
-}
-
-.pair-source {
-  font-weight: 500;
-}
-
-.pair-turn {
-  margin: 0.35rem 0;
-  color: var(--crema);
-  font-size: clamp(1.4rem, 2.4vw, 2rem);
-}
-
-.pair-target {
   font-family: var(--font-ko);
-  font-weight: 700;
-  line-height: 1.3;
   word-break: keep-all;
 }
 
-.pair-note {
+.excerpt-kicker {
+  color: var(--crema);
+  font-size: clamp(1rem, 1.4vw, 1.2rem);
+  font-weight: 700;
+}
+
+.excerpt-title {
+  font-size: clamp(2.6rem, 6vw, 5.6rem);
+  font-weight: 900;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.excerpt-text {
+  max-width: 24ch;
+  font-size: clamp(1.4rem, 2.6vw, 2.4rem);
+  font-weight: 500;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+.excerpt-note {
+  max-width: 52ch;
   margin-top: 0.7rem;
   color: var(--foam-dim);
   font-size: 0.9rem;
 }
 
-/* As a pair scrolls in, the Korean line is set left to right and the English recedes. */
+/* As an excerpt scrolls in, its title is pulled left to right like a proof off the press. */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    .pair-target {
-      animation: pair-set linear both;
+    .excerpt-title {
+      animation: excerpt-set linear both;
       animation-timeline: view();
       animation-range: entry 10% entry 90%;
-    }
-
-    .pair-source {
-      animation: pair-recede linear both;
-      animation-timeline: view();
-      animation-range: entry 50% entry 100%;
     }
   }
 }
 
-@keyframes pair-set {
+@keyframes excerpt-set {
   from {
     clip-path: inset(0 100% 0 0);
   }
 
   to {
     clip-path: inset(0 0 0 0);
-  }
-}
-
-@keyframes pair-recede {
-  to {
-    color: var(--foam-dim);
   }
 }
 
@@ -364,7 +361,7 @@
   cursor: grab;
 }
 
-/* The quote is credited on the stage itself, arriving with the translation when it runs. */
+/* The quote is credited on the stage itself, arriving as the proof stands up to be read. */
 .case-credit {
   position: absolute;
   right: var(--gutter);
@@ -379,7 +376,7 @@
 
 .case[data-scrub][data-ready] .case-credit {
   bottom: calc(var(--gutter) + 2.6rem);
-  opacity: var(--case-turn, 0);
+  opacity: var(--case-proof, 0);
 }
 
 /* Where the press is along its run, so a reader pinned on the stage knows there is more. */
@@ -459,12 +456,6 @@
 
 .case-fallback span {
   display: block;
-}
-
-.case-fallback span:lang(ko) {
-  margin-top: 0.4em;
-  font-family: var(--font-ko);
-  font-size: 0.62em;
 }
 
 .case[data-ready] .case-fallback {

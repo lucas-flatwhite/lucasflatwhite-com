@@ -26,7 +26,7 @@ export const siteLinks = [
     label: 'GitHub',
     handle: 'lucas-flatwhite',
     href: 'https://github.com/lucas-flatwhite',
-    blurb: 'Code for my tools, translations, and this site.',
+    blurb: 'Source for everything I build, this site included.',
     icon: 'github-logo',
     motion: 'commit',
     featured: true,

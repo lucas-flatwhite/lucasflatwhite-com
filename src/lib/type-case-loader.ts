@@ -45,8 +45,8 @@ export function mountTypeCaseWhenNear(root: HTMLElement): void {
         const labels = [...root.querySelectorAll<HTMLElement>('[data-case-step]')];
         let shown: Step | null = null;
         const follow = (progress: number) => {
-          meter?.style.setProperty('--case-progress', String(clamp01(progress / TIMELINE.turn[1])));
-          root.style.setProperty('--case-turn', String(span(progress, 'turn')));
+          meter?.style.setProperty('--case-progress', String(clamp01(progress / TIMELINE.lift[1])));
+          root.style.setProperty('--case-proof', String(span(progress, 'lift')));
           const step = stepAt(progress);
 
           if (step === shown) {

@@ -11,20 +11,20 @@ const landing = read('src/pages/index.astro');
 describe('type case', () => {
   it('has an outline for every letter the forme sets', () => {
     const latin = Object.keys(sortData.latin.glyphs);
-    const hangul = Object.keys(sortData.hangul.glyphs);
 
     for (const char of 'Makeitwork,makeitright,makeitfast.') {
       expect(latin).toContain(char);
     }
 
-    for (const char of '돌아가게,제대로,빠르게.') {
-      expect(hangul).toContain(char);
-    }
-
     expect(scene).toContain("{ text: 'Make it work,', face: 'latin', size: 1 }");
     expect(scene).toContain("{ text: 'make it right,', face: 'latin', size: 1 }");
     expect(scene).toContain("{ text: 'make it fast.', face: 'latin', size: 1 }");
-    expect(scene).toContain("const TRANSLATION: readonly string[] = ['돌아가게,', '제대로,', '빠르게.'];");
+  });
+
+  it('prints the rule as it was set, in the one face it was cast in', () => {
+    expect(Object.keys(sortData)).toEqual(['latin']);
+    expect(scene).not.toMatch(/translat/i);
+    expect(landing).not.toContain('Translate');
   });
 
   it('loads three.js only when the section comes near, and only with WebGL', () => {

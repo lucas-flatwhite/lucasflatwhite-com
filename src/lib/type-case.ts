@@ -46,7 +46,6 @@ type Sort = {
   yaw: number;
   spin: number;
   ink: number;
-  line: number;
 };
 
 /** One letter as it landed on the proof: where its sort stood, and how well it was inked. */
@@ -58,7 +57,6 @@ type Impression = {
   z: number;
   yaw: number;
   ink: number;
-  line: number;
 };
 
 /** The forme, top to bottom as it will read on the proof. Sizes are in ems of the Latin line. */
@@ -67,14 +65,6 @@ const FORME: readonly { text: string; face: FaceKey; size: number }[] = [
   { text: 'make it right,', face: 'latin', size: 1 },
   { text: 'make it fast.', face: 'latin', size: 1 },
 ];
-
-/** What each line of the proof turns into once it has been read, line for line. */
-const TRANSLATION: readonly string[] = ['돌아가게,', '제대로,', '빠르게.'];
-/** Largest the translation is set, in ems, on a landscape stage and on a portrait one. */
-const TRANSLATION_SIZE = 1;
-const TRANSLATION_SIZE_PORTRAIT = 1.2;
-/** Proof textures are redrawn in steps of this much of the translation's run, not every frame. */
-const TURN_STEP = 1 / 48;
 
 /** Share of the press spent lowering the sheet; the rest is the bite into the type. */
 const CONTACT = 0.7;
@@ -176,7 +166,7 @@ const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
 export type TypeCase = {
-  /** Moves the press to a point along its run, from bare type (0) to the translated proof (1). */
+  /** Moves the press to a point along its run, from bare type (0) to the finished proof (1). */
   scrub: (progress: number) => void;
 };
 
@@ -219,14 +209,14 @@ export function mountTypeCase(
 
   // Measure every line, then set them flush to one edge. On the face of the type that
   // edge is on the right: the forme is the mirror image of the page it will print.
-  const setting = FORME.flatMap((line, source) => {
+  const setting = FORME.flatMap((line) => {
     const split = line.text.lastIndexOf(' ');
     return portrait && split > 0
       ? [
-          { ...line, text: line.text.slice(0, split), source },
-          { ...line, text: line.text.slice(split + 1), source },
+          { ...line, text: line.text.slice(0, split) },
+          { ...line, text: line.text.slice(split + 1) },
         ]
-      : [{ ...line, source }];
+      : [line];
   });
   const lines = setting.map((line) => {
     const face = faces[line.face];
@@ -242,7 +232,6 @@ export function mountTypeCase(
       depth,
       mid,
       cells,
-      source: line.source,
       width: cells.reduce((sum, cell) => sum + cell.width, 0),
     };
   });
@@ -251,14 +240,8 @@ export function mountTypeCase(
   const formeDepth = lines.reduce((sum, line) => sum + line.depth, 0) + LINE_GAP * (lines.length - 1);
   let z = -formeDepth / 2;
 
-  // Where each line of the quote sits: the middle of the one or two lines it was set in.
-  const lineCentres = FORME.map(() => ({ first: Infinity, last: -Infinity }));
-
   for (const line of lines) {
     const lineZ = z + line.depth / 2;
-    const centre = lineCentres[line.source];
-    centre.first = Math.min(centre.first, lineZ);
-    centre.last = Math.max(centre.last, lineZ);
     let right = formeWidth / 2;
 
     for (const cell of line.cells) {
@@ -306,42 +289,11 @@ export function mountTypeCase(
         yaw: 0,
         spin: 0,
         ink: 0,
-        line: line.source,
       });
     }
 
     z += line.depth + LINE_GAP;
   }
-
-  // The translation is set the way the forme is, flush right and read right to left, so
-  // it prints flush left on the same lines the English did.
-  // It is as large as the layout allows without running wider than the forme.
-  const hangul = faces.hangul;
-  const ems = (text: string) =>
-    [...text].reduce(
-      (sum, char) => sum + (hangul.glyphs[char] ? hangul.glyphs[char].advance / hangul.unitsPerEm : SPACE_EM),
-      0,
-    );
-  const translationSize = Math.min(
-    portrait ? TRANSLATION_SIZE_PORTRAIT : TRANSLATION_SIZE,
-    formeWidth / Math.max(...TRANSLATION.map(ems)),
-  );
-  const hangulScale = translationSize / hangul.unitsPerEm;
-  const hangulMid = (hangul.ascender + hangul.descender) / 2;
-  const translation: Impression[] = TRANSLATION.flatMap((text, line) => {
-    let right = formeWidth / 2;
-    const { first, last } = lineCentres[line];
-
-    return [...text].flatMap((char) => {
-      const glyph = hangul.glyphs[char];
-      const width = glyph ? glyph.advance * hangulScale : SPACE_EM * translationSize;
-      const x = right - width / 2;
-      right -= width;
-      return glyph
-        ? [{ glyph, scale: hangulScale, mid: hangulMid, x, z: (first + last) / 2, yaw: 0, ink: 1, line }]
-        : [];
-    });
-  });
 
   // The galley: a shallow tray with rims on three sides, as type is kept between jobs.
   const margin = 0.5;
@@ -436,9 +388,9 @@ export function mountTypeCase(
 
   /** Every sort's inked face, as it stood the moment the sheet came down on it. */
   let impressions: Impression[] | null = null;
-  let printedTurn = -1;
+  let proofed = false;
 
-  const drawProof = (turn: number) => {
+  const drawProof = () => {
     const ctx = printCanvas.getContext('2d');
 
     if (!ctx || !impressions) {
@@ -454,15 +406,9 @@ export function mountTypeCase(
     ctx.fillRect(0, 0, printCanvas.width, printCanvas.height);
     ctx.fillStyle = `#${INK.getHexString()}`;
 
-    // Each line hands over to its translation a beat after the one above it.
-    const lineTurn = (line: number) => easeInOut(clamp01((turn - line * 0.18) / 0.64));
-
-    // A contact print: every inked face lands on the paper exactly where the sort stood.
-    const print = (mark: Impression, alpha: number) => {
-      if (alpha < 0.01) {
-        return;
-      }
-
+    // A contact print: every inked face lands on the paper exactly where the sort stood,
+    // so the mirrored type comes off reading the right way round.
+    for (const mark of impressions) {
       const { scale: s, mid } = mark;
       const cos = Math.cos(mark.yaw);
       const sin = Math.sin(mark.yaw);
@@ -477,22 +423,13 @@ export function mountTypeCase(
         kx * (x0 - xMin),
         ky * (zMax - z0),
       );
-      ctx.globalAlpha = 0.94 * mark.ink * alpha;
+      ctx.globalAlpha = 0.94 * mark.ink;
       ctx.fill(pathOf(mark.glyph));
-    };
-
-    // The English lifts off the sheet before the Korean comes up, so the two never tangle.
-    for (const mark of impressions) {
-      print(mark, 1 - clamp01(lineTurn(mark.line) * 2));
-    }
-
-    for (const mark of translation) {
-      print(mark, clamp01(lineTurn(mark.line) * 2 - 1));
     }
 
     ctx.globalAlpha = 1;
     printTexture.needsUpdate = true;
-    printedTurn = turn;
+    proofed = true;
   };
 
   // Camera: frame the galley at a fixed elevation, backing off on narrow screens.
@@ -671,12 +608,11 @@ export function mountTypeCase(
                 z: sort.home.y + sort.offset.y,
                 yaw: sort.yaw,
                 ink: sort.ink,
-                line: sort.line,
               },
             ]
           : [],
       );
-      printedTurn = -1;
+      proofed = false;
     }
 
     const dip = press > CONTACT && press < 1 ? Math.sin(((press - CONTACT) / (1 - CONTACT)) * Math.PI) * 0.03 : 0;
@@ -702,11 +638,9 @@ export function mountTypeCase(
       frame();
     }
 
-    // Each redraw uploads the whole sheet to the GPU again, so only step through the turn.
-    const turn = Math.round(span(progress, 'turn') / TURN_STEP) * TURN_STEP;
-
-    if (impressions && turn !== printedTurn) {
-      drawProof(turn);
+    // Each redraw uploads the whole sheet to the GPU again, so the sheet is printed once.
+    if (impressions && !proofed) {
+      drawProof();
     }
 
     if (progress !== reported) {

@@ -20,7 +20,7 @@ type SectionCommand = {
 };
 
 const sectionCommands: readonly SectionCommand[] = [
-  { id: 'work', label: 'Work', hint: 'Translation projects', icon: 'translate', section: 'work' },
+  { id: 'work', label: 'Work', hint: 'Things I have built', icon: 'hammer', section: 'work' },
 ];
 
 /**
