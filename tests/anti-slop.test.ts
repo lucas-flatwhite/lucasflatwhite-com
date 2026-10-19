@@ -49,7 +49,10 @@ describe('anti-slop contract', () => {
     const landing = files.filter((file) => /landing\.css|global\.css|Glyph|CommandPalette/.test(file.path));
 
     for (const file of landing) {
-      expect(file.source).not.toMatch(/border-radius:\s*(?!0[;\s])\S/);
+      // The X profile picture in the top bar is the one round shape, as it is on X.
+      const source = file.source.replace(/\.topbar-avatar \{[^}]*\}/g, '');
+
+      expect(source).not.toMatch(/border-radius:\s*(?!0[;\s])\S/);
     }
   });
 

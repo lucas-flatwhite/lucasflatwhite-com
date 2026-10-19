@@ -30,7 +30,10 @@ const pressEnd = TIMELINE.lift[1];
 
 <BaseLayout title={siteProfile.name} description={siteProfile.description} bodyClass="landing">
   <header class="topbar" data-field-obstacle="hero">
-    <a class="topbar-mark" href="#top">{siteProfile.handle}</a>
+    <a class="topbar-mark" href="#top">
+      <img class="topbar-avatar" src={withBase('avatar.png')} alt="" width="32" height="32" />
+      {siteProfile.handle}
+    </a>
     <nav class="topbar-nav" aria-label="Site">
       <a href="#work">Work</a>
       <a href={playHref}>Play</a>

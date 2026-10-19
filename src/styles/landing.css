@@ -19,9 +19,20 @@
 }
 
 .topbar-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
   font-stretch: 80%;
   font-weight: 700;
   font-size: 1rem;
+}
+
+/* The X profile picture, round as it is on X: the one curve on a page of sharp corners. */
+.topbar-avatar {
+  display: block;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
 }
 
 .topbar-nav {
@@ -644,11 +655,33 @@
   }
 }
 
+/*
+ * The avatar leaves the top bar little slack on the narrowest windows. There the handle
+ * recolors on hover but never widens, and below 360px the menu button goes: Cmd/Ctrl+K
+ * still opens the menu, and the colophon still says so.
+ */
+@media (max-width: 419px) {
+  .topbar-mark:hover {
+    font-stretch: 80%;
+  }
+}
+
+@media (max-width: 359px) {
+  .topbar .palette-trigger {
+    display: none;
+  }
+}
+
 /* Small screens ---------------------------------------------------------------- */
 
 @media (max-width: 720px) {
   .topbar {
     height: 60px;
+  }
+
+  .topbar-avatar {
+    width: 28px;
+    height: 28px;
   }
 
   .specimen {
