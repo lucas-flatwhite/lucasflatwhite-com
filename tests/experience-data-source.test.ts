@@ -31,6 +31,10 @@ describe('experience data source contract', () => {
     expect(siteDataSource).toContain("'wireframe'");
     expect(siteDataSource).toContain("'로드맵'");
     expect(siteDataSource).toContain("'배포'");
+    expect(siteDataSource).toContain("'Keith\\u00A0Haring'");
+    expect(siteDataSource).toContain("'Martin\\u00A0Garrix'");
+    expect(siteDataSource).toContain("'키스\\u00A0해링'");
+    expect(siteDataSource).toContain("'마틴\\u00A0개릭스'");
     expect(siteDataSource).toContain("'npm install은 끝났는데 문제는 방금 시작됐다'");
     expect(siteDataSource).toContain("'백엔드는 200을 줬고 프론트는 영혼을 잃었다'");
     expect(siteDataSource).toContain("'git stash에 넣어둔 용기가 아직 checkout되지 않았다'");
