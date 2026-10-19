@@ -68,18 +68,19 @@ const FORME: readonly { text: string; face: FaceKey; size: number }[] = [
 ];
 
 /** What each line of the proof turns into once it has been read, line for line. */
-const TRANSLATION: readonly string[] = ['돌아가게,', '바르게,', '빠르게.'];
+const TRANSLATION: readonly string[] = ['돌아가게,', '제대로,', '빠르게.'];
 const TRANSLATION_SIZE = 1;
 
 // Where each step falls along the section's scroll: 0 as the stage pins, 1 as it leaves.
-const INK_FROM = 0.06;
-const INK_TO = 0.32;
-const PRESS_FROM = 0.34;
-const PRESS_TO = 0.5;
-const LIFT_FROM = 0.52;
-const LIFT_TO = 0.76;
-const TURN_FROM = 0.8;
-const TURN_TO = 0.96;
+// The last fifth holds the finished Korean proof, so nobody scrolls past the point of it.
+const INK_FROM = 0.03;
+const INK_TO = 0.2;
+const PRESS_FROM = 0.22;
+const PRESS_TO = 0.34;
+const LIFT_FROM = 0.36;
+const LIFT_TO = 0.56;
+const TURN_FROM = 0.6;
+const TURN_TO = 0.8;
 /** Share of the press spent lowering the sheet; the rest is the bite into the type. */
 const CONTACT = 0.7;
 

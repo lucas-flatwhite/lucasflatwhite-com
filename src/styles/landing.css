@@ -346,7 +346,7 @@
 
 /* Scrolling through the track runs the press; the stage holds still while it does. */
 .case[data-scrub] .case-track {
-  height: 300vh;
+  height: 220vh;
 }
 
 .case[data-scrub] .case-stage {

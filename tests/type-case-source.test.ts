@@ -17,14 +17,14 @@ describe('type case', () => {
       expect(latin).toContain(char);
     }
 
-    for (const char of '돌아가게,바르게,빠르게.') {
+    for (const char of '돌아가게,제대로,빠르게.') {
       expect(hangul).toContain(char);
     }
 
     expect(scene).toContain("{ text: 'Make it work,', face: 'latin', size: 1 }");
     expect(scene).toContain("{ text: 'make it right,', face: 'latin', size: 1 }");
     expect(scene).toContain("{ text: 'make it fast.', face: 'latin', size: 1 }");
-    expect(scene).toContain("const TRANSLATION: readonly string[] = ['돌아가게,', '바르게,', '빠르게.'];");
+    expect(scene).toContain("const TRANSLATION: readonly string[] = ['돌아가게,', '제대로,', '빠르게.'];");
   });
 
   it('loads three.js only when the section comes near, and only with WebGL', () => {

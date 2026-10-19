@@ -21,7 +21,7 @@ from fontTools.ttLib import TTFont
 from fontTools.varLib.instancer import instantiateVariableFont
 
 LATIN = "Makeitwork,makeitright,makeitfast."
-HANGUL = "돌아가게,바르게,빠르게."
+HANGUL = "돌아가게,제대로,빠르게."
 OUT = Path(__file__).resolve().parent.parent / "src" / "data" / "type-sorts.json"
 
 
