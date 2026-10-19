@@ -339,25 +339,21 @@
   font-size: clamp(1.05rem, 1.4vw, 1.2rem);
 }
 
-.case-button {
-  margin-top: 1.4rem;
-  border: 0;
-  font-family: inherit;
-  cursor: pointer;
-}
-
-.case-button[hidden] {
-  display: none;
-}
-
-.case-button:disabled {
-  cursor: progress;
-  opacity: 0.72;
-}
-
 .case-stage {
   position: relative;
   height: clamp(420px, 70vh, 760px);
+}
+
+/* Scrolling through the track runs the press; the stage holds still while it does. */
+.case[data-scrub] .case-track {
+  height: 300vh;
+}
+
+.case[data-scrub] .case-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
 }
 
 .case-canvas {
@@ -376,7 +372,7 @@
   place-content: center;
   margin: 0;
   color: var(--foam);
-  font-size: clamp(2.6rem, 8vw, 6rem);
+  font-size: clamp(2rem, 6vw, 4.6rem);
   font-weight: 800;
   line-height: 0.95;
   text-align: left;
@@ -389,9 +385,9 @@
 }
 
 .case-fallback span:lang(ko) {
-  margin-top: 0.3em;
+  margin-top: 0.4em;
   font-family: var(--font-ko);
-  font-size: 0.58em;
+  font-size: 0.62em;
 }
 
 .case[data-ready] .case-fallback {
