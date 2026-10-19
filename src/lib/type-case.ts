@@ -69,7 +69,11 @@ const FORME: readonly { text: string; face: FaceKey; size: number }[] = [
 
 /** What each line of the proof turns into once it has been read, line for line. */
 const TRANSLATION: readonly string[] = ['돌아가게,', '제대로,', '빠르게.'];
+/** Largest the translation is set, in ems, on a landscape stage and on a portrait one. */
 const TRANSLATION_SIZE = 1;
+const TRANSLATION_SIZE_PORTRAIT = 1.2;
+/** Proof textures are redrawn in steps of this much of the translation's run, not every frame. */
+const TURN_STEP = 1 / 48;
 
 // Where each step falls along the section's scroll: 0 as the stage pins, 1 as it leaves.
 // The last fifth holds the finished Korean proof, so nobody scrolls past the point of it.
@@ -189,6 +193,10 @@ export type TypeCase = {
 
 export function mountTypeCase(canvas: HTMLCanvasElement): TypeCase {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // A portrait stage sets each line in two, so the forme is narrower and every sort larger.
+  const portrait = canvas.clientWidth < canvas.clientHeight * 0.8;
+  // Small screens cannot show a 2048px shadow or proof, so they are not made to draw one.
+  const textureSize = canvas.clientWidth < 720 ? 1024 : 2048;
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = SRGBColorSpace;
@@ -206,7 +214,7 @@ export function mountTypeCase(canvas: HTMLCanvasElement): TypeCase {
   const key = new DirectionalLight('#ffffff', 2.2);
   key.position.set(-4, 9, 5);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.mapSize.set(textureSize, textureSize);
   key.shadow.bias = -0.0004;
   key.shadow.radius = 4;
   scene.add(key, new HemisphereLight('#dfe4ff', '#16278a', 0.6));
@@ -219,7 +227,16 @@ export function mountTypeCase(canvas: HTMLCanvasElement): TypeCase {
 
   // Measure every line, then set them flush to one edge. On the face of the type that
   // edge is on the right: the forme is the mirror image of the page it will print.
-  const lines = FORME.map((line) => {
+  const setting = FORME.flatMap((line, source) => {
+    const split = line.text.lastIndexOf(' ');
+    return portrait && split > 0
+      ? [
+          { ...line, text: line.text.slice(0, split), source },
+          { ...line, text: line.text.slice(split + 1), source },
+        ]
+      : [{ ...line, source }];
+  });
+  const lines = setting.map((line) => {
     const face = faces[line.face];
     const scale = line.size / face.unitsPerEm;
     const depth = (face.ascender - face.descender) * scale;
@@ -228,18 +245,28 @@ export function mountTypeCase(canvas: HTMLCanvasElement): TypeCase {
       const glyph = face.glyphs[char] ?? null;
       return { char, glyph, width: glyph ? glyph.advance * scale : SPACE_EM * line.size };
     });
-    return { scale, depth, mid, cells, width: cells.reduce((sum, cell) => sum + cell.width, 0) };
+    return {
+      scale,
+      depth,
+      mid,
+      cells,
+      source: line.source,
+      width: cells.reduce((sum, cell) => sum + cell.width, 0),
+    };
   });
 
   const formeWidth = Math.max(...lines.map((line) => line.width));
   const formeDepth = lines.reduce((sum, line) => sum + line.depth, 0) + LINE_GAP * (lines.length - 1);
   let z = -formeDepth / 2;
 
-  const lineCentres: number[] = [];
+  // Where each line of the quote sits: the middle of the one or two lines it was set in.
+  const lineCentres = FORME.map(() => ({ first: Infinity, last: -Infinity }));
 
-  for (const [lineIndex, line] of lines.entries()) {
+  for (const line of lines) {
     const lineZ = z + line.depth / 2;
-    lineCentres.push(lineZ);
+    const centre = lineCentres[line.source];
+    centre.first = Math.min(centre.first, lineZ);
+    centre.last = Math.max(centre.last, lineZ);
     let right = formeWidth / 2;
 
     for (const cell of line.cells) {
@@ -287,7 +314,7 @@ export function mountTypeCase(canvas: HTMLCanvasElement): TypeCase {
         yaw: 0,
         spin: 0,
         ink: 0,
-        line: lineIndex,
+        line: line.source,
       });
     }
 
@@ -296,19 +323,30 @@ export function mountTypeCase(canvas: HTMLCanvasElement): TypeCase {
 
   // The translation is set the way the forme is, flush right and read right to left, so
   // it prints flush left on the same lines the English did.
+  // It is as large as the layout allows without running wider than the forme.
   const hangul = faces.hangul;
-  const hangulScale = TRANSLATION_SIZE / hangul.unitsPerEm;
+  const ems = (text: string) =>
+    [...text].reduce(
+      (sum, char) => sum + (hangul.glyphs[char] ? hangul.glyphs[char].advance / hangul.unitsPerEm : SPACE_EM),
+      0,
+    );
+  const translationSize = Math.min(
+    portrait ? TRANSLATION_SIZE_PORTRAIT : TRANSLATION_SIZE,
+    formeWidth / Math.max(...TRANSLATION.map(ems)),
+  );
+  const hangulScale = translationSize / hangul.unitsPerEm;
   const hangulMid = (hangul.ascender + hangul.descender) / 2;
   const translation: Impression[] = TRANSLATION.flatMap((text, line) => {
     let right = formeWidth / 2;
+    const { first, last } = lineCentres[line];
 
     return [...text].flatMap((char) => {
       const glyph = hangul.glyphs[char];
-      const width = glyph ? glyph.advance * hangulScale : SPACE_EM * TRANSLATION_SIZE;
+      const width = glyph ? glyph.advance * hangulScale : SPACE_EM * translationSize;
       const x = right - width / 2;
       right -= width;
       return glyph
-        ? [{ glyph, scale: hangulScale, mid: hangulMid, x, z: lineCentres[line], yaw: 0, ink: 1, line }]
+        ? [{ glyph, scale: hangulScale, mid: hangulMid, x, z: (first + last) / 2, yaw: 0, ink: 1, line }]
         : [];
     });
   });
@@ -353,8 +391,9 @@ export function mountTypeCase(canvas: HTMLCanvasElement): TypeCase {
   const paperWidth = formeWidth + 0.5;
   const paperDepth = formeDepth + 0.5;
   const printCanvas = document.createElement('canvas');
-  printCanvas.width = 2048;
-  printCanvas.height = Math.round((2048 * paperDepth) / paperWidth);
+  const printScale = textureSize / Math.max(paperWidth, paperDepth);
+  printCanvas.width = Math.round(paperWidth * printScale);
+  printCanvas.height = Math.round(paperDepth * printScale);
   const printTexture = new CanvasTexture(printCanvas);
   printTexture.colorSpace = SRGBColorSpace;
   printTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -669,9 +708,10 @@ export function mountTypeCase(canvas: HTMLCanvasElement): TypeCase {
       frame();
     }
 
-    const turn = span(progress, TURN_FROM, TURN_TO);
+    // Each redraw uploads the whole sheet to the GPU again, so only step through the turn.
+    const turn = Math.round(span(progress, TURN_FROM, TURN_TO) / TURN_STEP) * TURN_STEP;
 
-    if (impressions && Math.abs(turn - printedTurn) > 1e-3) {
+    if (impressions && turn !== printedTurn) {
       drawProof(turn);
     }
   };

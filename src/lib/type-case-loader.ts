@@ -54,9 +54,21 @@ export function mountTypeCaseWhenNear(root: HTMLElement): void {
           typeCase.scrub(travel > 0 ? -top / travel : 1);
         };
 
-        window.addEventListener('scroll', update, { passive: true });
-        window.addEventListener('resize', update);
-        update();
+        // Only measure while the track is near; anywhere else the press is parked at an end.
+        new IntersectionObserver(
+          (entries) => {
+            update();
+
+            if (entries.some((entry) => entry.isIntersecting)) {
+              window.addEventListener('scroll', update, { passive: true });
+              window.addEventListener('resize', update);
+            } else {
+              window.removeEventListener('scroll', update);
+              window.removeEventListener('resize', update);
+            }
+          },
+          { rootMargin: '100px 0px' },
+        ).observe(track);
       } catch (error) {
         console.error('Type case failed to start', error);
       }
