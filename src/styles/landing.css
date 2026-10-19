@@ -339,6 +339,17 @@
   font-size: clamp(1.05rem, 1.4vw, 1.2rem);
 }
 
+/* Only promised where scrolling really runs the press. */
+.case-intro .case-hint {
+  display: none;
+  margin-top: 0.8em;
+  color: var(--foam);
+}
+
+.case[data-scrub] .case-hint {
+  display: block;
+}
+
 .case-stage {
   position: relative;
   height: clamp(420px, 70vh, 760px);
@@ -362,6 +373,24 @@
   height: 100%;
   touch-action: pan-y;
   cursor: grab;
+}
+
+/* The quote is credited on the stage itself, arriving with the translation when it runs. */
+.case-credit {
+  position: absolute;
+  right: var(--gutter);
+  bottom: var(--gutter);
+  margin: 0;
+  color: var(--foam);
+  font-size: clamp(1rem, 1.6vw, 1.3rem);
+  font-stretch: 80%;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.case[data-scrub][data-ready] .case-credit {
+  bottom: calc(var(--gutter) + 2.6rem);
+  opacity: var(--case-turn, 0);
 }
 
 /* Where the press is along its run, so a reader pinned on the stage knows there is more. */
