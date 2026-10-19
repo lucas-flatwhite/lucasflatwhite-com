@@ -1,13 +1,4 @@
-type Phase = 'idle' | 'inking' | 'pressing' | 'lifting' | 'proofed' | 'distributing';
-
-const LABELS: Record<Phase, string> = {
-  idle: 'Pull a proof',
-  inking: 'Inking',
-  pressing: 'Pressing',
-  lifting: 'Pressing',
-  proofed: 'Distribute the type',
-  distributing: 'Distributing',
-};
+import { clamp01, span, STEPS, stepAt, TIMELINE, type Step } from './press-timeline';
 
 function supportsWebGL(): boolean {
   try {
@@ -24,10 +15,19 @@ function supportsWebGL(): boolean {
  */
 export function mountTypeCaseWhenNear(root: HTMLElement): void {
   const canvas = root.querySelector<HTMLCanvasElement>('[data-case-canvas]');
-  const button = root.querySelector<HTMLButtonElement>('[data-case-proof]');
+  const track = root.querySelector<HTMLElement>('[data-case-track]');
+  const stage = root.querySelector<HTMLElement>('[data-case-stage]');
 
-  if (!canvas || !button || !supportsWebGL()) {
+  if (!canvas || !track || !stage || !supportsWebGL()) {
     return;
+  }
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Lengthen the section up front, so the page does not grow under the reader once
+  // three.js arrives. With reduced motion the stage just shows the finished proof.
+  if (!reduceMotion) {
+    root.dataset.scrub = 'true';
   }
 
   const observer = new IntersectionObserver(
@@ -40,31 +40,58 @@ export function mountTypeCaseWhenNear(root: HTMLElement): void {
 
       try {
         const { mountTypeCase } = await import('./type-case');
-        const typeCase = mountTypeCase(canvas, (phase) => {
-          button.textContent = LABELS[phase];
-          button.disabled = phase !== 'idle' && phase !== 'proofed';
-          root.dataset.phase = phase;
-        });
+        // The meter follows the press as drawn, not the scroll, so the two never disagree.
+        const meter = root.querySelector<HTMLElement>('[data-case-meter]');
+        const labels = [...root.querySelectorAll<HTMLElement>('[data-case-step]')];
+        let shown: Step | null = null;
+        const follow = (progress: number) => {
+          meter?.style.setProperty('--case-progress', String(clamp01(progress / TIMELINE.turn[1])));
+          root.style.setProperty('--case-turn', String(span(progress, 'turn')));
+          const step = stepAt(progress);
 
+          if (step === shown) {
+            return;
+          }
+
+          shown = step;
+          const current = STEPS.indexOf(step);
+
+          for (const label of labels) {
+            const at = STEPS.indexOf(label.dataset.caseStep as Step);
+            label.dataset.state = at < current ? 'done' : at === current ? 'active' : 'upcoming';
+          }
+        };
+        const typeCase = mountTypeCase(canvas, follow);
         root.dataset.ready = 'true';
-        button.hidden = false;
-        button.disabled = false;
-        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        button.addEventListener('click', () => {
-          // Bring the whole stage into view so the press is seen from start to finish.
-          const stage = canvas.getBoundingClientRect();
+        if (reduceMotion) {
+          typeCase.scrub(1);
+          return;
+        }
 
-          if (stage.top < 0 || stage.bottom > window.innerHeight) {
-            canvas.scrollIntoView({ block: 'center', behavior: reduceMotion ? 'auto' : 'smooth' });
-          }
+        // The stage stays pinned while the track scrolls past; how far it has gone is how
+        // far the press has run.
+        const update = () => {
+          const travel = track.offsetHeight - stage.offsetHeight;
+          const top = track.getBoundingClientRect().top;
+          typeCase.scrub(travel > 0 ? -top / travel : 1);
+        };
 
-          if (typeCase.phase() === 'proofed') {
-            typeCase.distribute();
-          } else {
-            typeCase.proof();
-          }
-        });
+        // Only measure while the track is near; anywhere else the press is parked at an end.
+        new IntersectionObserver(
+          (entries) => {
+            update();
+
+            if (entries.some((entry) => entry.isIntersecting)) {
+              window.addEventListener('scroll', update, { passive: true });
+              window.addEventListener('resize', update);
+            } else {
+              window.removeEventListener('scroll', update);
+              window.removeEventListener('resize', update);
+            }
+          },
+          { rootMargin: '100px 0px' },
+        ).observe(track);
       } catch (error) {
         console.error('Type case failed to start', error);
       }

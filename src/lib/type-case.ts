@@ -27,6 +27,7 @@ import {
 } from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import sortData from '../data/type-sorts.json';
+import { clamp01, span, TIMELINE } from './press-timeline';
 
 type FaceKey = keyof typeof sortData;
 type GlyphData = { advance: number; bounds: number[]; path: string };
@@ -45,16 +46,38 @@ type Sort = {
   yaw: number;
   spin: number;
   ink: number;
+  line: number;
 };
 
-type Phase = 'idle' | 'inking' | 'pressing' | 'lifting' | 'proofed' | 'distributing';
+/** One letter as it landed on the proof: where its sort stood, and how well it was inked. */
+type Impression = {
+  glyph: GlyphData;
+  scale: number;
+  mid: number;
+  x: number;
+  z: number;
+  yaw: number;
+  ink: number;
+  line: number;
+};
 
 /** The forme, top to bottom as it will read on the proof. Sizes are in ems of the Latin line. */
 const FORME: readonly { text: string; face: FaceKey; size: number }[] = [
-  { text: 'Lucas', face: 'latin', size: 1 },
-  { text: 'Flatwhite', face: 'latin', size: 1 },
-  { text: '루카스 플랫화이트', face: 'hangul', size: 0.62 },
+  { text: 'Make it work,', face: 'latin', size: 1 },
+  { text: 'make it right,', face: 'latin', size: 1 },
+  { text: 'make it fast.', face: 'latin', size: 1 },
 ];
+
+/** What each line of the proof turns into once it has been read, line for line. */
+const TRANSLATION: readonly string[] = ['돌아가게,', '제대로,', '빠르게.'];
+/** Largest the translation is set, in ems, on a landscape stage and on a portrait one. */
+const TRANSLATION_SIZE = 1;
+const TRANSLATION_SIZE_PORTRAIT = 1.2;
+/** Proof textures are redrawn in steps of this much of the translation's run, not every frame. */
+const TURN_STEP = 1 / 48;
+
+/** Share of the press spent lowering the sheet; the rest is the bite into the type. */
+const CONTACT = 0.7;
 
 // Type-high is the same for every size of type, so every sort stands equally tall.
 const TYPE_HIGH = 0.8;
@@ -151,19 +174,21 @@ function glyphShapes(glyph: GlyphData, scale: number, mid: number): Shape[] {
 
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 
 export type TypeCase = {
-  proof: () => void;
-  distribute: () => void;
-  phase: () => Phase;
+  /** Moves the press to a point along its run, from bare type (0) to the translated proof (1). */
+  scrub: (progress: number) => void;
 };
 
 export function mountTypeCase(
   canvas: HTMLCanvasElement,
-  onPhase: (phase: Phase) => void,
+  onProgress: (progress: number) => void = () => {},
 ): TypeCase {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // A portrait stage sets each line in two, so the forme is narrower and every sort larger.
+  const portrait = canvas.clientWidth < canvas.clientHeight * 0.8;
+  // Small screens cannot show a 2048px shadow or proof, so they are not made to draw one.
+  const textureSize = canvas.clientWidth < 720 ? 1024 : 2048;
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = SRGBColorSpace;
@@ -181,7 +206,7 @@ export function mountTypeCase(
   const key = new DirectionalLight('#ffffff', 2.2);
   key.position.set(-4, 9, 5);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.mapSize.set(textureSize, textureSize);
   key.shadow.bias = -0.0004;
   key.shadow.radius = 4;
   scene.add(key, new HemisphereLight('#dfe4ff', '#16278a', 0.6));
@@ -194,7 +219,16 @@ export function mountTypeCase(
 
   // Measure every line, then set them flush to one edge. On the face of the type that
   // edge is on the right: the forme is the mirror image of the page it will print.
-  const lines = FORME.map((line) => {
+  const setting = FORME.flatMap((line, source) => {
+    const split = line.text.lastIndexOf(' ');
+    return portrait && split > 0
+      ? [
+          { ...line, text: line.text.slice(0, split), source },
+          { ...line, text: line.text.slice(split + 1), source },
+        ]
+      : [{ ...line, source }];
+  });
+  const lines = setting.map((line) => {
     const face = faces[line.face];
     const scale = line.size / face.unitsPerEm;
     const depth = (face.ascender - face.descender) * scale;
@@ -203,15 +237,28 @@ export function mountTypeCase(
       const glyph = face.glyphs[char] ?? null;
       return { char, glyph, width: glyph ? glyph.advance * scale : SPACE_EM * line.size };
     });
-    return { scale, depth, mid, cells, width: cells.reduce((sum, cell) => sum + cell.width, 0) };
+    return {
+      scale,
+      depth,
+      mid,
+      cells,
+      source: line.source,
+      width: cells.reduce((sum, cell) => sum + cell.width, 0),
+    };
   });
 
   const formeWidth = Math.max(...lines.map((line) => line.width));
   const formeDepth = lines.reduce((sum, line) => sum + line.depth, 0) + LINE_GAP * (lines.length - 1);
   let z = -formeDepth / 2;
 
+  // Where each line of the quote sits: the middle of the one or two lines it was set in.
+  const lineCentres = FORME.map(() => ({ first: Infinity, last: -Infinity }));
+
   for (const line of lines) {
     const lineZ = z + line.depth / 2;
+    const centre = lineCentres[line.source];
+    centre.first = Math.min(centre.first, lineZ);
+    centre.last = Math.max(centre.last, lineZ);
     let right = formeWidth / 2;
 
     for (const cell of line.cells) {
@@ -259,11 +306,42 @@ export function mountTypeCase(
         yaw: 0,
         spin: 0,
         ink: 0,
+        line: line.source,
       });
     }
 
     z += line.depth + LINE_GAP;
   }
+
+  // The translation is set the way the forme is, flush right and read right to left, so
+  // it prints flush left on the same lines the English did.
+  // It is as large as the layout allows without running wider than the forme.
+  const hangul = faces.hangul;
+  const ems = (text: string) =>
+    [...text].reduce(
+      (sum, char) => sum + (hangul.glyphs[char] ? hangul.glyphs[char].advance / hangul.unitsPerEm : SPACE_EM),
+      0,
+    );
+  const translationSize = Math.min(
+    portrait ? TRANSLATION_SIZE_PORTRAIT : TRANSLATION_SIZE,
+    formeWidth / Math.max(...TRANSLATION.map(ems)),
+  );
+  const hangulScale = translationSize / hangul.unitsPerEm;
+  const hangulMid = (hangul.ascender + hangul.descender) / 2;
+  const translation: Impression[] = TRANSLATION.flatMap((text, line) => {
+    let right = formeWidth / 2;
+    const { first, last } = lineCentres[line];
+
+    return [...text].flatMap((char) => {
+      const glyph = hangul.glyphs[char];
+      const width = glyph ? glyph.advance * hangulScale : SPACE_EM * translationSize;
+      const x = right - width / 2;
+      right -= width;
+      return glyph
+        ? [{ glyph, scale: hangulScale, mid: hangulMid, x, z: (first + last) / 2, yaw: 0, ink: 1, line }]
+        : [];
+    });
+  });
 
   // The galley: a shallow tray with rims on three sides, as type is kept between jobs.
   const margin = 0.5;
@@ -305,8 +383,9 @@ export function mountTypeCase(
   const paperWidth = formeWidth + 0.5;
   const paperDepth = formeDepth + 0.5;
   const printCanvas = document.createElement('canvas');
-  printCanvas.width = 2048;
-  printCanvas.height = Math.round((2048 * paperDepth) / paperWidth);
+  const printScale = textureSize / Math.max(paperWidth, paperDepth);
+  printCanvas.width = Math.round(paperWidth * printScale);
+  printCanvas.height = Math.round(paperDepth * printScale);
   const printTexture = new CanvasTexture(printCanvas);
   printTexture.colorSpace = SRGBColorSpace;
   printTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -343,10 +422,26 @@ export function mountTypeCase(
   );
   let wide = 0;
 
-  const drawProof = () => {
+  const paths = new Map<GlyphData, Path2D>();
+  const pathOf = (glyph: GlyphData) => {
+    let path = paths.get(glyph);
+
+    if (!path) {
+      path = new Path2D(glyph.path);
+      paths.set(glyph, path);
+    }
+
+    return path;
+  };
+
+  /** Every sort's inked face, as it stood the moment the sheet came down on it. */
+  let impressions: Impression[] | null = null;
+  let printedTurn = -1;
+
+  const drawProof = (turn: number) => {
     const ctx = printCanvas.getContext('2d');
 
-    if (!ctx) {
+    if (!ctx || !impressions) {
       return;
     }
 
@@ -357,21 +452,23 @@ export function mountTypeCase(
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = `#${FOAM.getHexString()}`;
     ctx.fillRect(0, 0, printCanvas.width, printCanvas.height);
+    ctx.fillStyle = `#${INK.getHexString()}`;
 
-    // A contact print: every inked face lands on the paper exactly where the sort stands now.
-    for (const sort of sorts) {
-      if (!sort.glyph || sort.ink < 0.05) {
-        continue;
+    // Each line hands over to its translation a beat after the one above it.
+    const lineTurn = (line: number) => easeInOut(clamp01((turn - line * 0.18) / 0.64));
+
+    // A contact print: every inked face lands on the paper exactly where the sort stood.
+    const print = (mark: Impression, alpha: number) => {
+      if (alpha < 0.01) {
+        return;
       }
 
-      const { scale: s, mid } = sort;
-      const cos = Math.cos(sort.yaw);
-      const sin = Math.sin(sort.yaw);
-      const sx = sort.home.x + sort.offset.x;
-      const sz = sort.home.y + sort.offset.y;
-      const halfAdvance = (sort.glyph.advance / 2) * s;
-      const x0 = sx + cos * halfAdvance + sin * mid * s;
-      const z0 = sz - sin * halfAdvance + cos * mid * s;
+      const { scale: s, mid } = mark;
+      const cos = Math.cos(mark.yaw);
+      const sin = Math.sin(mark.yaw);
+      const halfAdvance = (mark.glyph.advance / 2) * s;
+      const x0 = mark.x + cos * halfAdvance + sin * mid * s;
+      const z0 = mark.z - sin * halfAdvance + cos * mid * s;
       ctx.setTransform(
         kx * -s * cos,
         -ky * s * sin,
@@ -380,13 +477,22 @@ export function mountTypeCase(
         kx * (x0 - xMin),
         ky * (zMax - z0),
       );
-      ctx.globalAlpha = 0.94 * sort.ink;
-      ctx.fillStyle = `#${INK.getHexString()}`;
-      ctx.fill(new Path2D(sort.glyph.path));
+      ctx.globalAlpha = 0.94 * mark.ink * alpha;
+      ctx.fill(pathOf(mark.glyph));
+    };
+
+    // The English lifts off the sheet before the Korean comes up, so the two never tangle.
+    for (const mark of impressions) {
+      print(mark, 1 - clamp01(lineTurn(mark.line) * 2));
+    }
+
+    for (const mark of translation) {
+      print(mark, clamp01(lineTurn(mark.line) * 2 - 1));
     }
 
     ctx.globalAlpha = 1;
     printTexture.needsUpdate = true;
+    printedTurn = turn;
   };
 
   // Camera: frame the galley at a fixed elevation, backing off on narrow screens.
@@ -440,14 +546,11 @@ export function mountTypeCase(
     pointer.active = false;
   });
 
-  let phase: Phase = 'idle';
-  let phaseStart = 0;
-  const setPhase = (next: Phase) => {
-    phase = next;
-    phaseStart = performance.now();
-    onPhase(next);
-    wake();
-  };
+  // Where the press is along its run, where the scroll wants it to be, and what the page
+  // was last told.
+  let progress = 0;
+  let goal = 0;
+  let reported = -1;
 
   const stepSorts = (dt: number): boolean => {
     let moving = false;
@@ -457,7 +560,8 @@ export function mountTypeCase(
       const x = sort.home.x + sort.offset.x;
       const z = sort.home.y + sort.offset.y;
 
-      if (pointer.active && phase !== 'pressing') {
+      // Hands off the type while the sheet is down on it.
+      if (pointer.active && (progress < TIMELINE.press[0] || progress > TIMELINE.lift[0])) {
         away.set(x - pointer.point.x, z - pointer.point.z);
         const distance = away.length();
 
@@ -534,92 +638,80 @@ export function mountTypeCase(
     }
   };
 
-  const stepPhase = (now: number): boolean => {
-    const t = now - phaseStart;
-    const speed = reduceMotion ? 1e6 : 1;
+  // Everything but the sorts' own springs follows from where the press is along its run,
+  // so scrolling back up runs the press in reverse.
+  const pose = () => {
     const rollerTravel = galleyWidth + 1.2;
+    const inking = easeInOut(span(progress, 'ink'));
+    const rollerX = galleyWidth / 2 + 0.6 - rollerTravel * inking;
+    roller.visible = inking > 0 && inking < 1;
+    roller.position.set(rollerX, TYPE_HIGH + RELIEF + rollerRadius, 0.05);
+    // Roll about the cylinder's own axis as it travels.
+    roller.rotation.y = (rollerTravel * inking) / rollerRadius;
 
-    switch (phase) {
-      case 'inking': {
-        const progress = clamp01((t * speed) / 1100);
-        const rollerX = galleyWidth / 2 + 0.6 - rollerTravel * easeInOut(progress);
-        roller.visible = true;
-        roller.position.set(rollerX, TYPE_HIGH + RELIEF + rollerRadius, 0.05);
-        // Roll about the cylinder's own axis as it travels.
-        roller.rotation.y = (rollerTravel * easeInOut(progress)) / rollerRadius;
+    for (const sort of sorts) {
+      const x = sort.home.x + sort.offset.x;
+      setInk(sort, inking >= 1 ? 1 : clamp01((x - rollerX + sort.width / 2) / 0.4));
+    }
 
-        for (const sort of sorts) {
-          const x = sort.home.x + sort.offset.x;
-          setInk(sort, Math.max(sort.ink, clamp01((x - rollerX + sort.width / 2) / 0.4)));
-        }
+    const press = span(progress, 'press');
+    hinge.visible = press > 0;
 
-        if (progress >= 1) {
-          roller.visible = false;
-          hinge.visible = true;
-          hinge.quaternion.copy(flat);
-          hinge.position.set(0, 4, 0);
-          setPhase('pressing');
-        }
+    if (press < CONTACT) {
+      impressions = null;
+    } else if (!impressions) {
+      impressions = sorts.flatMap((sort) =>
+        sort.glyph && sort.ink >= 0.05
+          ? [
+              {
+                glyph: sort.glyph,
+                scale: sort.scale,
+                mid: sort.mid,
+                x: sort.home.x + sort.offset.x,
+                z: sort.home.y + sort.offset.y,
+                yaw: sort.yaw,
+                ink: sort.ink,
+                line: sort.line,
+              },
+            ]
+          : [],
+      );
+      printedTurn = -1;
+    }
 
-        return true;
-      }
-      case 'pressing': {
-        const progress = clamp01((t * speed) / 650);
-        const drop = easeInOut(clamp01(progress / 0.7));
-        hinge.position.set(0, 4 + (paperRest - 4) * drop, 0);
-        const dip = progress > 0.7 ? Math.sin(((progress - 0.7) / 0.3) * Math.PI) * 0.03 : 0;
+    const dip = press > CONTACT && press < 1 ? Math.sin(((press - CONTACT) / (1 - CONTACT)) * Math.PI) * 0.03 : 0;
 
-        for (const sort of sorts) {
-          sort.group.position.y = -dip;
-        }
+    for (const sort of sorts) {
+      sort.group.position.y = -dip;
+    }
 
-        if (progress >= 1) {
-          drawProof();
-          setPhase('lifting');
-        }
+    const raw = span(progress, 'lift');
+    const lift = easeInOut(raw);
 
-        return true;
-      }
-      case 'lifting': {
-        const raw = clamp01((t * speed) / 1600);
-        const progress = easeInOut(raw);
-        hinge.position.lerpVectors(new Vector3(0, paperRest, 0), standing, progress);
-        hinge.position.y += Math.sin(raw * Math.PI) * 0.6;
-        hinge.quaternion.slerpQuaternions(flat, facing, progress);
-        wide = progress;
-        frame();
+    if (raw > 0) {
+      hinge.position.lerpVectors(new Vector3(0, paperRest, 0), standing, lift);
+      hinge.position.y += Math.sin(raw * Math.PI) * 0.6;
+    } else {
+      hinge.position.set(0, 4 + (paperRest - 4) * easeInOut(clamp01(press / CONTACT)), 0);
+    }
 
-        if (progress >= 1) {
-          setPhase('proofed');
-        }
+    hinge.quaternion.slerpQuaternions(flat, facing, lift);
 
-        return true;
-      }
-      case 'distributing': {
-        const progress = clamp01((t * speed) / 900);
-        hinge.position.set(standing.x, standing.y + 5 * easeInOut(progress), standing.z);
-        wide = 1 - easeInOut(progress);
-        frame();
-        for (const sheet of [printed, blank]) {
-          (sheet.material as MeshStandardMaterial).opacity = 1 - progress;
-        }
+    if (lift !== wide) {
+      wide = lift;
+      frame();
+    }
 
-        for (const sort of sorts) {
-          setInk(sort, Math.min(sort.ink, 1 - progress));
-        }
+    // Each redraw uploads the whole sheet to the GPU again, so only step through the turn.
+    const turn = Math.round(span(progress, 'turn') / TURN_STEP) * TURN_STEP;
 
-        if (progress >= 1) {
-          hinge.visible = false;
-          for (const sheet of [printed, blank]) {
-            (sheet.material as MeshStandardMaterial).opacity = 1;
-          }
-          setPhase('idle');
-        }
+    if (impressions && turn !== printedTurn) {
+      drawProof(turn);
+    }
 
-        return true;
-      }
-      default:
-        return false;
+    if (progress !== reported) {
+      reported = progress;
+      onProgress(progress);
     }
   };
 
@@ -634,16 +726,25 @@ export function mountTypeCase(
     last = now;
     let moving = false;
 
+    const elapsed = remaining;
+
     while (remaining > 1e-4) {
       const slice = Math.min(remaining, 1 / 60);
       moving = stepSorts(slice);
       remaining -= slice;
     }
 
-    const animating = stepPhase(now);
+    // Ease toward the scroll position so a flick of the wheel still reads as a press.
+    progress += (goal - progress) * (reduceMotion ? 1 : 1 - Math.exp(-7 * elapsed));
+
+    if (Math.abs(goal - progress) < 1e-4) {
+      progress = goal;
+    }
+
+    pose();
     renderer.render(scene, camera);
 
-    if ((moving || animating || pointer.active) && onScreen && !document.hidden) {
+    if ((moving || progress !== goal || pointer.active) && onScreen && !document.hidden) {
       handle = requestAnimationFrame(tick);
     } else {
       last = 0;
@@ -667,19 +768,13 @@ export function mountTypeCase(
   }).observe(canvas);
 
   frame();
+  pose();
   renderer.render(scene, camera);
 
   return {
-    proof: () => {
-      if (phase === 'idle') {
-        setPhase('inking');
-      }
+    scrub: (next) => {
+      goal = clamp01(next);
+      wake();
     },
-    distribute: () => {
-      if (phase === 'proofed') {
-        setPhase('distributing');
-      }
-    },
-    phase: () => phase,
   };
 }

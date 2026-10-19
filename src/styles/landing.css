@@ -339,25 +339,21 @@
   font-size: clamp(1.05rem, 1.4vw, 1.2rem);
 }
 
-.case-button {
-  margin-top: 1.4rem;
-  border: 0;
-  font-family: inherit;
-  cursor: pointer;
-}
-
-.case-button[hidden] {
-  display: none;
-}
-
-.case-button:disabled {
-  cursor: progress;
-  opacity: 0.72;
-}
-
 .case-stage {
   position: relative;
   height: clamp(420px, 70vh, 760px);
+}
+
+/* Scrolling through the track runs the press; the stage holds still while it does. */
+.case[data-scrub] .case-track {
+  height: 220vh;
+}
+
+.case[data-scrub] .case-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
 }
 
 .case-canvas {
@@ -368,6 +364,83 @@
   cursor: grab;
 }
 
+/* The quote is credited on the stage itself, arriving with the translation when it runs. */
+.case-credit {
+  position: absolute;
+  right: var(--gutter);
+  bottom: var(--gutter);
+  margin: 0;
+  color: var(--foam);
+  font-size: clamp(1rem, 1.6vw, 1.3rem);
+  font-stretch: 80%;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.case[data-scrub][data-ready] .case-credit {
+  bottom: calc(var(--gutter) + 2.6rem);
+  opacity: var(--case-turn, 0);
+}
+
+/* Where the press is along its run, so a reader pinned on the stage knows there is more. */
+.case-meter {
+  position: absolute;
+  inset: auto var(--gutter) var(--gutter);
+  display: none;
+  padding-bottom: 0.7rem;
+  pointer-events: none;
+}
+
+.case[data-scrub][data-ready] .case-meter {
+  display: block;
+}
+
+.case-meter::before,
+.case-meter::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: var(--foam-line);
+}
+
+.case-meter::after {
+  background: var(--foam);
+  transform: scaleX(var(--case-progress, 0));
+  transform-origin: left;
+}
+
+.case-steps {
+  position: relative;
+  height: 1.3em;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+}
+
+.case-step {
+  position: absolute;
+  left: var(--at);
+  color: var(--foam-dim);
+  font-stretch: 80%;
+  font-weight: 600;
+  line-height: 1.3;
+  opacity: 0.5;
+  transition:
+    color var(--dur-short) var(--ease-out),
+    opacity var(--dur-short) var(--ease-out);
+}
+
+.case-step[data-state='done'] {
+  opacity: 0.85;
+}
+
+.case-step[data-state='active'] {
+  color: var(--foam);
+  opacity: 1;
+}
+
 /* Until three.js is running (or where it never will), the proof stands in for the type. */
 .case-fallback {
   position: absolute;
@@ -376,7 +449,7 @@
   place-content: center;
   margin: 0;
   color: var(--foam);
-  font-size: clamp(2.6rem, 8vw, 6rem);
+  font-size: clamp(2rem, 6vw, 4.6rem);
   font-weight: 800;
   line-height: 0.95;
   text-align: left;
@@ -389,9 +462,9 @@
 }
 
 .case-fallback span:lang(ko) {
-  margin-top: 0.3em;
+  margin-top: 0.4em;
   font-family: var(--font-ko);
-  font-size: 0.58em;
+  font-size: 0.62em;
 }
 
 .case[data-ready] .case-fallback {

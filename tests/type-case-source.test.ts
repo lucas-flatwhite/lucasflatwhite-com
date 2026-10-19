@@ -13,17 +13,18 @@ describe('type case', () => {
     const latin = Object.keys(sortData.latin.glyphs);
     const hangul = Object.keys(sortData.hangul.glyphs);
 
-    for (const char of 'LucasFlatwhite') {
+    for (const char of 'Makeitwork,makeitright,makeitfast.') {
       expect(latin).toContain(char);
     }
 
-    for (const char of '루카스플랫화이트') {
+    for (const char of '돌아가게,제대로,빠르게.') {
       expect(hangul).toContain(char);
     }
 
-    expect(scene).toContain("{ text: 'Lucas', face: 'latin', size: 1 }");
-    expect(scene).toContain("{ text: 'Flatwhite', face: 'latin', size: 1 }");
-    expect(scene).toContain("{ text: '루카스 플랫화이트', face: 'hangul', size: 0.62 }");
+    expect(scene).toContain("{ text: 'Make it work,', face: 'latin', size: 1 }");
+    expect(scene).toContain("{ text: 'make it right,', face: 'latin', size: 1 }");
+    expect(scene).toContain("{ text: 'make it fast.', face: 'latin', size: 1 }");
+    expect(scene).toContain("const TRANSLATION: readonly string[] = ['돌아가게,', '제대로,', '빠르게.'];");
   });
 
   it('loads three.js only when the section comes near, and only with WebGL', () => {
@@ -34,10 +35,25 @@ describe('type case', () => {
     expect(loader).toContain("rootMargin: '600px 0px'");
   });
 
-  it('keeps a readable fallback and a real button', () => {
+  it('keeps a readable fallback and credits the quote', () => {
     expect(landing).toContain('class="case-fallback"');
-    expect(landing).toContain('data-case-proof');
     expect(landing).toContain('role="img"');
+    expect(landing).toContain('<p class="case-credit">Kent Beck</p>');
+  });
+
+  it('runs the press from the scroll, and shows the finished proof to reduced motion', () => {
+    expect(landing).toContain('data-case-track');
+    expect(landing).toContain('data-case-stage');
+    expect(loader).toContain("window.addEventListener('scroll', update, { passive: true })");
+    expect(loader).toContain('typeCase.scrub(1)');
+    expect(scene).toContain('scrub: (next) =>');
+  });
+
+  it('keeps the timeline out of three.js and lets the meter follow the press', () => {
+    expect(read('src/lib/press-timeline.ts')).not.toMatch(/from 'three'/);
+    expect(scene).toContain("from './press-timeline'");
+    expect(loader).toContain('mountTypeCase(canvas, follow)');
+    expect(landing).toContain('data-case-meter');
   });
 
   it('renders on demand and stops off screen', () => {

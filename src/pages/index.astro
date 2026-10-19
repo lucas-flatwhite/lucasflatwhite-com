@@ -6,6 +6,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { featuredLinks, siteLinks } from '../data/links';
 import { siteProfile } from '../data/site';
 import { withBase } from '../lib/paths';
+import { TIMELINE, type Step } from '../lib/press-timeline';
 import { sortFeaturedProjects } from '../lib/projects';
 import '../styles/landing.css';
 
@@ -16,6 +17,14 @@ const work = projects.filter((entry) => entry.data.specimen);
 const site = projects.find((entry) => entry.data.title === 'lucasflatwhite-com');
 const playHref = withBase('play/');
 const year = new Date().getFullYear();
+// Each label sits where its step starts along the meter, which fills as the proof is done.
+const pressSteps: { step: Step; label: string }[] = [
+  { step: 'ink', label: 'Ink' },
+  { step: 'press', label: 'Press' },
+  { step: 'lift', label: 'Proof' },
+  { step: 'turn', label: 'Translate' },
+];
+const pressEnd = TIMELINE.turn[1];
 ---
 
 <BaseLayout title={siteProfile.name} description={siteProfile.description} bodyClass="landing">
@@ -113,26 +122,42 @@ const year = new Date().getFullYear();
         <h2 id="case-title" class="case-title">Set by hand</h2>
         <div class="case-intro">
           <p>
-            Every letter of the name is a block of metal, cast from the same outlines this page is
-            set in. Push them around. Then ink the forme and pull a proof.
+            Kent Beck's three steps, cast in metal and set in mirror image, the way type stands in
+            a forme. Ink them and pull a proof, and it comes off the press in Korean.
           </p>
-          <button class="button-primary case-button" type="button" data-case-proof hidden>
-            Pull a proof
-          </button>
         </div>
       </div>
-      <div class="case-stage">
-        <canvas
-          class="case-canvas"
-          data-case-canvas
-          role="img"
-          aria-label="Metal type sorts spelling Lucas Flatwhite and 루카스 플랫화이트, set in mirror image in a galley."
-        ></canvas>
-        <p class="case-fallback" aria-hidden="true">
-          <span>Lucas</span>
-          <span>Flatwhite</span>
-          <span lang="ko">루카스 플랫화이트</span>
-        </p>
+      <div class="case-track" data-case-track>
+        <div class="case-stage" data-case-stage>
+          <canvas
+            class="case-canvas"
+            data-case-canvas
+            role="img"
+            aria-label="Metal type sorts setting Make it work, make it right, make it fast in mirror image, and the proof pulled from them, which reads in Korean: 돌아가게, 제대로, 빠르게."
+          ></canvas>
+          <p class="case-fallback" aria-hidden="true">
+            <span>Make it work,</span>
+            <span>make it right,</span>
+            <span>make it fast.</span>
+            <span lang="ko">돌아가게, 제대로, 빠르게.</span>
+          </p>
+          <p class="case-credit">Kent Beck</p>
+          <div class="case-meter" data-case-meter aria-hidden="true">
+            <ol class="case-steps">
+              {
+                pressSteps.map(({ step, label }) => (
+                  <li
+                    class="case-step"
+                    data-case-step={step}
+                    style={`--at: ${((TIMELINE[step][0] / pressEnd) * 100).toFixed(2)}%`}
+                  >
+                    {label}
+                  </li>
+                ))
+              }
+            </ol>
+          </div>
+        </div>
       </div>
     </section>
 
