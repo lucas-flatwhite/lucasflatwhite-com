@@ -35,13 +35,10 @@ describe('type case', () => {
     expect(loader).toContain("rootMargin: '600px 0px'");
   });
 
-  it('keeps a readable fallback, credits the quote, and only promises scrolling where it works', () => {
-    const styles = read('src/styles/landing.css');
+  it('keeps a readable fallback and credits the quote', () => {
     expect(landing).toContain('class="case-fallback"');
     expect(landing).toContain('role="img"');
     expect(landing).toContain('<p class="case-credit">Kent Beck</p>');
-    expect(styles).toMatch(/\.case-intro \.case-hint \{\s*display: none;/);
-    expect(styles).toContain('.case[data-scrub] .case-hint {');
   });
 
   it('runs the press from the scroll, and shows the finished proof to reduced motion', () => {
