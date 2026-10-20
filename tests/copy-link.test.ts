@@ -35,7 +35,7 @@ describe('copy link source contract', () => {
 
     expect(landing).toContain('mountCopyLinks()');
     expect(landing.match(/data-copy=\{link\.copy\}/g)).toHaveLength(2);
-    expect(landing.match(/<CopyRoll text=\{link\.handle\} \/>/g)).toHaveLength(2);
+    expect(landing.match(/<CopyRoll text=\{link\.label\} \/>/g)).toHaveLength(2);
   });
 
   it('copies from the command menu, then closes it after the roll', () => {

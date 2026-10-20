@@ -1,5 +1,6 @@
 import {
   layoutNextLine,
+  materializeLineRange,
   prepareWithSegments,
   type LayoutCursor,
   type PreparedTextWithSegments,
@@ -49,6 +50,11 @@ export async function loadFieldFonts(): Promise<void> {
     document.fonts.load(FIELD_FONT_SAMPLES[0], 'Lucas'),
     document.fonts.load(FIELD_FONT_SAMPLES[1], '배포 로드맵'),
   ]);
+}
+
+function isBefore(a: LayoutCursor, b: LayoutCursor): boolean {
+  return a.segmentIndex < b.segmentIndex
+    || (a.segmentIndex === b.segmentIndex && a.graphemeIndex < b.graphemeIndex);
 }
 
 function createRandom(seed: number): () => number {
@@ -166,6 +172,8 @@ export class TextField {
   private readonly font: string;
   private readonly prepared: PreparedTextWithSegments;
   private dpr = 1;
+  private pinned = false;
+  private anchors: LayoutCursor[] | null = null;
 
   constructor(canvas: HTMLCanvasElement, options: TextFieldOptions) {
     const ctx = canvas.getContext('2d');
@@ -218,9 +226,52 @@ export class TextField {
     return gradient;
   }
 
+  /**
+   * Pins every line to the words it starts with when only `obstacles` are in the way. A
+   * later render then resets only the lines a moving obstacle crosses, and the rest of the
+   * field holds still instead of reflowing below it on every frame. Call again after a
+   * resize; the anchors stay until then.
+   */
+  anchor(obstacles: readonly FieldObstacle[]): void {
+    this.pinned = true;
+    this.anchors = null;
+    this.anchors = this.flow(obstacles, null);
+  }
+
+  /** The tallest run of whole lines `obstacles` leave free from edge to edge, or null. */
+  openBand(obstacles: readonly FieldObstacle[]): { top: number; bottom: number } | null {
+    const { lineHeight, inset, clearance } = this.options;
+    const left = inset;
+    const right = this.width - inset;
+    let best: { top: number; bottom: number } | null = null;
+    let runTop = -1;
+
+    for (let top = inset; top + lineHeight <= this.height - inset * 0.5; top += lineHeight) {
+      const spans = freeSpans(top, top + lineHeight, left, right, obstacles, clearance);
+      const open = spans.length === 1 && spans[0][0] === left && spans[0][1] === right;
+
+      if (!open) {
+        runTop = -1;
+        continue;
+      }
+
+      if (runTop < 0) {
+        runTop = top;
+      }
+
+      const bottom = top + lineHeight;
+
+      if (!best || bottom - runTop > best.bottom - best.top) {
+        best = { top: runTop, bottom };
+      }
+    }
+
+    return best;
+  }
+
   render(obstacles: readonly FieldObstacle[], glow: FieldGlow | null): void {
     const { ctx, options, width, height } = this;
-    const { lineHeight, inset, minSpan, clearance, fontSize } = options;
+    const { lineHeight, fontSize } = options;
     const baseline = Math.round((lineHeight + fontSize * 0.72) / 2);
 
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
@@ -229,9 +280,26 @@ export class TextField {
     ctx.textBaseline = 'alphabetic';
     ctx.fillStyle = this.fillFor(glow);
 
+    this.flow(obstacles, (text, x, top) => ctx.fillText(text, x, top + baseline));
+  }
+
+  /** Lays the text into the free spans line by line. Returns where each line started. */
+  private flow(
+    obstacles: readonly FieldObstacle[],
+    place: ((text: string, x: number, top: number) => void) | null,
+  ): LayoutCursor[] {
+    const { options, width, height } = this;
+    const { lineHeight, inset, minSpan, clearance } = options;
+    const starts: LayoutCursor[] = [];
     let cursor = ZERO_CURSOR;
 
     for (let top = inset; top + lineHeight <= height - inset * 0.5; top += lineHeight) {
+      const row = starts.length;
+      cursor = this.anchors?.[row] ?? cursor;
+      starts.push(cursor);
+      // A pinned line stops where the next one starts, so no word shows on both.
+      const next = this.anchors?.[row + 1];
+      const limit = next && isBefore(cursor, next) ? next : null;
       const spans = freeSpans(top, top + lineHeight, inset, width - inset, obstacles, clearance);
 
       for (const [left, right] of spans) {
@@ -248,15 +316,32 @@ export class TextField {
           line = layoutNextLine(this.prepared, cursor, spanWidth);
         }
 
+        // A pinned line drops what it cannot hold anyway, so a word too wide for the span
+        // gives way to the words after it instead of leaving the span bare.
+        for (let skip = 0; this.pinned && line && line.end.graphemeIndex !== 0 && skip < 4; skip += 1) {
+          cursor = { segmentIndex: cursor.segmentIndex + 1, graphemeIndex: 0 };
+          line = layoutNextLine(this.prepared, cursor, spanWidth);
+        }
+
         // A line that ends inside a word means the span was too narrow for it; leave the gap.
         if (!line || line.end.graphemeIndex !== 0) {
           continue;
         }
 
-        ctx.fillText(line.text, left, top + baseline);
+        if (limit && !isBefore(line.start, limit)) {
+          break;
+        }
+
+        if (limit && isBefore(limit, line.end)) {
+          line = materializeLineRange(this.prepared, { ...line, end: limit });
+        }
+
+        place?.(line.text, left, top);
         cursor = line.end;
       }
     }
+
+    return starts;
   }
 }
 

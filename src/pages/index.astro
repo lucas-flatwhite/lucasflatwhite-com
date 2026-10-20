@@ -71,25 +71,14 @@ const pressEnd = TIMELINE.lift[1];
               {link.copy !== null ? (
                 <a class="link-row glyph-host" href={link.href} data-copy={link.copy}>
                   <CopyMark icon={link.icon} motion={link.motion} class="link-glyph" />
-                  <span class="sr-only">{link.label}</span>
-                  <span class="link-label link-label-handle">
-                    <CopyRoll text={link.handle} />
+                  <span class="link-label">
+                    <CopyRoll text={link.label} />
                   </span>
                 </a>
               ) : (
                 <a class="link-row glyph-host" href={link.href} target="_blank" rel="noreferrer me">
                   <Glyph icon={link.icon} motion={link.motion} class="link-glyph" />
-                  {link.wordmark ? (
-                    <>
-                      <span class="sr-only">{link.label}</span>
-                      <span class="link-label link-label-handle">{link.handle}</span>
-                    </>
-                  ) : (
-                    <>
-                      <span class="link-label">{link.label}</span>
-                      <span class="link-handle">{link.handle}</span>
-                    </>
-                  )}
+                  <span class="link-label">{link.label}</span>
                 </a>
               )}
             </li>
@@ -165,7 +154,6 @@ const pressEnd = TIMELINE.lift[1];
             <span>make it right,</span>
             <span>make it fast.</span>
           </p>
-          <p class="case-credit">Kent Beck</p>
           <div class="case-meter" data-case-meter aria-hidden="true">
             <ol class="case-steps">
               {
@@ -225,17 +213,15 @@ const pressEnd = TIMELINE.lift[1];
               {link.copy !== null ? (
                 <a class="colophon-link glyph-host" href={link.href} data-copy={link.copy}>
                   <CopyMark icon={link.icon} motion={link.motion} />
-                  <span class="sr-only">{link.label}</span>
                   <span class="link-label">
-                    <CopyRoll text={link.handle} />
+                    <CopyRoll text={link.label} />
                   </span>
                   <span class="colophon-blurb">{link.blurb}</span>
                 </a>
               ) : (
                 <a class="colophon-link glyph-host" href={link.href} target="_blank" rel="noreferrer me">
                   <Glyph icon={link.icon} motion={link.motion} />
-                  {link.wordmark && <span class="sr-only">{link.label}</span>}
-                  <span class="link-label">{link.wordmark ? link.handle : link.label}</span>
+                  <span class="link-label">{link.label}</span>
                   <span class="colophon-blurb">{link.blurb}</span>
                 </a>
               )}

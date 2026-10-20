@@ -1,4 +1,4 @@
-import { clamp01, span, STEPS, stepAt, TIMELINE, type Step } from './press-timeline';
+import { clamp01, STEPS, stepAt, TIMELINE, type Step } from './press-timeline';
 
 function supportsWebGL(): boolean {
   try {
@@ -46,7 +46,6 @@ export function mountTypeCaseWhenNear(root: HTMLElement): void {
         let shown: Step | null = null;
         const follow = (progress: number) => {
           meter?.style.setProperty('--case-progress', String(clamp01(progress / TIMELINE.lift[1])));
-          root.style.setProperty('--case-proof', String(span(progress, 'lift')));
           const step = stepAt(progress);
 
           if (step === shown) {
