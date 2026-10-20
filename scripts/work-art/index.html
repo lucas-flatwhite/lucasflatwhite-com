@@ -1,0 +1,10 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Work art</title>
+<!-- build.ts opens this page in Chrome and reads both pictures back from window.workArt. -->
+<script type="module">
+  import { plate } from './plate.js';
+  import { portrait } from './portrait.js';
+
+  window.workArt = { plate: plate(), portrait: portrait() };
+</script>

@@ -15,7 +15,7 @@ import '../styles/landing.css';
 const projects = sortFeaturedProjects<CollectionEntry<'projects'>>(
   await getCollection('projects'),
 );
-const work = projects.filter((entry) => entry.data.excerpt);
+const work = projects.filter((entry) => entry.data.art);
 const site = projects.find((entry) => entry.slug === 'lucasflatwhite-com');
 const playHref = withBase('play/');
 const year = new Date().getFullYear();
@@ -118,12 +118,18 @@ const pressEnd = TIMELINE.lift[1];
                   </a>
                 )}
               </div>
-              <figure class="excerpt">
-                <p class="excerpt-kicker" lang="ko">{entry.data.excerpt?.kicker}</p>
-                <p class="excerpt-title" lang="ko">{entry.data.excerpt?.title}</p>
-                <p class="excerpt-text" lang="ko">{entry.data.excerpt?.text}</p>
-                <figcaption class="excerpt-note">{entry.data.excerpt?.note}</figcaption>
-              </figure>
+              {entry.data.art && (
+                <figure class="work-art">
+                  <img
+                    src={entry.data.art.image.src}
+                    width={entry.data.art.image.width}
+                    height={entry.data.art.image.height}
+                    alt={entry.data.art.alt}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </figure>
+              )}
             </li>
           ))
         }
