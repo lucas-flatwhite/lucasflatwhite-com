@@ -35,10 +35,11 @@ describe('type case', () => {
     expect(loader).toContain("rootMargin: '600px 0px'");
   });
 
-  it('keeps a readable fallback and credits the quote', () => {
+  it('keeps a readable fallback and credits the quote in the intro, not on the stage', () => {
     expect(landing).toContain('class="case-fallback"');
     expect(landing).toContain('role="img"');
-    expect(landing).toContain('<p class="case-credit">Kent Beck</p>');
+    expect(landing).toContain("Kent Beck's three steps");
+    expect(landing).not.toContain('case-credit');
   });
 
   it('runs the press from the scroll, and shows the finished proof to reduced motion', () => {

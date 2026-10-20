@@ -63,7 +63,11 @@
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-rows: 1fr auto;
   column-gap: var(--gutter);
-  min-height: 100dvh;
+  /*
+   * The small viewport: a phone's toolbar folding away mid-scroll changes 100dvh, which
+   * would resize the field and shuffle every word in it.
+   */
+  min-height: 100svh;
   padding: 96px var(--gutter) clamp(28px, 6vh, 64px);
   overflow: hidden;
 }
@@ -159,18 +163,6 @@
     font-stretch var(--dur-long) var(--ease-out),
     font-weight var(--dur-long) var(--ease-out),
     color var(--dur-short) var(--ease-out);
-}
-
-.link-label-handle {
-  font-size: 0.6em;
-}
-
-.link-handle {
-  align-self: flex-end;
-  margin-bottom: 0.32em;
-  color: var(--foam-dim);
-  font-size: 0.3em;
-  font-weight: 500;
 }
 
 .glyph-host:is(:hover, :focus-visible) .link-label {
@@ -370,24 +362,6 @@
   height: 100%;
   touch-action: pan-y;
   cursor: grab;
-}
-
-/* The quote is credited on the stage itself, arriving as the proof stands up to be read. */
-.case-credit {
-  position: absolute;
-  right: var(--gutter);
-  bottom: var(--gutter);
-  margin: 0;
-  color: var(--foam);
-  font-size: clamp(1rem, 1.6vw, 1.3rem);
-  font-stretch: 80%;
-  font-weight: 700;
-  pointer-events: none;
-}
-
-.case[data-scrub][data-ready] .case-credit {
-  bottom: calc(var(--gutter) + 2.6rem);
-  opacity: var(--case-proof, 0);
 }
 
 /* Where the press is along its run, so a reader pinned on the stage knows there is more. */
@@ -597,11 +571,6 @@
   font-size: 0.8em;
 }
 
-/* The full address is the longest line in the footer, so it scales with the window. */
-.colophon-link .copy-roll {
-  font-size: min(1em, 2.6vw);
-}
-
 .colophon-blurb {
   justify-self: end;
   color: var(--foam-dim);
@@ -644,11 +613,8 @@
   }
 }
 
-/*
- * Widened on hover, the full address would run into the intro on a narrow window, and a
- * tap leaves hover on: there it recolors but never widens.
- */
-@media (max-width: 1000px), (hover: none), (pointer: coarse) {
+/* A tap leaves hover on, so there "Copied" recolors but never widens into the words beside it. */
+@media (hover: none), (pointer: coarse) {
   .glyph-host:is(:hover, :focus-visible) .copy-roll {
     font-stretch: 100%;
     font-weight: 600;
@@ -706,10 +672,6 @@
     font-size: clamp(1.6rem, 8vw, 2.2rem);
   }
 
-  .link-handle {
-    display: none;
-  }
-
   .specimen-links .link-row .link-label {
     white-space: nowrap;
   }
@@ -728,10 +690,6 @@
 
   .colophon-link {
     grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .colophon-link .copy-roll {
-    font-size: min(1em, 5.4vw);
   }
 
   .colophon-blurb {

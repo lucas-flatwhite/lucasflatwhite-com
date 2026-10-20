@@ -16,11 +16,6 @@ export type SiteLink = {
   motion: GlyphMotion;
   /** Featured links sit in the first viewport; every link appears in the footer and the command menu. */
   featured: boolean;
-  /**
-   * The handle is shown in place of the label: X's icon already spells the name and an
-   * address says what it is. The label stays for screen readers.
-   */
-  wordmark?: boolean;
   /** What a click copies instead of following `href`, or null for a link that opens a page. */
   copy: string | null;
 };
@@ -35,19 +30,18 @@ export const siteLinks = [
     icon: 'github-logo',
     motion: 'commit',
     featured: true,
-    wordmark: false,
     copy: null,
   },
   {
     id: 'x',
-    label: 'X',
+    // Named the way GitHub and Email are, by the service rather than the handle.
+    label: 'Twitter',
     handle: '@lucas_flatwhite',
     href: 'https://x.com/lucas_flatwhite',
     blurb: 'Short notes while I build.',
     icon: 'x-logo',
     motion: 'cross',
     featured: true,
-    wordmark: true,
     copy: null,
   },
   {
@@ -56,11 +50,11 @@ export const siteLinks = [
     handle: 'lucas.flatwhite@gmail.com',
     // Without script, or where the clipboard is refused, the address opens a mail app.
     href: 'mailto:lucas.flatwhite@gmail.com',
-    blurb: 'Click to copy the address.',
+    // The label names the service, so the footer spells the address out here.
+    blurb: 'Click to copy lucas.flatwhite@gmail.com.',
     icon: 'envelope',
     motion: 'lift',
     featured: true,
-    wordmark: true,
     copy: 'lucas.flatwhite@gmail.com',
   },
 ] as const satisfies readonly SiteLink[];

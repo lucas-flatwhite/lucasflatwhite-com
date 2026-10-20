@@ -33,13 +33,17 @@ describe('site links', () => {
     expect(featuredLinks.map((link) => link.id)).toEqual(['github', 'x', 'email']);
   });
 
-  it('shows the email address in full and copies it, with a mailto to fall back on', () => {
+  it('names every link by its service, not by a handle', () => {
+    expect(siteLinks.map((link) => link.label)).toEqual(['GitHub', 'Twitter', 'Email']);
+  });
+
+  it('copies the email address, spells it out in the footer, and falls back to a mailto', () => {
     const email = siteLinks.find((link) => link.id === 'email');
 
     expect(email?.handle).toBe('lucas.flatwhite@gmail.com');
     expect(email?.copy).toBe(email?.handle);
     expect(email?.href).toBe(`mailto:${email?.copy}`);
-    expect(email?.wordmark).toBe(true);
+    expect(email?.blurb).toContain(email?.handle);
   });
 
   it('keeps every link unique, secure, iconed and briefly described', () => {
@@ -62,6 +66,6 @@ describe('site links', () => {
     expect(identityLinks).toEqual(
       featuredLinks.filter((link) => link.copy === null).map(({ label, href }) => ({ label, href })),
     );
-    expect(identityLinks.map((link) => link.label)).toEqual(['GitHub', 'X']);
+    expect(identityLinks.map((link) => link.label)).toEqual(['GitHub', 'Twitter']);
   });
 });
