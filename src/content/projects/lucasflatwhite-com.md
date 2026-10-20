@@ -10,11 +10,9 @@ href: https://github.com/lucas-flatwhite/lucasflatwhite-com
 repo: https://github.com/lucas-flatwhite/lucasflatwhite-com
 order: 2
 featured: true
-excerpt:
-  kicker: /play
-  title: 백남준은 TV로 그림을 그렸고
-  text: 나는 터미널로 그린다
-  note: One of the lines that bursts out when the snake eats in /play, laid out with pretext as it flies.
+art:
+  image: ../../assets/work/lucasflatwhite-com.svg
+  alt: "A tabby cat seated in blue swirls after Van Gogh's 1889 self-portrait, every stroke a word that swells in weight and width."
 ---
 
 Built with Astro and pretext. The text on every page is laid out by hand, line by line, around whatever moves.

@@ -258,68 +258,15 @@
   margin-top: 1.6rem;
 }
 
-.excerpt {
-  display: grid;
-  justify-items: start;
-  gap: 0.6rem;
+/* Each project's picture fills its column; width and height on the <img> hold its place while it loads. */
+.work-art {
   margin: 0;
 }
 
-.excerpt-kicker,
-.excerpt-title,
-.excerpt-text {
-  margin: 0;
-  font-family: var(--font-ko);
-  word-break: keep-all;
-}
-
-.excerpt-kicker {
-  color: var(--crema);
-  font-size: clamp(1rem, 1.4vw, 1.2rem);
-  font-weight: 700;
-}
-
-.excerpt-title {
-  font-size: clamp(2.6rem, 6vw, 5.6rem);
-  font-weight: 900;
-  line-height: 1.08;
-  text-wrap: balance;
-}
-
-.excerpt-text {
-  max-width: 24ch;
-  font-size: clamp(1.4rem, 2.6vw, 2.4rem);
-  font-weight: 500;
-  line-height: 1.35;
-  text-wrap: balance;
-}
-
-.excerpt-note {
-  max-width: 52ch;
-  margin-top: 0.7rem;
-  color: var(--foam-dim);
-  font-size: 0.9rem;
-}
-
-/* As an excerpt scrolls in, its title is pulled left to right like a proof off the press. */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .excerpt-title {
-      animation: excerpt-set linear both;
-      animation-timeline: view();
-      animation-range: entry 10% entry 90%;
-    }
-  }
-}
-
-@keyframes excerpt-set {
-  from {
-    clip-path: inset(0 100% 0 0);
-  }
-
-  to {
-    clip-path: inset(0 0 0 0);
-  }
+.work-art img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 /* Type case ------------------------------------------------------------------- */

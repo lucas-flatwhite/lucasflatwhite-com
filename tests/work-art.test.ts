@@ -1,0 +1,79 @@
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { gzipSync } from 'node:zlib';
+import { describe, expect, it } from 'vitest';
+import { usedText } from '../scripts/work-art/fonts.ts';
+import { covers, fontFaces } from './support/font-faces';
+
+// Guards docs/superpowers/specs/2026-10-20-work-art-design.md: each project in Work is one
+// standalone picture that renders through <img> exactly as it was generated.
+const root = process.cwd();
+const read = (path: string) => readFileSync(resolve(root, path), 'utf8');
+const projectsDir = resolve(root, 'src/content/projects');
+const projects = readdirSync(projectsDir)
+  .filter((name) => name.endsWith('.md'))
+  .map((name) => ({ name, source: readFileSync(resolve(projectsDir, name), 'utf8') }))
+  .filter((project) => /^featured: true$/m.test(project.source));
+const pictures = {
+  plate: read('src/assets/work/ai-timeline-log.svg'),
+  portrait: read('src/assets/work/lucasflatwhite-com.svg'),
+};
+
+describe('Work pictures', () => {
+  it('gives every project in Work a picture file and a description of it', () => {
+    expect(projects.length).toBeGreaterThan(0);
+
+    for (const { name, source } of projects) {
+      const art = source.match(/^art:\n {2}image: (.+)\n {2}alt: (.+)$/m);
+
+      expect(art, name).not.toBeNull();
+      const image = resolve(projectsDir, art![1].trim());
+      expect(dirname(image)).toBe(resolve(root, 'src/assets/work'));
+      expect(existsSync(image), name).toBe(true);
+      expect(art![2].replace(/^["']|["']$/g, '').trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  it.each(Object.entries(pictures))('prints the %s as a standalone 720 by 480 document', (_, svg) => {
+    expect(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg"')).toBe(true);
+    expect(svg).toContain('viewBox="0 0 720 480"');
+    expect(svg).toContain('width="720"');
+    expect(svg).toContain('height="480"');
+  });
+
+  it.each(Object.entries(pictures))('keeps the %s free of anything an <img> would have to fetch', (_, svg) => {
+    expect([...svg.matchAll(/url\(([^)]*)\)/g)].every(([, target]) => target.startsWith('data:'))).toBe(true);
+    expect([...svg.matchAll(/\b(?:href|src)="([^"]*)"/g)].every(([, target]) => target.startsWith('#'))).toBe(true);
+  });
+
+  it('carries Anybody with both of its axes in the portrait', () => {
+    const anybody = fontFaces(pictures.portrait).find((face) => face.family === 'Anybody');
+
+    expect(anybody?.rule).toContain('font-weight:100 900');
+    expect(anybody?.rule).toContain('font-stretch:50% 150%');
+  });
+
+  it('draws every Hangul syllable in the portrait from an embedded Noto Sans KR face', () => {
+    const noto = fontFaces(pictures.portrait).filter((face) => face.family === 'Noto Sans KR');
+    const hangul = [...usedText(pictures.portrait)].filter((char) => (char.codePointAt(0) ?? 0) >= 0x1100);
+
+    expect(hangul.length).toBeGreaterThan(0);
+    expect(hangul.filter((char) => !covers(noto, char))).toEqual([]);
+  });
+
+  it('stays within its weight budget once compressed', () => {
+    expect(gzipSync(pictures.plate).length).toBeLessThanOrEqual(40 * 1024);
+    expect(gzipSync(pictures.portrait).length).toBeLessThanOrEqual(100 * 1024);
+  });
+
+  it('shows the pictures in Work as sized, lazy images instead of excerpts', () => {
+    const page = read('src/pages/index.astro');
+
+    expect(page).toContain('class="work-art"');
+    expect(page).toContain('loading="lazy"');
+    expect(page).toContain('width={');
+    expect(page).toContain('height={');
+    expect(page).not.toContain('excerpt');
+    expect(read('src/styles/landing.css')).not.toContain('excerpt');
+  });
+});
