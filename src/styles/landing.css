@@ -143,18 +143,29 @@
   list-style: none;
 }
 
+/*
+ * The links hang from the right gutter, so each glyph trails its label: the glyphs stand
+ * in one column at the edge, and a label widening on hover grows away from them without
+ * moving the other rows. The copy roll needs a 1.2 line to keep the descender of "Copied",
+ * and every row takes the same line so the three stand evenly apart.
+ */
 .link-row {
   display: inline-flex;
+  flex-direction: row-reverse;
   align-items: center;
   gap: 0.32em;
-  padding: 0.08em 0;
   font-size: clamp(2.2rem, 4.2vw, 3.8rem);
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .link-glyph {
   font-size: 0.82em;
+}
+
+/* "Copied" is wider than "Email", so the address's label sits at the end of its roll, by its glyph. */
+.link-row .copy-roll > span {
+  justify-self: end;
 }
 
 .link-label {
@@ -668,8 +679,14 @@
     gap: 0.4rem;
   }
 
+  /* Stacked under the copy, the links read from the left, glyph first. */
   .link-row {
+    flex-direction: row;
     font-size: clamp(1.6rem, 8vw, 2.2rem);
+  }
+
+  .link-row .copy-roll > span {
+    justify-self: start;
   }
 
   .specimen-links .link-row .link-label {
