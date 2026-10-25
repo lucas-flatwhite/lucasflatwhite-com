@@ -129,6 +129,51 @@
   text-wrap: balance;
 }
 
+/*
+ * The projects, one line under the intro, smaller than it so the name still leads. On
+ * hover a project recolors but keeps its width: the word field measures this line only on
+ * resize, so a wider label would push its neighbour over the words beside it.
+ */
+.specimen-work {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 1.1rem;
+  margin-top: 1.1rem;
+  font-size: clamp(1rem, 1.3vw, 1.2rem);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.specimen-work-title {
+  margin: 0;
+  color: var(--foam-dim);
+  font-weight: 500;
+  font-stretch: 80%;
+}
+
+.specimen-work ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.specimen-work a {
+  white-space: nowrap;
+}
+
+.specimen-work .work-out {
+  font-size: 0.75em;
+}
+
+.specimen-work .glyph-host:is(:hover, :focus-visible) .link-label {
+  font-stretch: 100%;
+  font-weight: 600;
+}
+
 .specimen-links {
   position: relative;
   z-index: 1;
@@ -637,6 +682,20 @@
   }
 
   .specimen-links .link-row .link-label {
+    white-space: nowrap;
+  }
+
+  /*
+   * The title would push the projects onto a second line, a line taken from the words
+   * above the name. On a phone it is read out but not shown, so both fit on one line.
+   */
+  .specimen-work-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
     white-space: nowrap;
   }
 

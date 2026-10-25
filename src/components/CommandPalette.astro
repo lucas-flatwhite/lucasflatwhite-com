@@ -1,12 +1,22 @@
 ---
+import { getCollection, type CollectionEntry } from 'astro:content';
 import CopyMark from './CopyMark.astro';
 import CopyRoll from './CopyRoll.astro';
 import Glyph from './Glyph.astro';
 import { sectionIds } from '../data/site';
 import { buildPaletteCommands } from '../lib/command-actions';
 import { withBase } from '../lib/paths';
+import { sortFeaturedProjects } from '../lib/projects';
 
-const commands = buildPaletteCommands(withBase(), withBase('play/'), sectionIds);
+const projects = sortFeaturedProjects<CollectionEntry<'projects'>>(
+  await getCollection('projects'),
+).map((entry) => ({
+  slug: entry.slug,
+  title: entry.data.title,
+  href: entry.data.href,
+  tags: entry.data.tags,
+}));
+const commands = buildPaletteCommands(withBase(), withBase('play/'), sectionIds, projects);
 ---
 
 <dialog class="palette" data-palette aria-label="Command menu">

@@ -194,3 +194,11 @@ type SiteLink = {
 - **lucasflatwhite.com**: 고흐의 1889년 자화상처럼 파란 소용돌이 속에 앉은 고양이를 붓질 대신 단어로 칠한 자화상. 단어마다 Anybody 의 굵기와 폭이 붓을 누르듯 커졌다 줄어들고, 고양이 몸에는 lucas, 루카스 같은 단어가 섞여 있다.
 - **형식**: 둘 다 `npm run art` 가 미리 만들어 커밋한 SVG(`src/assets/work/`)이고 `<img loading="lazy">` 로 뜬다. 자화상은 쓴 글자만 남긴 Anybody 와 Noto Sans KR 을 안에 품고 있어서 `<img>` 안에서도 사이트 서체로 그려진다. gzip 기준 목판 약 30KB, 자화상 약 57KB. 애니메이션은 없고, 발췌 제목의 스크롤 효과도 함께 뺐다.
 - **자세히**: `docs/superpowers/specs/2026-10-20-work-art-design.md`.
+
+## 16. 첫 화면의 Work 링크 (2026-10-25)
+
+- **왜**: 프로젝트 링크는 스크롤을 내려 Work 에 가야 보였고, 첫 화면에는 상단 바의 Work 한 단어뿐이었다.
+- **바꾼 것**: 소개 문장 아래에 `Work · AI Timeline Log ↗ · lucasflatwhite.com ↗` 를 한 줄로 둔다. Work 섹션과 같은 `work` 목록을 읽고, Work 항목처럼 각 프로젝트의 `href` 를 새 탭에서 연다(lucasflatwhite.com 은 GitHub 저장소). 링크마다 `data-field-obstacle="hero"` 를 달아 단어 들판이 비켜 흐른다. 시안은 html-plan 으로 오른쪽 칸, 작은 그림 카드와 견주어 골랐다.
+- **hover**: 색만 크레마로 바뀌고 넓어지지 않는다. 넓어지면 옆 링크가 밀려 단어 위에 겹쳤다. 단어 들판은 크기가 바뀔 때만 장애물을 다시 재기 때문이다.
+- **휴대폰**: "Work" 제목은 스크린리더만 읽고 화면에는 감춘다. 보이면 두 링크가 둘째 줄로 꺾여 이름 위 단어 자리를 한 줄 더 차지한다. 360px 폭에서는 제목 없이도 두 줄이 된다.
+- **⌘K**: Work 다음, Play 앞에 프로젝트가 하나씩 들어간다. 힌트는 태그라서 "canvas" 로도 찾는다. `/play` 의 메뉴도 같다.
