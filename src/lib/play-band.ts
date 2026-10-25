@@ -21,7 +21,7 @@ const DIRECTIONS: readonly Cell[] = [
 
 /**
  * A self-driving snake that wanders the band toward a crema pellet. The words part
- * around its body the same way they part around the cursor in the first viewport.
+ * around its body the same way they part around the name in the first viewport.
  */
 export async function mountPlayBand(root: HTMLElement): Promise<void> {
   const canvas = root.querySelector<HTMLCanvasElement>('[data-field-canvas]');
@@ -156,7 +156,7 @@ export async function mountPlayBand(root: HTMLElement): Promise<void> {
       { kind: 'rect', x: food.col * cellSize, y: food.row * cellSize, width: cellSize, height: cellSize },
     ];
 
-    field.render(obstacles, null);
+    field.render(obstacles);
 
     const inset = Math.round(cellSize * 0.14);
     ctx.fillStyle = CREMA;
