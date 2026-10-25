@@ -21,18 +21,27 @@ type SectionCommand = {
   section: SectionId;
 };
 
+/** A project from the content collection, as much of it as the menu shows. */
+export type PaletteProject = {
+  slug: string;
+  title: string;
+  href: string;
+  tags: readonly string[];
+};
+
 const sectionCommands: readonly SectionCommand[] = [
   { id: 'work', label: 'Work', hint: 'Things I have built', icon: 'hammer', section: 'work' },
 ];
 
 /**
- * Builds the command menu from the site's sections, the game page and every link.
- * `home` is the landing page URL (base-aware) so section jumps work from /play too.
+ * Builds the command menu from the site's sections, each project, the game page and every
+ * link. `home` is the landing page URL (base-aware) so section jumps work from /play too.
  */
 export function buildPaletteCommands(
   home: string,
   playHref: string,
   availableSections: readonly SectionId[],
+  projects: readonly PaletteProject[] = [],
 ): PaletteCommand[] {
   const sections = sectionCommands.map((command) => {
     if (!availableSections.includes(command.section)) {
@@ -50,8 +59,20 @@ export function buildPaletteCommands(
     };
   });
 
+  // The tags are the hint, so a project is found by what it is made with as well as by name.
+  const projectCommands = projects.map((project): PaletteCommand => ({
+    id: `project-${project.slug}`,
+    label: project.title,
+    hint: project.tags.join(', '),
+    icon: 'hammer',
+    href: project.href,
+    external: true,
+    copy: null,
+  }));
+
   return [
     ...sections,
+    ...projectCommands,
     {
       id: 'play',
       label: 'Play',

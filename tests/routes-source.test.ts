@@ -27,6 +27,12 @@ describe('route source contract', () => {
     expect(landing).toContain("withBase('play/')");
   });
 
+  it('lists every Work project under the intro, each one an obstacle to the word field', () => {
+    expect(landing).toContain('class="specimen-work"');
+    expect(landing).toContain('work.map((entry) => (\n                <li data-field-obstacle="hero">');
+    expect(landing).toContain('aria-labelledby="specimen-work-title"');
+  });
+
   it('marks the moving canvases as decorative and keeps the name as real text', () => {
     expect(landing).toContain('<canvas class="field-canvas" data-field-canvas aria-hidden="true"></canvas>');
     expect(landing).toContain('<h1 id="name"');

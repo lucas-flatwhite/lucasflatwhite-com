@@ -3,6 +3,21 @@ import { siteLinks } from '../src/data/links';
 import { buildPaletteCommands, filterPaletteCommands } from '../src/lib/command-actions';
 
 const commands = buildPaletteCommands('/', '/play/', ['top', 'work', 'play']);
+const projects = [
+  {
+    slug: 'ai-timeline-log',
+    title: 'AI Timeline Log',
+    href: 'https://www.lucasflatwhite.com/ai-timeline-log',
+    tags: ['Astro', 'TypeScript', 'Canvas'],
+  },
+  {
+    slug: 'lucasflatwhite-com',
+    title: 'lucasflatwhite.com',
+    href: 'https://github.com/lucas-flatwhite/lucasflatwhite-com',
+    tags: ['Astro', 'TypeScript', 'Three.js', 'pretext'],
+  },
+];
+const withProjects = buildPaletteCommands('/', '/play/', ['top', 'work', 'play'], projects);
 
 describe('command palette commands', () => {
   it('lists sections, the game and every link', () => {
@@ -49,6 +64,30 @@ describe('command palette commands', () => {
   it('keeps ids unique', () => {
     const ids = commands.map((command) => command.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('puts each project right after Work, in the order given', () => {
+    expect(withProjects.map((command) => command.id)).toEqual([
+      'work',
+      'project-ai-timeline-log',
+      'project-lucasflatwhite-com',
+      'play',
+      ...siteLinks.map((link) => link.id),
+    ]);
+  });
+
+  it('opens a project in a new tab and hints at what it is made with', () => {
+    expect(withProjects.find((command) => command.id === 'project-ai-timeline-log')).toMatchObject({
+      label: 'AI Timeline Log',
+      hint: 'Astro, TypeScript, Canvas',
+      icon: 'hammer',
+      href: 'https://www.lucasflatwhite.com/ai-timeline-log',
+      external: true,
+      copy: null,
+    });
+    expect(filterPaletteCommands(withProjects, 'canvas').map((command) => command.id)).toEqual([
+      'project-ai-timeline-log',
+    ]);
   });
 
   it('filters by label or hint, ignoring case and outer space', () => {

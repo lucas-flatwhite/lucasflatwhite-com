@@ -14,17 +14,17 @@ describe('specimen field on a phone', () => {
   });
 
   it('repaints in the same frame a resize clears the canvas', () => {
-    expect(specimen).toMatch(/new ResizeObserver\(\(\) => \{\s*fitAll\(\);\s*measure\(\);[\s\S]*?paint\(\);\s*\}\)/);
+    expect(specimen).toMatch(/new ResizeObserver\(\(\) => \{\s*fitAll\(\);[\s\S]*?paint\(\);\s*\}\)/);
   });
 
-  it('lets a mouse steer the lens but not a finger that is scrolling', () => {
-    expect(specimen).toContain("if (event.pointerType === 'touch') {");
-  });
+});
 
-  it('pins the lines and keeps the lens, ringed, in the strip above the name', () => {
-    expect(specimen).toContain('field.anchor(blocks);');
-    expect(specimen).toContain('field.openBand(blocks)');
-    expect(specimen).toContain('ctx.arc(lens.x, lens.y, lens.radius, 0, Math.PI * 2);');
-    expect(field).toContain('anchor(obstacles: readonly FieldObstacle[]): void {');
+describe('specimen field', () => {
+  it('stands still: no lens follows the pointer or drifts on its own', () => {
+    expect(specimen).not.toContain('pointermove');
+    expect(specimen).not.toContain('runWhileVisible');
+    expect(specimen).not.toContain('lens');
+    expect(field).not.toContain('FieldGlow');
+    expect(field).not.toContain("kind: 'circle'");
   });
 });

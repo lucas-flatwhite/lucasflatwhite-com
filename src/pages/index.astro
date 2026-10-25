@@ -62,6 +62,22 @@ const pressEnd = TIMELINE.lift[1];
           <span class="name-ko" lang="ko" data-field-obstacle="hero">{siteProfile.nameKo}</span>
         </h1>
         <p class="specimen-intro" data-field-obstacle="hero">{siteProfile.intro}</p>
+        {/* Each project is in reach from the first screen; Work below shows them in full. */}
+        <div class="specimen-work">
+          <p id="specimen-work-title" class="specimen-work-title" data-field-obstacle="hero">Work</p>
+          <ul aria-labelledby="specimen-work-title">
+            {
+              work.map((entry) => (
+                <li data-field-obstacle="hero">
+                  <a class="glyph-host" href={entry.data.href} target="_blank" rel="noreferrer">
+                    <span class="link-label">{entry.data.title}</span>
+                    <Glyph icon="arrow-up-right" class="work-out" />
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
       </div>
 
       <ul class="specimen-links" aria-label="Elsewhere">
