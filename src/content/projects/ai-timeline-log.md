@@ -9,6 +9,7 @@ href: https://www.lucasflatwhite.com/ai-timeline-log
 repo: https://github.com/lucas-flatwhite/ai-timeline-log
 order: 1
 featured: true
+motion: caret
 art:
   image: ../../assets/work/ai-timeline-log.svg
   alt: 'A woodcut plate: a chat input with a blinking caret, its grain cut in rings that spread outward.'

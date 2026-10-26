@@ -13,29 +13,32 @@ describe('route source contract', () => {
     expect(play).toContain('bodyClass="play"');
     expect(play).toContain("import '../../styles/play.css';");
     expect(play).toContain('<CommandPalette />');
+    expect(play).toContain('<SiteHeader');
+    expect(play).toContain('<SnakeExperience />');
+    expect(play).not.toContain('themeColor="#fafafa"');
   });
 
-  it('builds the landing from the specimen, work, play band and colophon', () => {
+  it('builds the landing as the paper board', () => {
     expect(landing).not.toContain('SnakeExperience');
+    expect(landing).not.toContain('mountSpecimen');
+    expect(landing).not.toContain('mountPlayBand');
+    expect(landing).not.toContain('type-case');
+    expect(landing).not.toContain('id="play"');
+    expect(landing).not.toContain('field-canvas');
+    expect(landing).not.toContain('Every line of moving text is laid out with pretext.');
     expect(landing).toContain('id="top"');
     expect(landing).toContain('id="work"');
-    expect(landing).toContain('id="play"');
     expect(landing).toContain('class="colophon"');
-    expect(landing).toContain('mountSpecimen');
-    expect(landing).toContain('mountPlayBand');
+    expect(landing).toContain('<SiteHeader');
     expect(landing).toContain('<CommandPalette />');
-    expect(landing).toContain("withBase('play/')");
+    expect(landing).toContain('themeColor="#fafafa"');
+    expect(landing).toContain('data-snake-preview');
+    expect(landing).not.toContain('view-transition-name');
   });
 
-  it('lists every Work project under the intro, each one an obstacle to the word field', () => {
-    expect(landing).toContain('class="specimen-work"');
-    expect(landing).toContain('work.map((entry) => (\n                <li data-field-obstacle="hero">');
-    expect(landing).toContain('aria-labelledby="specimen-work-title"');
-  });
-
-  it('marks the moving canvases as decorative and keeps the name as real text', () => {
-    expect(landing).toContain('<canvas class="field-canvas" data-field-canvas aria-hidden="true"></canvas>');
+  it('keeps the name as real text', () => {
     expect(landing).toContain('<h1 id="name"');
     expect(landing).toContain('lang="ko"');
+    expect(landing).toContain('data-name-letter');
   });
 });

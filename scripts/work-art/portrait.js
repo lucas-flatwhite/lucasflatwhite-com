@@ -324,10 +324,9 @@ export function portrait() {
       const spans = words.map((word, k) => {
         const t = words.length > 1 ? k / (words.length - 1) : 0.5;
         const p = Math.sin(Math.PI * t) * (0.6 + 0.4 * rng());
-        const weight = Math.round(side.weight[0] + (side.weight[1] - side.weight[0]) * p);
-        return `<tspan style="font-weight:${weight};font-stretch:${Math.round(70 + 60 * p)}%">${esc(word)} </tspan>`;
+        return `<tspan style="font-stretch:${Math.round(70 + 60 * p)}%">${esc(word)} </tspan>`;
       });
-      body += `<text font-size="${side.size}" font-weight="${side.weight[1]}" fill="${fill}"><textPath href="#s${n}">${spans.join('')}</textPath></text>`;
+      body += `<text font-size="${side.size}" fill="${fill}"><textPath href="#s${n}">${spans.join('')}</textPath></text>`;
       n++;
     }
     return body;
@@ -341,7 +340,8 @@ export function portrait() {
   svg.setAttribute('height', String(H));
   svg.innerHTML =
     `<rect width="${W}" height="${H}" fill="${C.deep}"/><defs>${defs}</defs>` +
-    `<g font-family="${FAMILY}">${ground}</g>${sc.underpaint()}` +
-    `<g font-family="${FAMILY}">${cat}</g>${sc.outline(rng, 2.4)}${face()}`;
+    `<g id="strokes" font-family="${FAMILY}">` +
+    `${ground}${sc.underpaint()}${cat}` +
+    `</g>${sc.outline(rng, 2.4)}${face()}`;
   return new XMLSerializer().serializeToString(svg);
 }

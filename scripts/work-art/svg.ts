@@ -73,12 +73,13 @@ export function simplifyPath(d: string, tolerance: number): string {
     .join('');
 }
 
-/** The plate as a standalone document: one cut path on the deep blue ground. */
+/** The plate as a standalone document. The caret is its own element so the page can blink it. */
 export function plateSvg(d: string): string {
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${WIDTH} ${HEIGHT}" width="${WIDTH}" height="${HEIGHT}">` +
     `<rect width="${WIDTH}" height="${HEIGHT}" fill="${GROUND}"/>` +
     `<path d="${d}" fill="${CUT}"/>` +
+    '<rect id="caret" x="150" y="220" width="14" height="48" fill="#f2f3f7"/>' +
     '</svg>\n'
   );
 }

@@ -1,0 +1,73 @@
+---
+import { siteProfile } from '../data/site';
+import { withBase } from '../lib/paths';
+
+type Props = {
+  href: string;
+};
+
+const { href } = Astro.props;
+---
+
+<header class="topbar">
+  <a class="topbar-mark" href={href}>
+    <img class="topbar-avatar" src={withBase('avatar.png')} alt="" width="32" height="32" />
+    {siteProfile.handle}
+  </a>
+  <button
+    class="palette-trigger"
+    type="button"
+    data-palette-open
+    aria-haspopup="dialog"
+    aria-keyshortcuts="Meta+K Control+K"
+    hidden
+  >
+    <span class="sr-only">Open command menu</span>
+    <kbd aria-hidden="true" data-palette-key>Ctrl K</kbd>
+  </button>
+</header>
+
+<style is:global>
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 4.5rem;
+    padding: 12px var(--gutter);
+  }
+
+  .topbar-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: inherit;
+    font-weight: 560;
+    text-decoration: none;
+  }
+
+  .topbar-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  body.play {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100dvh;
+    min-height: 0;
+  }
+
+  body.play .experience-page {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+  }
+
+  body.play .experience-shell {
+    height: 100%;
+    min-height: 0;
+  }
+</style>

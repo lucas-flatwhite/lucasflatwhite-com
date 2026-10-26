@@ -46,6 +46,11 @@ describe('Work pictures', () => {
     expect([...svg.matchAll(/\b(?:href|src)="([^"]*)"/g)].every(([, target]) => target.startsWith('#'))).toBe(true);
   });
 
+  it('keeps a blinkable caret on the plate and one stroke group on the portrait', () => {
+    expect(pictures.plate).toContain('id="caret"');
+    expect(pictures.portrait).toContain('id="strokes"');
+  });
+
   it('carries Anybody with both of its axes in the portrait', () => {
     const anybody = fontFaces(pictures.portrait).find((face) => face.family === 'Anybody');
 
@@ -66,14 +71,14 @@ describe('Work pictures', () => {
     expect(gzipSync(pictures.portrait).length).toBeLessThanOrEqual(100 * 1024);
   });
 
-  it('shows the pictures in Work as sized, lazy images instead of excerpts', () => {
-    const page = read('src/pages/index.astro');
+  it('inlines a moving picture and uses an img when a picture does not move', () => {
+    const card = read('src/components/ProjectCard.astro');
 
-    expect(page).toContain('class="work-art"');
-    expect(page).toContain('loading="lazy"');
-    expect(page).toContain('width={');
-    expect(page).toContain('height={');
-    expect(page).not.toContain('excerpt');
+    expect(card).toContain('set:html={svg}');
+    expect(card).toContain('loading="lazy"');
+    expect(card).toContain('width={art.image.width}');
+    expect(card).toContain('height={art.image.height}');
+    expect(read('src/pages/index.astro')).not.toContain('excerpt');
     expect(read('src/styles/landing.css')).not.toContain('excerpt');
   });
 });

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8');
 const layout = read('src/layouts/BaseLayout.astro');
-const landing = read('src/pages/index.astro');
+const header = read('src/components/SiteHeader.astro');
 const landingStyles = read('src/styles/landing.css');
 
 // Width and height straight from a PNG's IHDR chunk, so the test sees the file that ships.
@@ -33,10 +33,10 @@ describe('profile picture', () => {
   });
 
   it('sits in the top bar beside the handle, round like the X avatar', () => {
-    const mark = landing.match(/<a class="topbar-mark" href="#top">\s*<img class="topbar-avatar" src=\{withBase\('([^']+)'\)\} alt="" width="32" height="32" \/>\s*\{siteProfile\.handle\}\s*<\/a>/);
+    const mark = header.match(/<a class="topbar-mark" href=\{href\}>\s*<img class="topbar-avatar" src=\{withBase\('([^']+)'\)\} alt="" width="32" height="32" \/>\s*\{siteProfile\.handle\}\s*<\/a>/);
 
     expect(mark).not.toBeNull();
-    expect(landingStyles).toMatch(/\.topbar-avatar \{[^}]*border-radius: 50%;/);
+    expect(header).toMatch(/\.topbar-avatar \{[^}]*border-radius: 50%;/);
 
     const { width, height } = pngSize(mark![1]);
 
@@ -45,13 +45,9 @@ describe('profile picture', () => {
     expect(width).toBeGreaterThanOrEqual(96);
   });
 
-  it('keeps the top bar inside its gutter on the narrowest windows', () => {
-    // Measured in Chromium with the avatar: the bar runs past its gutter below 340px at rest,
-    // and below 401px while the handle is widened on hover.
-    const dropTrigger = landingStyles.match(/@media \(max-width: (\d+)px\) \{\s*\.topbar \.palette-trigger \{\s*display: none;\s*\}\s*\}/);
-    const holdHandle = landingStyles.match(/@media \(max-width: (\d+)px\) \{\s*\.topbar-mark:hover \{\s*font-stretch: 80%;\s*\}\s*\}/);
-
-    expect(Number(dropTrigger?.[1])).toBeGreaterThanOrEqual(340);
-    expect(Number(holdHandle?.[1])).toBeGreaterThanOrEqual(401);
+  it('hides the palette trigger when a pointer cannot hover', () => {
+    expect(landingStyles).toMatch(
+      /@media \(hover: none\), \(pointer: coarse\) \{[^}]*\.topbar \.palette-trigger \{[^}]*display: none;/,
+    );
   });
 });

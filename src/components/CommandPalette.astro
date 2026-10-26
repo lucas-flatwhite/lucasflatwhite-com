@@ -1,21 +1,22 @@
 ---
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 import CopyMark from './CopyMark.astro';
 import CopyRoll from './CopyRoll.astro';
 import Glyph from './Glyph.astro';
 import { sectionIds } from '../data/site';
 import { buildPaletteCommands } from '../lib/command-actions';
 import { withBase } from '../lib/paths';
-import { sortFeaturedProjects } from '../lib/projects';
+import { placeProjects } from '../lib/projects';
 
-const projects = sortFeaturedProjects<CollectionEntry<'projects'>>(
-  await getCollection('projects'),
-).map((entry) => ({
-  slug: entry.slug,
+const projects = placeProjects(await getCollection('projects')).palette.map((entry) => ({
+  id: entry.id,
   title: entry.data.title,
-  href: entry.data.href,
   tags: entry.data.tags,
+  href: entry.data.href,
+  order: entry.data.order,
+  featured: entry.data.featured,
 }));
+
 const commands = buildPaletteCommands(withBase(), withBase('play/'), sectionIds, projects);
 ---
 
@@ -68,10 +69,10 @@ const commands = buildPaletteCommands(withBase(), withBase('play/'), sectionIds,
     gap: 0.4em;
     min-height: 40px;
     padding: 0 0.8em;
-    border: 1px solid var(--foam-line);
-    border-radius: 0;
+    border: 1px solid var(--line, #ebebeb);
+    border-radius: 6px;
     background: transparent;
-    color: var(--foam);
+    color: inherit;
     font: inherit;
     font-size: 0.9rem;
     cursor: pointer;
@@ -85,8 +86,8 @@ const commands = buildPaletteCommands(withBase(), withBase('play/'), sectionIds,
   }
 
   .palette-trigger:hover {
-    background: var(--foam);
-    color: var(--blue-ink);
+    background: #ebebeb;
+    color: #171717;
   }
 
   .palette-trigger:active {
@@ -99,15 +100,15 @@ const commands = buildPaletteCommands(withBase(), withBase('play/'), sectionIds,
     margin: 12vh auto auto;
     padding: 0;
     border: 0;
-    border-radius: 0;
-    background: var(--foam);
-    color: var(--blue-ink);
-    box-shadow: 0 28px 60px -12px rgba(9, 16, 64, 0.55);
+    border-radius: 6px;
+    background: #fff;
+    color: #171717;
+    box-shadow: 0 0 0 1px #ebebeb;
     overflow: hidden;
   }
 
   .palette::backdrop {
-    background: rgba(14, 26, 94, 0.62);
+    background: rgba(23, 23, 23, 0.4);
   }
 
   .palette[open] {
@@ -140,7 +141,7 @@ const commands = buildPaletteCommands(withBase(), withBase('play/'), sectionIds,
     align-items: center;
     gap: 0.75rem;
     padding: 0.9rem 1.1rem;
-    border-bottom: 1px solid rgba(14, 26, 94, 0.16);
+    border-bottom: 1px solid #ebebeb;
   }
 
   .palette-field label {
@@ -155,10 +156,10 @@ const commands = buildPaletteCommands(withBase(), withBase('play/'), sectionIds,
     padding: 0.2rem 0;
     border: 0;
     background: transparent;
-    color: var(--blue-ink);
+    color: #171717;
     font: inherit;
     font-size: 1.05rem;
-    caret-color: var(--blue);
+    caret-color: #171717;
   }
 
   .palette-field input:focus {
@@ -166,13 +167,13 @@ const commands = buildPaletteCommands(withBase(), withBase('play/'), sectionIds,
   }
 
   .palette-field:focus-within {
-    box-shadow: inset 0 -2px 0 var(--blue);
+    box-shadow: inset 0 -2px 0 #171717;
   }
 
   .palette-esc {
     flex: none;
     font-size: 0.8rem;
-    color: rgba(14, 26, 94, 0.62);
+    color: #4d4d4d;
   }
 
   .palette-list {
@@ -209,30 +210,26 @@ const commands = buildPaletteCommands(withBase(), withBase('play/'), sectionIds,
 
   .palette-hint {
     overflow: hidden;
-    color: rgba(14, 26, 94, 0.66);
+    color: #4d4d4d;
     font-size: 0.9rem;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .palette-option[aria-selected='true'] {
-    background: var(--blue);
-    color: var(--foam);
+    background: #171717;
+    color: #fff;
   }
 
-  .palette-option[aria-selected='true'] .palette-hint {
-    color: var(--foam-dim);
-  }
-
-  /* Crema only reads on the selected blue row; the foam list keeps "Copied" in blue. */
-  .palette-option .copy-roll-done,
-  .palette-option .copy-mark-check {
-    color: var(--blue);
-  }
-
+  .palette-option[aria-selected='true'] .palette-hint,
   .palette-option[aria-selected='true'] .copy-roll-done,
   .palette-option[aria-selected='true'] .copy-mark-check {
-    color: var(--crema);
+    color: #fff;
+  }
+
+  .palette-option .copy-roll-done,
+  .palette-option .copy-mark-check {
+    color: #171717;
   }
 
   .palette-option[aria-selected='true'] .palette-label {
@@ -251,7 +248,7 @@ const commands = buildPaletteCommands(withBase(), withBase('play/'), sectionIds,
   .palette-empty {
     margin: 0;
     padding: 1rem 1.1rem 1.4rem;
-    color: rgba(14, 26, 94, 0.72);
+    color: #4d4d4d;
   }
 </style>
 

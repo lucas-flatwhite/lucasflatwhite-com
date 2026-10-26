@@ -1,6 +1,7 @@
 import { siteLinks } from '../data/links';
 import type { SectionId } from '../data/site';
 import type { IconName } from './icons';
+import { compareByOrder } from './projects';
 
 export type PaletteCommand = {
   id: string;
@@ -13,6 +14,15 @@ export type PaletteCommand = {
   copy: string | null;
 };
 
+export type PaletteProject = {
+  id: string;
+  title: string;
+  tags: readonly string[];
+  href: string;
+  order: number;
+  featured: boolean;
+};
+
 type SectionCommand = {
   id: string;
   label: string;
@@ -21,21 +31,13 @@ type SectionCommand = {
   section: SectionId;
 };
 
-/** A project from the content collection, as much of it as the menu shows. */
-export type PaletteProject = {
-  slug: string;
-  title: string;
-  href: string;
-  tags: readonly string[];
-};
-
 const sectionCommands: readonly SectionCommand[] = [
   { id: 'work', label: 'Work', hint: 'Things I have built', icon: 'hammer', section: 'work' },
 ];
 
 /**
- * Builds the command menu from the site's sections, each project, the game page and every
- * link. `home` is the landing page URL (base-aware) so section jumps work from /play too.
+ * Builds the command menu: sections, featured projects, the game, then every link.
+ * `home` is the landing page URL (base-aware) so section jumps work from /play too.
  */
 export function buildPaletteCommands(
   home: string,
@@ -59,16 +61,18 @@ export function buildPaletteCommands(
     };
   });
 
-  // The tags are the hint, so a project is found by what it is made with as well as by name.
-  const projectCommands = projects.map((project): PaletteCommand => ({
-    id: `project-${project.slug}`,
-    label: project.title,
-    hint: project.tags.join(', '),
-    icon: 'hammer',
-    href: project.href,
-    external: true,
-    copy: null,
-  }));
+  const projectCommands = projects
+    .filter((project) => project.featured)
+    .sort(compareByOrder)
+    .map((project) => ({
+      id: `project-${project.id}`,
+      label: project.title,
+      hint: project.tags.join(', '),
+      icon: 'arrow-up-right' as const,
+      href: project.href,
+      external: true,
+      copy: null,
+    }));
 
   return [
     ...sections,

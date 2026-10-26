@@ -10,6 +10,7 @@ href: https://github.com/lucas-flatwhite/lucasflatwhite-com
 repo: https://github.com/lucas-flatwhite/lucasflatwhite-com
 order: 2
 featured: true
+motion: strokes
 art:
   image: ../../assets/work/lucasflatwhite-com.svg
   alt: "A tabby cat seated in blue swirls after Van Gogh's 1889 self-portrait, every stroke a word that swells in weight and width."

@@ -8,7 +8,6 @@ export type HomepageSection = {
 export const homepageSections = [
   { id: 'top', label: 'Intro' },
   { id: 'work', label: 'Work' },
-  { id: 'play', label: 'Play' },
 ] as const satisfies readonly HomepageSection[];
 
 export type SectionId = (typeof homepageSections)[number]['id'];
