@@ -15,7 +15,7 @@ describe('route source contract', () => {
     expect(play).toContain('<CommandPalette />');
     expect(play).toContain('<SiteHeader');
     expect(play).toContain('<SnakeExperience />');
-    expect(play).not.toContain('themeColor="#fafafa"');
+    expect(play).toContain('themeColor="#06070f"');
   });
 
   it('builds the landing as the paper board', () => {

@@ -11,7 +11,7 @@ type Props = {
   themeColor?: string;
 };
 
-const { title, description, bodyClass, themeColor = '#1f35b5' } = Astro.props;
+const { title, description, bodyClass, themeColor = '#171717' } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 // The X profile picture, so a shared link carries the same face as the account.
 const shareImage = new URL(withBase('og-image.png'), Astro.site);
