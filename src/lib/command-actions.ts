@@ -1,6 +1,7 @@
 import { siteLinks } from '../data/links';
 import type { SectionId } from '../data/site';
 import type { IconName } from './icons';
+import { compareByOrder } from './projects';
 
 export type PaletteCommand = {
   id: string;
@@ -11,6 +12,15 @@ export type PaletteCommand = {
   external: boolean;
   /** What choosing the command copies instead of following `href`, or null. */
   copy: string | null;
+};
+
+export type PaletteProject = {
+  id: string;
+  title: string;
+  tags: readonly string[];
+  href: string;
+  order: number;
+  featured: boolean;
 };
 
 type SectionCommand = {
@@ -26,13 +36,14 @@ const sectionCommands: readonly SectionCommand[] = [
 ];
 
 /**
- * Builds the command menu from the site's sections, the game page and every link.
+ * Builds the command menu: sections, featured projects, the game, then every link.
  * `home` is the landing page URL (base-aware) so section jumps work from /play too.
  */
 export function buildPaletteCommands(
   home: string,
   playHref: string,
   availableSections: readonly SectionId[],
+  projects: readonly PaletteProject[] = [],
 ): PaletteCommand[] {
   const sections = sectionCommands.map((command) => {
     if (!availableSections.includes(command.section)) {
@@ -50,8 +61,22 @@ export function buildPaletteCommands(
     };
   });
 
+  const projectCommands = projects
+    .filter((project) => project.featured)
+    .sort(compareByOrder)
+    .map((project) => ({
+      id: `project-${project.id}`,
+      label: project.title,
+      hint: project.tags.join(', '),
+      icon: 'arrow-up-right' as const,
+      href: project.href,
+      external: true,
+      copy: null,
+    }));
+
   return [
     ...sections,
+    ...projectCommands,
     {
       id: 'play',
       label: 'Play',

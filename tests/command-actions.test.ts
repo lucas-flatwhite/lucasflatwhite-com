@@ -60,3 +60,36 @@ describe('command palette commands', () => {
     expect(filterPaletteCommands(commands, 'nothing like this')).toEqual([]);
   });
 });
+
+describe('project commands', () => {
+  const withProjects = buildPaletteCommands('/', '/play/', ['top', 'work'], [
+    { id: 'old', title: 'Old', tags: ['Astro'], href: 'https://example.com/old', order: 1, featured: true },
+    { id: 'new', title: 'New', tags: ['Canvas', 'TypeScript'], href: 'https://example.com/new', order: 3, featured: true },
+    { id: 'draft', title: 'Draft', tags: ['Hidden'], href: 'https://example.com/draft', order: 9, featured: false },
+    { id: 'mid', title: 'Mid', tags: ['One'], href: 'https://example.com/mid', order: 2, featured: true },
+  ]);
+
+  it('lists featured projects between Work and Play, highest order first', () => {
+    expect(withProjects.map((command) => command.id)).toEqual([
+      'work',
+      'project-new',
+      'project-mid',
+      'project-old',
+      'play',
+      'github',
+      'x',
+      'email',
+    ]);
+  });
+
+  it('opens a project in a new tab and uses its tags as the hint', () => {
+    expect(withProjects.find((command) => command.id === 'project-new')).toMatchObject({
+      label: 'New',
+      hint: 'Canvas, TypeScript',
+      href: 'https://example.com/new',
+      external: true,
+      copy: null,
+      icon: 'arrow-up-right',
+    });
+  });
+});
