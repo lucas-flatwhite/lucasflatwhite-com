@@ -2,6 +2,9 @@
 .claude/
 .worktrees/
 
+# Brainstorm mockups
+.superpowers/
+
 # Node / Astro (for future migration)
 node_modules/
 .astro/
