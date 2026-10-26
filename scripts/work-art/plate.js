@@ -38,10 +38,8 @@ function sketch(g) {
   g.beginPath();
   g.roundRect(x, y, w, h, 48);
   g.stroke();
-  // The caret.
-  g.fillStyle = '#000';
-  g.fillRect(x + 54, y + 24, 14, h - 48);
   // The send button, an arrow pointing up out of a disc.
+  g.fillStyle = '#000';
   g.beginPath();
   g.arc(x + w - 50, y + h / 2, 30, 0, 7);
   g.fill();

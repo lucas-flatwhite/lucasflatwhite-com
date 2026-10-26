@@ -22,5 +22,6 @@ describe('plateSvg', () => {
     expect(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480" width="720" height="480">')).toBe(true);
     expect(svg).toContain('fill="#16278a"');
     expect(svg).toContain('<path d="M0 0l1 0z" fill="#f2f3f7"/>');
+    expect(svg).toContain('<rect id="caret" x="150" y="220" width="14" height="48" fill="#f2f3f7"/>');
   });
 });
