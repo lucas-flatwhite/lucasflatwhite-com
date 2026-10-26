@@ -8,8 +8,8 @@ const wordCount = (text: string) => text.trim().split(/\s+/).length;
 
 describe('site data', () => {
   it('exposes the landing sections in reading order', () => {
-    expect(getSectionIds()).toEqual(['top', 'work', 'play']);
-    expect(sectionIds).toEqual(['top', 'work', 'play']);
+    expect(getSectionIds()).toEqual(['top', 'work']);
+    expect(sectionIds).toEqual(['top', 'work']);
     expect(getHomepageSections()).toEqual([...homepageSections]);
   });
 
@@ -17,7 +17,7 @@ describe('site data', () => {
     const ids = getSectionIds() as string[];
     ids.pop();
 
-    expect(getSectionIds()).toEqual(['top', 'work', 'play']);
+    expect(getSectionIds()).toEqual(['top', 'work']);
   });
 
   it('keeps the profile English first with the Korean name alongside', () => {
