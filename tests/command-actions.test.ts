@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { siteLinks } from '../src/data/links';
 import { buildPaletteCommands, filterPaletteCommands } from '../src/lib/command-actions';
 
-const commands = buildPaletteCommands('/', '/play/', ['top', 'work', 'play']);
+const commands = buildPaletteCommands('/', '/play/', ['top', 'work']);
 
 describe('command palette commands', () => {
   it('lists sections, the game and every link', () => {
@@ -14,7 +14,7 @@ describe('command palette commands', () => {
   });
 
   it('resolves section jumps against the landing page so they work from /play', () => {
-    const base = buildPaletteCommands('/lucasflatwhite-com/', '/lucasflatwhite-com/play/', ['top', 'work', 'play']);
+    const base = buildPaletteCommands('/lucasflatwhite-com/', '/lucasflatwhite-com/play/', ['top', 'work']);
 
     expect(base.find((command) => command.id === 'work')?.href).toBe('/lucasflatwhite-com/#work');
     expect(base.find((command) => command.id === 'play')?.href).toBe('/lucasflatwhite-com/play/');
