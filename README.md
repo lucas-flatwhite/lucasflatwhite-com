@@ -10,7 +10,7 @@ The homepage is a paper board: the name shares the first screen with two project
 
 ## Pages and Sections
 
-- **Board (`/`, `#top`, `#work`)**: Paper page (`body.landing`). The name uses Anybody's weight axis and moves a few pixels toward the pointer (`src/lib/name-motion.ts`). Featured projects with pictures fill the board through `placeProjects`. The two current pictures blink a caret or shift stroke weight. Later pictures stay still. The snake box is a preview (`src/lib/snake-preview.ts`) and links to `/play`.
+- **Board (`/`, `#top`, `#work`)**: Paper page (`body.landing`). The name uses Anybody's weight axis and moves a few pixels toward the pointer (`src/lib/name-motion.ts`). Featured projects with pictures fill the board through `placeProjects`. The plate blinks a caret. The portrait and every later picture stay still. The snake box is a preview (`src/lib/snake-preview.ts`) and links to `/play`.
 - **Play (`/play`)**: The full-screen snake game (`src/lib/snake-experience.ts`). Its field, rules, and identity strip are unchanged. The page adds the same header and command menu as the homepage.
 - **Command menu (`Cmd/Ctrl + K`)**: Work, featured projects, Play, then the profile links (`src/components/CommandPalette.astro`).
 
