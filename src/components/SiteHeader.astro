@@ -56,6 +56,14 @@ const { href } = Astro.props;
   body.play {
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
+    height: 100dvh;
+    min-height: 0;
+  }
+
+  body.play .experience-page {
+    height: auto;
+    min-height: 0;
+    max-height: none;
   }
 
   body.play .experience-shell {
