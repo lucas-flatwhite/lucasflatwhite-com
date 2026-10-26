@@ -103,6 +103,11 @@
   object-fit: cover;
 }
 
+.project-motion {
+  height: 100%;
+  min-height: 0;
+}
+
 .project-title {
   margin: 0;
   font-size: 1.2rem;
@@ -172,19 +177,42 @@
   .board {
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
     align-items: stretch;
-    min-height: calc(100svh - 4.5rem);
+    height: calc(100svh - 4.5rem);
+  }
+
+  .board-lead {
+    height: 100%;
+    min-height: 0;
   }
 
   .board-lead[data-count='2'] {
-    grid-template-rows: 1.35fr 0.9fr 0.7fr;
+    grid-template-rows: minmax(0, 1.35fr) minmax(0, 0.9fr) minmax(0, 0.7fr);
   }
 
   .board-lead[data-count='1'] {
-    grid-template-rows: 1.35fr 0.7fr;
+    grid-template-rows: minmax(0, 1.35fr) minmax(0, 0.7fr);
   }
 
   .board-lead[data-count='0'] {
-    grid-template-rows: 0.7fr;
+    grid-template-rows: minmax(0, 0.7fr);
+  }
+
+  .project-card,
+  .snake-box {
+    min-height: 0;
+  }
+
+  .project-art {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .snake-box canvas {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    height: 100%;
+    object-fit: contain;
   }
 
   .work-rest {

@@ -27,7 +27,7 @@ const ready =
 
 <li class:list={['project-card', { 'is-wide': wide }]}>
   <div class="project-art">
-    {ready ? <div set:html={svg} /> : (
+    {ready ? <div class="project-motion" set:html={svg} role="img" aria-label={art.alt} /> : (
       <img
         src={art.image.src}
         width={art.image.width}
