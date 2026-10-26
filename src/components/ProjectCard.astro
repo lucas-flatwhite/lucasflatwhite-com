@@ -16,10 +16,10 @@ type Props = {
   art: Art;
   motion?: 'caret' | 'strokes';
   svg?: string;
-  slot?: 'feature' | 'wide';
+  wide?: boolean;
 };
 
-const { title, summary, tags, href, repo, art, motion, svg: picture, slot } = Astro.props;
+const { title, summary, tags, href, repo, art, motion, svg: picture, wide = false } = Astro.props;
 const ready =
   picture !== undefined &&
   ((motion === 'caret' && picture.includes('id="caret"')) ||
@@ -27,7 +27,7 @@ const ready =
 const svg = ready ? cropPicture(picture) : picture;
 ---
 
-<article class:list={['project-card', 'tile', slot && `slot-${slot}`]}>
+<li class:list={['project-card', { 'is-wide': wide }]}>
   <div class="project-art">
     {ready ? <div class="project-motion" set:html={svg} role="img" aria-label={art.alt} /> : (
       <img
@@ -54,4 +54,4 @@ const svg = ready ? cropPicture(picture) : picture;
       Source
     </a>
   )}
-</article>
+</li>

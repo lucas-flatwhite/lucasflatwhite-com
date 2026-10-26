@@ -30,12 +30,12 @@ describe('copyText', () => {
 });
 
 describe('copy link source contract', () => {
-  it('copies from the landing link box instead of opening a new tab', () => {
+  it('copies from the landing hero and footer instead of opening a new tab', () => {
     const landing = read('src/pages/index.astro');
 
     expect(landing).toContain('mountCopyLinks()');
-    expect(landing.match(/data-copy=\{link\.copy\}/g)).toHaveLength(1);
-    expect(landing.match(/<CopyRoll text=\{link\.label\} \/>/g)).toHaveLength(1);
+    expect(landing.match(/data-copy=\{link\.copy\}/g)).toHaveLength(2);
+    expect(landing.match(/<CopyRoll text=\{link\.label\} \/>/g)).toHaveLength(2);
   });
 
   it('copies from the command menu, then closes it after the roll', () => {

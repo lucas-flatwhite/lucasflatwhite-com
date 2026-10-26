@@ -68,5 +68,26 @@ export function drawPreview(canvas: HTMLCanvasElement, state: Preview): void {
 }
 
 export function mountSnakePreview(canvas: HTMLCanvasElement): void {
-  drawPreview(canvas, createPreview());
+  let state = createPreview();
+  drawPreview(canvas, state);
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return;
+  }
+
+  const start = () => {
+    const timer = window.setInterval(() => {
+      state = stepPreview(state);
+      drawPreview(canvas, state);
+    }, 180);
+
+    window.addEventListener('pagehide', () => window.clearInterval(timer), { once: true });
+  };
+
+  start();
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      start();
+    }
+  });
 }
