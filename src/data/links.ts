@@ -14,7 +14,7 @@ export type SiteLink = {
   blurb: string;
   icon: IconName;
   motion: GlyphMotion;
-  /** Featured links sit in the first viewport; every link appears in the footer and the command menu. */
+  /** Featured links sit in the first viewport; every link also appears in the command menu. */
   featured: boolean;
   /** What a click copies instead of following `href`, or null for a link that opens a page. */
   copy: string | null;
@@ -50,7 +50,7 @@ export const siteLinks = [
     handle: 'lucas.flatwhite@gmail.com',
     // Without script, or where the clipboard is refused, the address opens a mail app.
     href: 'mailto:lucas.flatwhite@gmail.com',
-    // The label names the service, so the footer spells the address out here.
+    // The label names the service. The address itself is what a click copies.
     blurb: 'Click to copy lucas.flatwhite@gmail.com.',
     icon: 'envelope',
     motion: 'lift',

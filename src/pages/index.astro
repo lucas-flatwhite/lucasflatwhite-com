@@ -9,7 +9,7 @@ import Glyph from '../components/Glyph.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import timelineSvg from '../assets/work/ai-timeline-log.svg?raw';
 import portraitSvg from '../assets/work/lucasflatwhite-com.svg?raw';
-import { featuredLinks, siteLinks } from '../data/links';
+import { featuredLinks } from '../data/links';
 import { siteProfile } from '../data/site';
 import { pictureForId } from '../lib/project-picture';
 import { placeProjects } from '../lib/projects';
@@ -105,27 +105,7 @@ const rawById: Record<string, string> = {
   </main>
 
   <footer class="colophon">
-    <ul class="colophon-links">
-      {siteLinks.map((link) => (
-        <li>
-          {link.copy !== null ? (
-            <a class="colophon-link glyph-host" href={link.href} data-copy={link.copy}>
-              <CopyMark icon={link.icon} motion={link.motion} />
-              <CopyRoll text={link.label} />
-              <span class="colophon-blurb">{link.blurb}</span>
-            </a>
-          ) : (
-            <a class="colophon-link glyph-host" href={link.href} target="_blank" rel="noreferrer me">
-              <Glyph icon={link.icon} motion={link.motion} />
-              <span>{link.label}</span>
-              <span class="colophon-blurb">{link.blurb}</span>
-            </a>
-          )}
-        </li>
-      ))}
-    </ul>
     <div class="colophon-meta">
-      <p>Set in Anybody and Noto Sans KR.</p>
       <p class="colophon-shortcut">Press <kbd data-palette-key>Ctrl K</kbd> to jump anywhere.</p>
       <p>&copy; {year} {siteProfile.name}</p>
     </div>
