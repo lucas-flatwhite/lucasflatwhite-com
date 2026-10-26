@@ -16,27 +16,43 @@ export function letterResponse(dx: number, dy: number): { x: number; y: number; 
   };
 }
 
+export function restDelta(
+  visualDx: number,
+  visualDy: number,
+  appliedX: number,
+  appliedY: number,
+): { dx: number; dy: number } {
+  return { dx: visualDx + appliedX, dy: visualDy + appliedY };
+}
+
 export function bindNameMotion(root: HTMLElement): void {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     return;
   }
 
   const letters = [...root.querySelectorAll<HTMLElement>('[data-name-letter]')];
+  const offsets = new WeakMap<HTMLElement, { x: number; y: number }>();
 
   const reset = () => {
     for (const letter of letters) {
       letter.style.transform = '';
       letter.style.fontWeight = '';
+      offsets.delete(letter);
     }
   };
 
   root.addEventListener('pointermove', (event) => {
     for (const letter of letters) {
       const rect = letter.getBoundingClientRect();
-      const response = letterResponse(
+      const applied = offsets.get(letter) ?? { x: 0, y: 0 };
+      const delta = restDelta(
         event.clientX - (rect.left + rect.width / 2),
         event.clientY - (rect.top + rect.height / 2),
+        applied.x,
+        applied.y,
       );
+      const response = letterResponse(delta.dx, delta.dy);
+      offsets.set(letter, { x: response.x, y: response.y });
       letter.style.transform = `translate(${response.x}px, ${response.y}px)`;
       letter.style.fontWeight = String(response.weight);
     }
