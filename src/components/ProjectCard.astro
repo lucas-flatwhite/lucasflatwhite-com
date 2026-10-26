@@ -10,16 +10,15 @@ type Art = {
 type Props = {
   title: string;
   summary: string;
-  tags: readonly string[];
   href: string;
   repo?: string;
   art: Art;
   motion?: 'caret' | 'strokes';
   svg?: string;
-  wide?: boolean;
+  place: string;
 };
 
-const { title, summary, tags, href, repo, art, motion, svg: picture, wide = false } = Astro.props;
+const { title, summary, href, repo, art, motion, svg: picture, place } = Astro.props;
 const ready =
   picture !== undefined &&
   ((motion === 'caret' && picture.includes('id="caret"')) ||
@@ -27,7 +26,7 @@ const ready =
 const svg = ready ? cropPicture(picture) : picture;
 ---
 
-<li class:list={['project-card', { 'is-wide': wide }]}>
+<li class="project-card" style={place}>
   <div class="project-art">
     {ready ? <div class="project-motion" set:html={svg} role="img" aria-label={art.alt} /> : (
       <img
@@ -40,18 +39,20 @@ const svg = ready ? cropPicture(picture) : picture;
       />
     )}
   </div>
-  <h3 class="project-title">
-    <a href={href} target="_blank" rel="noreferrer">
-      {title}
-      <Glyph icon="arrow-up-right" class="project-out" />
-    </a>
-  </h3>
-  <p class="project-summary">{summary}</p>
-  <p class="project-tags">{tags.join(', ')}</p>
+  <span class="project-label" aria-hidden="true">{title}</span>
+  <div class="project-text">
+    <h3 class="project-title">
+      <a href={href} target="_blank" rel="noreferrer">
+        {title.split('.').map((part, index) => (index === 0 ? part : <><wbr />.{part}</>))}
+        <Glyph icon="arrow-up-right" class="project-out" />
+      </a>
+    </h3>
+    <p class="project-summary">{summary}</p>
+  </div>
   {repo && (
     <a class="project-source glyph-host" href={repo} target="_blank" rel="noreferrer">
       <Glyph icon="github-logo" motion="commit" />
-      Source
+      <span class="sr-only">{title} source on GitHub</span>
     </a>
   )}
 </li>

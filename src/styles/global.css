@@ -105,6 +105,9 @@ body.landing {
   --ink-dim: #4d4d4d;
   --line: #ebebeb;
   --radius: 6px;
+  /* Cards round softly, the way a paper board's pinned prints do; controls stay at 6px. */
+  --radius-card: 14px;
+  --radius-pill: 999px;
   color-scheme: light;
   background: var(--paper);
   color: var(--ink);
