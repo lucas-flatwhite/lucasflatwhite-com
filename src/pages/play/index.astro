@@ -1,8 +1,10 @@
 ---
 import CommandPalette from '../../components/CommandPalette.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
 import SnakeExperience from '../../components/SnakeExperience.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { siteProfile } from '../../data/site';
+import { withBase } from '../../lib/paths';
 import '../../styles/play.css';
 ---
 
@@ -11,6 +13,7 @@ import '../../styles/play.css';
   description={siteProfile.playDescription}
   bodyClass="play"
 >
+  <SiteHeader href={withBase()} />
   <main class="experience-page">
     <SnakeExperience />
   </main>

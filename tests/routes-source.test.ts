@@ -13,6 +13,9 @@ describe('route source contract', () => {
     expect(play).toContain('bodyClass="play"');
     expect(play).toContain("import '../../styles/play.css';");
     expect(play).toContain('<CommandPalette />');
+    expect(play).toContain('<SiteHeader');
+    expect(play).toContain('<SnakeExperience />');
+    expect(play).not.toContain('themeColor="#fafafa"');
   });
 
   it('builds the landing as the paper board', () => {
