@@ -46,6 +46,11 @@ describe('Work pictures', () => {
     expect([...svg.matchAll(/\b(?:href|src)="([^"]*)"/g)].every(([, target]) => target.startsWith('#'))).toBe(true);
   });
 
+  it('keeps a blinkable caret on the plate and one stroke group on the portrait', () => {
+    expect(pictures.plate).toContain('id="caret"');
+    expect(pictures.portrait).toContain('id="strokes"');
+  });
+
   it('carries Anybody with both of its axes in the portrait', () => {
     const anybody = fontFaces(pictures.portrait).find((face) => face.family === 'Anybody');
 
