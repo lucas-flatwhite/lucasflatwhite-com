@@ -39,6 +39,8 @@ describe('route source contract', () => {
   it('keeps the name as real text', () => {
     expect(landing).toContain('<h1 id="name"');
     expect(landing).toContain('lang="ko"');
-    expect(landing).toContain('data-name-letter');
+    expect(landing).toContain('class="tile tile-name"');
+    expect(landing).not.toContain('bindNameMotion');
+    expect(landing).not.toContain('data-name-letter');
   });
 });
