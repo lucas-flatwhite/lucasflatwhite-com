@@ -75,10 +75,19 @@ export function mountSnakePreview(canvas: HTMLCanvasElement): void {
     return;
   }
 
-  const timer = window.setInterval(() => {
-    state = stepPreview(state);
-    drawPreview(canvas, state);
-  }, 180);
+  const start = () => {
+    const timer = window.setInterval(() => {
+      state = stepPreview(state);
+      drawPreview(canvas, state);
+    }, 180);
 
-  window.addEventListener('pagehide', () => window.clearInterval(timer), { once: true });
+    window.addEventListener('pagehide', () => window.clearInterval(timer), { once: true });
+  };
+
+  start();
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      start();
+    }
+  });
 }
