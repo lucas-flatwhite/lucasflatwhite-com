@@ -11,6 +11,7 @@ import timelineSvg from '../assets/work/ai-timeline-log.svg?raw';
 import portraitSvg from '../assets/work/lucasflatwhite-com.svg?raw';
 import { featuredLinks, siteLinks } from '../data/links';
 import { siteProfile } from '../data/site';
+import { pictureForId } from '../lib/project-picture';
 import { placeProjects } from '../lib/projects';
 import { withBase } from '../lib/paths';
 import '../styles/landing.css';
@@ -72,7 +73,7 @@ const rawById: Record<string, string> = {
             repo={entry.data.repo}
             art={entry.data.art!}
             motion={entry.data.motion}
-            svg={entry.data.motion ? rawById[entry.id] : undefined}
+            svg={entry.data.motion ? pictureForId(rawById, entry.id) : undefined}
           />
         ))}
         <li class="snake-slot">
@@ -95,7 +96,7 @@ const rawById: Record<string, string> = {
             repo={entry.data.repo}
             art={entry.data.art!}
             motion={entry.data.motion}
-            svg={entry.data.motion ? rawById[entry.id] : undefined}
+            svg={entry.data.motion ? pictureForId(rawById, entry.id) : undefined}
             wide={(index + 3) % 3 === 0}
           />
         ))}
