@@ -1,5 +1,5 @@
 ---
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 import CommandPalette from '../components/CommandPalette.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import SiteHeader from '../components/SiteHeader.astro';
@@ -15,7 +15,7 @@ import { placeProjects } from '../lib/projects';
 import { withBase } from '../lib/paths';
 import '../styles/landing.css';
 
-const placed = placeProjects<CollectionEntry<'projects'>>(await getCollection('projects'));
+const placed = placeProjects(await getCollection('projects'));
 const playHref = withBase('play/');
 const year = new Date().getFullYear();
 const rawById: Record<string, string> = {

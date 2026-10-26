@@ -1,5 +1,5 @@
 ---
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 import CopyMark from './CopyMark.astro';
 import CopyRoll from './CopyRoll.astro';
 import Glyph from './Glyph.astro';
@@ -8,7 +8,7 @@ import { buildPaletteCommands } from '../lib/command-actions';
 import { withBase } from '../lib/paths';
 import { placeProjects } from '../lib/projects';
 
-const projects = placeProjects<CollectionEntry<'projects'>>(await getCollection('projects')).palette.map((entry) => ({
+const projects = placeProjects(await getCollection('projects')).palette.map((entry) => ({
   id: entry.id,
   title: entry.data.title,
   tags: entry.data.tags,

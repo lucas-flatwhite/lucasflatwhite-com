@@ -32,9 +32,9 @@ The homepage is a paper board: the name shares the first screen with two project
 │   ├── assets/work/  # Generated Work pictures
 │   ├── components/   # Astro UI components
 │   ├── content/      # Project markdown entries
-│   ├── data/         # Site profile, links, word pools, and type sort outlines
+│   ├── data/         # Site profile, links, and word pools
 │   ├── layouts/      # Shared page layout
-│   ├── lib/          # Canvas text layout, 3D galley, and snake engine modules
+│   ├── lib/          # Name motion, board order, icons, and the snake
 │   ├── pages/        # Route entries (/ and /play)
 │   └── styles/       # Global tokens, landing, and game styles
 └── tests/            # Vitest source contracts and anti-slop checks
