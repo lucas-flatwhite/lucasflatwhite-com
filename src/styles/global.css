@@ -93,3 +93,19 @@ kbd {
   animation-duration: 520ms;
   animation-timing-function: var(--ease-out);
 }
+
+html:has(body.landing) {
+  background: #fafafa;
+  scrollbar-color: #ebebeb #fafafa;
+}
+
+body.landing {
+  --paper: #fafafa;
+  --ink: #171717;
+  --ink-dim: #4d4d4d;
+  --line: #ebebeb;
+  --radius: 6px;
+  color-scheme: light;
+  background: var(--paper);
+  color: var(--ink);
+}

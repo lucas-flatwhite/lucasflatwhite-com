@@ -8,9 +8,10 @@ type Props = {
   title: string;
   description: string;
   bodyClass?: string;
+  themeColor?: string;
 };
 
-const { title, description, bodyClass } = Astro.props;
+const { title, description, bodyClass, themeColor = '#1f35b5' } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 // The X profile picture, so a shared link carries the same face as the account.
 const shareImage = new URL(withBase('og-image.png'), Astro.site);
@@ -22,7 +23,7 @@ const shareImage = new URL(withBase('og-image.png'), Astro.site);
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#1f35b5" />
+    <meta name="theme-color" content={themeColor} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/png" href={withBase('favicon.png')} />
     <link rel="apple-touch-icon" href={withBase('apple-touch-icon.png')} />

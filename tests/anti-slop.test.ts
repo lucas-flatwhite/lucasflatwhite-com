@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-// Guards the design contract in docs/superpowers/specs/2026-10-05-landing-redesign-plan.md.
+// Guards the design contract in docs/superpowers/specs/2026-10-26-paper-board-design.md.
 const TEXT_EXTENSIONS = new Set(['.astro', '.ts', '.css', '.md']);
 
 function collect(dir: string): string[] {
@@ -52,7 +52,8 @@ describe('anti-slop contract', () => {
       // The X profile picture in the top bar is the one round shape, as it is on X.
       const source = file.source.replace(/\.topbar-avatar \{[^}]*\}/g, '');
 
-      expect(source).not.toMatch(/border-radius:\s*(?!0[;\s])\S/);
+      // Keep the space. If \s* gives it back, [^;]+ treats "0" and "6px" as other radii.
+      expect(source).not.toMatch(/border-radius:\s*(?!0(?:px)?[;\s]|6px)(?=\S)[^;]+/);
     }
   });
 
