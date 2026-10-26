@@ -52,7 +52,7 @@ describe('anti-slop contract', () => {
       // The X profile picture in the top bar is the one round shape, as it is on X.
       const source = file.source.replace(/\.topbar-avatar \{[^}]*\}/g, '');
 
-      // Keep the space. If \s* gives it back, [^;]+ treats "0" and "6px" as other radii.
+      // \s* would give its space back and then match the allowed value. Require a non-space first.
       expect(source).not.toMatch(/border-radius:\s*(?!0(?:px)?[;\s]|6px)(?=\S)[^;]+/);
     }
   });
