@@ -1,278 +1,152 @@
 ---
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 import CommandPalette from '../components/CommandPalette.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import SiteHeader from '../components/SiteHeader.astro';
 import CopyMark from '../components/CopyMark.astro';
 import CopyRoll from '../components/CopyRoll.astro';
 import Glyph from '../components/Glyph.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import timelineSvg from '../assets/work/ai-timeline-log.svg?raw';
+import portraitSvg from '../assets/work/lucasflatwhite-com.svg?raw';
 import { featuredLinks, siteLinks } from '../data/links';
 import { siteProfile } from '../data/site';
+import { placeProjects } from '../lib/projects';
 import { withBase } from '../lib/paths';
-import { TIMELINE, type Step } from '../lib/press-timeline';
-import { sortFeaturedProjects } from '../lib/projects';
 import '../styles/landing.css';
 
-const projects = sortFeaturedProjects<CollectionEntry<'projects'>>(
-  await getCollection('projects'),
-);
-const work = projects.filter((entry) => entry.data.art);
-const site = projects.find((entry) => entry.slug === 'lucasflatwhite-com');
+const placed = placeProjects(await getCollection('projects'));
 const playHref = withBase('play/');
 const year = new Date().getFullYear();
-// Each label sits where its step starts along the meter, which fills as the proof is done.
-const pressSteps: { step: Step; label: string }[] = [
-  { step: 'ink', label: 'Ink' },
-  { step: 'press', label: 'Press' },
-  { step: 'lift', label: 'Proof' },
-];
-const pressEnd = TIMELINE.lift[1];
+const rawById: Record<string, string> = {
+  'ai-timeline-log': timelineSvg,
+  'lucasflatwhite-com': portraitSvg,
+};
 ---
 
-<BaseLayout title={siteProfile.name} description={siteProfile.description} bodyClass="landing">
-  <header class="topbar" data-field-obstacle="hero">
-    <a class="topbar-mark" href="#top">
-      <img class="topbar-avatar" src={withBase('avatar.png')} alt="" width="32" height="32" />
-      {siteProfile.handle}
-    </a>
-    <nav class="topbar-nav" aria-label="Site">
-      <a href="#work">Work</a>
-      <a href={playHref}>Play</a>
-      <button
-        class="palette-trigger"
-        type="button"
-        data-palette-open
-        aria-haspopup="dialog"
-        aria-keyshortcuts="Meta+K Control+K"
-        hidden
-      >
-        <span class="sr-only">Open command menu</span>
-        <kbd aria-hidden="true" data-palette-key>Ctrl K</kbd>
-      </button>
-    </nav>
-  </header>
-
-  <main>
-    <section class="specimen" id="top" aria-labelledby="name" data-specimen>
-      <canvas class="field-canvas" data-field-canvas aria-hidden="true"></canvas>
-
-      <div class="specimen-copy">
-        <h1 id="name" class="specimen-name" data-fit-block data-fit-max="232">
-          <span class="name-line" data-fit-line data-field-obstacle="hero">Lucas</span>
-          <span class="name-line" data-fit-line data-field-obstacle="hero">Flatwhite</span>
-          <span class="name-ko" lang="ko" data-field-obstacle="hero">{siteProfile.nameKo}</span>
+<BaseLayout
+  title={siteProfile.name}
+  description={siteProfile.description}
+  bodyClass="landing"
+  themeColor="#fafafa"
+>
+  <SiteHeader href="#top" />
+  <main id="top">
+    <section class="board">
+      <div class="board-copy">
+        <h1 id="name" class="name" data-name>
+          <span class="name-line">
+            {'Lucas'.split('').map((letter) => <span data-name-letter>{letter}</span>)}
+          </span>
+          <span class="name-line">
+            {'Flatwhite'.split('').map((letter) => <span data-name-letter>{letter}</span>)}
+          </span>
         </h1>
-        <p class="specimen-intro" data-field-obstacle="hero">{siteProfile.intro}</p>
-      </div>
-
-      <ul class="specimen-links" aria-label="Elsewhere">
-        {
-          featuredLinks.map((link) => (
-            <li data-field-obstacle="hero">
+        <p class="name-ko" lang="ko">{siteProfile.nameKo}</p>
+        <p class="intro">{siteProfile.intro}</p>
+        <ul class="name-links">
+          {featuredLinks.map((link) => (
+            <li>
               {link.copy !== null ? (
-                <a class="link-row glyph-host" href={link.href} data-copy={link.copy}>
-                  <CopyMark icon={link.icon} motion={link.motion} class="link-glyph" />
-                  <span class="link-label">
-                    <CopyRoll text={link.label} />
-                  </span>
+                <a class="glyph-host" href={link.href} data-copy={link.copy}>
+                  <CopyMark icon={link.icon} motion={link.motion} />
+                  <CopyRoll text={link.label} />
                 </a>
               ) : (
-                <a class="link-row glyph-host" href={link.href} target="_blank" rel="noreferrer me">
-                  <Glyph icon={link.icon} motion={link.motion} class="link-glyph" />
-                  <span class="link-label">{link.label}</span>
+                <a class="glyph-host" href={link.href} target="_blank" rel="noreferrer me">
+                  <Glyph icon={link.icon} motion={link.motion} />
+                  {link.label}
                 </a>
               )}
             </li>
-          ))
-        }
-      </ul>
-    </section>
-
-    <section class="work" id="work" aria-labelledby="work-title">
-      <h2 id="work-title" class="section-title">Work</h2>
-      <p class="section-lede">
-        Built, start to finish. I spot the problem, write the code, and set every line myself.
-      </p>
-
-      <ol class="work-list">
-        {
-          work.map((entry) => (
-            <li class="work-item">
-              <div class="work-meta">
-                <h3 class="work-name">
-                  <a class="glyph-host" href={entry.data.href} target="_blank" rel="noreferrer">
-                    {entry.data.title}
-                    <Glyph icon="arrow-up-right" class="work-out" />
-                  </a>
-                </h3>
-                <p class="work-summary">{entry.data.summary}</p>
-                <p class="work-tags">{entry.data.tags.join(', ')}</p>
-                {entry.data.repo && (
-                  <a
-                    class="button-quiet work-source glyph-host"
-                    href={entry.data.repo}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <Glyph icon="github-logo" motion="commit" />
-                    Source
-                  </a>
-                )}
-              </div>
-              {entry.data.art && (
-                <figure class="work-art">
-                  <img
-                    src={entry.data.art.image.src}
-                    width={entry.data.art.image.width}
-                    height={entry.data.art.image.height}
-                    alt={entry.data.art.alt}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </figure>
-              )}
-            </li>
-          ))
-        }
+          ))}
+        </ul>
+      </div>
+      <ol class="board-lead" id="work" data-count={placed.lead.length}>
+        {placed.lead.map((entry) => (
+          <ProjectCard
+            title={entry.data.title}
+            summary={entry.data.summary}
+            tags={entry.data.tags}
+            href={entry.data.href}
+            repo={entry.data.repo}
+            art={entry.data.art!}
+            motion={entry.data.motion}
+            svg={entry.data.motion ? rawById[entry.id] : undefined}
+          />
+        ))}
+        <li class="snake-slot">
+          <a class="snake-box" href={playHref} aria-label="Play Snake, in a field of words">
+            <canvas data-snake-preview width="160" height="96" aria-hidden="true"></canvas>
+            <span>Snake</span>
+          </a>
+        </li>
       </ol>
     </section>
 
-    <section class="case" id="type" aria-labelledby="case-title" data-type-case>
-      <div class="case-head">
-        <h2 id="case-title" class="case-title">Set by hand</h2>
-        <div class="case-intro">
-          <p>
-            Kent Beck's three steps, cast in metal and set in mirror image, the way type stands in
-            a forme. Ink them and pull a proof, and the rule comes off the press the right way
-            round.
-          </p>
-        </div>
-      </div>
-      <div class="case-track" data-case-track>
-        <div class="case-stage" data-case-stage>
-          <canvas
-            class="case-canvas"
-            data-case-canvas
-            role="img"
-            aria-label="Metal type sorts setting Make it work, make it right, make it fast in mirror image, and the proof pulled from them, which reads the right way round."
-          ></canvas>
-          <p class="case-fallback" aria-hidden="true">
-            <span>Make it work,</span>
-            <span>make it right,</span>
-            <span>make it fast.</span>
-          </p>
-          <div class="case-meter" data-case-meter aria-hidden="true">
-            <ol class="case-steps">
-              {
-                pressSteps.map(({ step, label }) => (
-                  <li
-                    class="case-step"
-                    data-case-step={step}
-                    style={`--at: ${((TIMELINE[step][0] / pressEnd) * 100).toFixed(2)}%`}
-                  >
-                    {label}
-                  </li>
-                ))
-              }
-            </ol>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="play" id="play" aria-labelledby="play-title" data-play-band>
-      <canvas class="field-canvas play-canvas" data-field-canvas aria-hidden="true"></canvas>
-      <div class="play-copy" data-field-obstacle>
-        <h2 id="play-title" class="play-title">{siteProfile.playTitle}</h2>
-        <p class="play-text">
-          Race a CPU rival to the same pellet while the words get out of your way. Arrow keys,
-          WASD, or a swipe.
-        </p>
-        <div class="play-actions">
-          <a class="button-primary glyph-host" href={playHref}>
-            <Glyph icon="game-controller" />
-            Play
-          </a>
-          {
-            site && (
-              <a
-                class="button-quiet glyph-host"
-                href={site.data.repo ?? site.data.href}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Glyph icon="github-logo" motion="commit" />
-                Source
-              </a>
-            )
-          }
-        </div>
-      </div>
-    </section>
+    {placed.rest.length > 0 && (
+      <ol class="work-rest">
+        {placed.rest.map((entry, index) => (
+          <ProjectCard
+            title={entry.data.title}
+            summary={entry.data.summary}
+            tags={entry.data.tags}
+            href={entry.data.href}
+            repo={entry.data.repo}
+            art={entry.data.art!}
+            motion={entry.data.motion}
+            svg={entry.data.motion ? rawById[entry.id] : undefined}
+            wide={(index + 3) % 3 === 0}
+          />
+        ))}
+      </ol>
+    )}
   </main>
 
   <footer class="colophon">
-    <nav class="colophon-links" aria-label="Elsewhere">
-      <ul>
-        {
-          siteLinks.map((link) => (
-            <li>
-              {link.copy !== null ? (
-                <a class="colophon-link glyph-host" href={link.href} data-copy={link.copy}>
-                  <CopyMark icon={link.icon} motion={link.motion} />
-                  <span class="link-label">
-                    <CopyRoll text={link.label} />
-                  </span>
-                  <span class="colophon-blurb">{link.blurb}</span>
-                </a>
-              ) : (
-                <a class="colophon-link glyph-host" href={link.href} target="_blank" rel="noreferrer me">
-                  <Glyph icon={link.icon} motion={link.motion} />
-                  <span class="link-label">{link.label}</span>
-                  <span class="colophon-blurb">{link.blurb}</span>
-                </a>
-              )}
-            </li>
-          ))
-        }
-      </ul>
-    </nav>
-
-    <p class="colophon-mark" data-fit-block data-fit-stretch="128" aria-hidden="true">
-      <span data-fit-line>{siteProfile.name}</span>
-    </p>
-
+    <ul class="colophon-links">
+      {siteLinks.map((link) => (
+        <li>
+          {link.copy !== null ? (
+            <a class="colophon-link glyph-host" href={link.href} data-copy={link.copy}>
+              <CopyMark icon={link.icon} motion={link.motion} />
+              <CopyRoll text={link.label} />
+              <span class="colophon-blurb">{link.blurb}</span>
+            </a>
+          ) : (
+            <a class="colophon-link glyph-host" href={link.href} target="_blank" rel="noreferrer me">
+              <Glyph icon={link.icon} motion={link.motion} />
+              <span>{link.label}</span>
+              <span class="colophon-blurb">{link.blurb}</span>
+            </a>
+          )}
+        </li>
+      ))}
+    </ul>
     <div class="colophon-meta">
-      <p>Set in Anybody and Noto Sans KR. Every line of moving text is laid out with pretext.</p>
+      <p>Set in Anybody and Noto Sans KR.</p>
       <p class="colophon-shortcut">Press <kbd data-palette-key>Ctrl K</kbd> to jump anywhere.</p>
       <p>&copy; {year} {siteProfile.name}</p>
     </div>
   </footer>
-
   <CommandPalette />
 </BaseLayout>
 
 <script>
   import { mountCopyLinks } from '../lib/copy-link';
-  import { mountPlayBand } from '../lib/play-band';
-  import { mountSpecimen } from '../lib/specimen';
-  import { mountTypeCaseWhenNear } from '../lib/type-case-loader';
+  import { bindNameMotion } from '../lib/name-motion';
+  import { mountSnakePreview } from '../lib/snake-preview';
 
-  const specimen = document.querySelector<HTMLElement>('[data-specimen]');
-  const band = document.querySelector<HTMLElement>('[data-play-band]');
+  const name = document.querySelector<HTMLElement>('[data-name]');
+  const preview = document.querySelector<HTMLCanvasElement>('[data-snake-preview]');
 
-  if (specimen) {
-    void mountSpecimen(specimen);
+  if (name) {
+    bindNameMotion(name);
   }
 
-  if (band) {
-    void mountPlayBand(band);
+  if (preview) {
+    mountSnakePreview(preview);
   }
 
   mountCopyLinks();
-
-  const typeCase = document.querySelector<HTMLElement>('[data-type-case]');
-
-  if (typeCase) {
-    mountTypeCaseWhenNear(typeCase);
-  }
 </script>

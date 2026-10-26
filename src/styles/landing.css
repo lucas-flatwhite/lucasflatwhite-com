@@ -1,664 +1,223 @@
-/* Landing: a type specimen for Lucas Flatwhite. One ultramarine field, sharp corners. */
-
-.landing a {
-  text-decoration: none;
-}
-
-/* Top bar ------------------------------------------------------------------ */
-
-.topbar {
-  position: absolute;
-  inset: 0 0 auto;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  height: 72px;
-  padding: 0 var(--gutter);
-}
-
-.topbar-mark {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.65rem;
-  font-stretch: 80%;
-  font-weight: 700;
-  font-size: 1rem;
-}
-
-/* The X profile picture, round as it is on X: the one curve on a page of sharp corners. */
-.topbar-avatar {
-  display: block;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-}
-
-.topbar-nav {
-  display: flex;
-  align-items: center;
-  gap: clamp(1rem, 2.4vw, 2rem);
-  font-size: 1rem;
-}
-
-.topbar-nav a,
-.topbar-mark {
-  transition:
-    font-stretch var(--dur-short) var(--ease-out),
-    color var(--dur-short) var(--ease-out);
-}
-
-.topbar-nav a:hover,
-.topbar-mark:hover {
-  color: var(--crema);
-  font-stretch: 125%;
-}
-
-/* First viewport: the specimen --------------------------------------------- */
-
-.specimen {
-  position: relative;
+.board {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: 1fr auto;
-  column-gap: var(--gutter);
-  /*
-   * The small viewport: a phone's toolbar folding away mid-scroll changes 100dvh, which
-   * would resize the field and shuffle every word in it.
-   */
-  min-height: 100svh;
-  padding: 96px var(--gutter) clamp(28px, 6vh, 64px);
-  overflow: hidden;
+  gap: 24px;
+  padding: 0 var(--gutter) 48px;
 }
 
-.field-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.specimen-copy {
-  position: relative;
-  z-index: 1;
-  grid-column: 1;
-  grid-row: 2;
-  align-self: end;
+.board-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 12px;
   min-width: 0;
 }
 
-.specimen-name {
-  width: min(100%, 980px);
+.name {
   margin: 0;
-  font-weight: 800;
-  line-height: 0.82;
+  font-size: clamp(48px, 6.5vw, 120px);
+  font-weight: 450;
+  letter-spacing: -0.055em;
+  line-height: 0.86;
 }
 
 .name-line {
   display: block;
-  width: max-content;
-  max-width: none;
-  font-size: clamp(64px, 12.5vw, 200px);
-  font-stretch: 100%;
-  white-space: nowrap;
 }
 
-:root:not([data-fitted]) .name-line {
-  font-stretch: 78%;
+.name [data-name-letter] {
+  display: inline-block;
+  font-weight: 450;
 }
 
-.name-ko {
-  display: block;
-  width: max-content;
-  margin-top: 0.85rem;
-  color: var(--foam-dim);
-  font-family: var(--font-ko);
-  font-size: clamp(1rem, 1.5vw, 1.3rem);
-  font-weight: 500;
-  line-height: 1.3;
+.name-ko,
+.intro,
+.project-summary,
+.project-tags,
+.colophon-blurb {
+  color: var(--ink-dim);
 }
 
-.specimen-intro {
-  width: fit-content;
+.name-ko,
+.intro,
+.project-summary,
+.project-tags,
+.colophon-meta,
+.project-source {
+  margin: 0;
+}
+
+.intro {
   max-width: 34ch;
-  margin: 1.4rem 0 0;
-  font-size: clamp(1.1rem, 1.55vw, 1.4rem);
-  line-height: 1.4;
-  text-wrap: balance;
 }
 
-.specimen-links {
-  position: relative;
-  z-index: 1;
-  grid-column: 2;
-  grid-row: 2;
-  align-self: end;
-  display: grid;
-  justify-items: end;
-  gap: 0.35rem;
+.name-links,
+.board-lead,
+.work-rest,
+.colophon-links {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-/*
- * The links hang from the right gutter, so each glyph trails its label: the glyphs stand
- * in one column at the edge, and a label widening on hover grows away from them without
- * moving the other rows. The copy roll needs a 1.2 line to keep the descender of "Copied",
- * and every row takes the same line so the three stand evenly apart.
- */
-.link-row {
-  display: inline-flex;
-  flex-direction: row-reverse;
-  align-items: center;
-  gap: 0.32em;
-  font-size: clamp(2.2rem, 4.2vw, 3.8rem);
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.link-glyph {
-  font-size: 0.82em;
-}
-
-/* "Copied" is wider than "Email", so the address's label sits at the end of its roll, by its glyph. */
-.link-row .copy-roll > span {
-  justify-self: end;
-}
-
-.link-label {
-  font-stretch: 100%;
-  transition:
-    font-stretch var(--dur-long) var(--ease-out),
-    font-weight var(--dur-long) var(--ease-out),
-    color var(--dur-short) var(--ease-out);
-}
-
-.glyph-host:is(:hover, :focus-visible) .link-label {
-  color: var(--crema);
-  font-stretch: 140%;
-  font-weight: 860;
-}
-
-/* Work --------------------------------------------------------------------- */
-
-.work {
-  padding: clamp(96px, 16vh, 180px) var(--gutter) clamp(96px, 14vh, 160px);
-}
-
-.section-title {
-  margin: 0;
-  font-size: clamp(4rem, 12vw, 10rem);
-  font-stretch: 58%;
-  font-weight: 800;
-  line-height: 0.84;
-}
-
-.section-lede {
-  max-width: 40ch;
-  margin: 1.4rem 0 0;
-  color: var(--foam-dim);
-  font-size: clamp(1.1rem, 1.5vw, 1.3rem);
-}
-
-.work-list {
+.name-links {
   display: grid;
-  gap: clamp(72px, 13vh, 150px);
-  margin: clamp(56px, 10vh, 112px) 0 0;
-  padding: 0;
-  list-style: none;
+  gap: 8px;
 }
 
-.work-item {
+.name-links a,
+.project-title a,
+.project-source,
+.colophon-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.board-lead,
+.work-rest {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  gap: clamp(28px, 5vw, 96px);
-  align-items: start;
+  gap: 12px;
 }
 
-.work-name {
-  margin: 0;
-  font-size: clamp(1.5rem, 2.8vw, 2.5rem);
-  font-weight: 700;
-  line-height: 1.05;
+.project-card,
+.snake-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
 }
 
-.work-name a {
-  transition: font-stretch var(--dur-long) var(--ease-out);
+.project-art {
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #16278a;
 }
 
-.work-name a:hover,
-.work-name a:focus-visible {
-  font-stretch: 125%;
-}
-
-.work-out {
-  margin-left: 0.2em;
-  font-size: 0.6em;
-  color: var(--crema);
-  vertical-align: 0.15em;
-}
-
-.work-summary {
-  max-width: 38ch;
-  margin: 0.9rem 0 0;
-  color: var(--foam-dim);
-}
-
-.work-tags {
-  margin: 0.8rem 0 0;
-  color: var(--foam-dim);
-  font-size: 0.92rem;
-  font-stretch: 80%;
-}
-
-.work-source {
-  margin-top: 1.6rem;
-}
-
-/* Each project's picture fills its column; width and height on the <img> hold its place while it loads. */
-.work-art {
-  margin: 0;
-}
-
-.work-art img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-/* Type case ------------------------------------------------------------------- */
-
-.case {
-  padding: clamp(80px, 12vh, 140px) 0 0;
-}
-
-.case-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 30rem);
-  align-items: end;
-  gap: 1.5rem var(--gutter);
-  padding: 0 var(--gutter);
-}
-
-.case-title {
-  margin: 0;
-  font-size: clamp(3.6rem, 10vw, 8.5rem);
-  font-stretch: 128%;
-  font-weight: 800;
-  line-height: 0.86;
-}
-
-.case-intro p {
-  margin: 0;
-  color: var(--foam-dim);
-  font-size: clamp(1.05rem, 1.4vw, 1.2rem);
-}
-
-.case-stage {
-  position: relative;
-  height: clamp(420px, 70vh, 760px);
-}
-
-/* Scrolling through the track runs the press; the stage holds still while it does. */
-.case[data-scrub] .case-track {
-  height: 220vh;
-}
-
-.case[data-scrub] .case-stage {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  height: 100svh;
-}
-
-.case-canvas {
+.project-art img,
+.project-art svg {
   display: block;
   width: 100%;
   height: 100%;
-  touch-action: pan-y;
-  cursor: grab;
+  object-fit: cover;
 }
 
-/* Where the press is along its run, so a reader pinned on the stage knows there is more. */
-.case-meter {
-  position: absolute;
-  inset: auto var(--gutter) var(--gutter);
-  display: none;
-  padding-bottom: 0.7rem;
-  pointer-events: none;
-}
-
-.case[data-scrub][data-ready] .case-meter {
-  display: block;
-}
-
-.case-meter::before,
-.case-meter::after {
-  content: '';
-  position: absolute;
-  inset: auto 0 0;
-  height: 2px;
-  background: var(--foam-line);
-}
-
-.case-meter::after {
-  background: var(--foam);
-  transform: scaleX(var(--case-progress, 0));
-  transform-origin: left;
-}
-
-.case-steps {
-  position: relative;
-  height: 1.3em;
+.project-title {
   margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: 0.85rem;
+  font-size: 1.2rem;
+  font-weight: 560;
 }
 
-.case-step {
-  position: absolute;
-  left: var(--at);
-  color: var(--foam-dim);
-  font-stretch: 80%;
-  font-weight: 600;
-  line-height: 1.3;
-  opacity: 0.5;
-  transition:
-    color var(--dur-short) var(--ease-out),
-    opacity var(--dur-short) var(--ease-out);
+.project-tags {
+  font-size: 0.92rem;
 }
 
-.case-step[data-state='done'] {
-  opacity: 0.85;
-}
-
-.case-step[data-state='active'] {
-  color: var(--foam);
-  opacity: 1;
-}
-
-/* Until three.js is running (or where it never will), the proof stands in for the type. */
-.case-fallback {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-content: center;
-  margin: 0;
-  color: var(--foam);
-  font-size: clamp(2rem, 6vw, 4.6rem);
-  font-weight: 800;
-  line-height: 0.95;
-  text-align: left;
-  pointer-events: none;
-  transition: opacity var(--dur-long) var(--ease-out);
-}
-
-.case-fallback span {
-  display: block;
-}
-
-.case[data-ready] .case-fallback {
-  opacity: 0;
-}
-
-/* Play band ------------------------------------------------------------------ */
-
-.play {
-  position: relative;
-  display: grid;
-  align-items: end;
-  min-height: clamp(560px, 82vh, 860px);
-  padding: var(--gutter);
-  background: var(--blue-deep);
-  overflow: hidden;
-}
-
-.play-canvas {
-  view-transition-name: text-field;
-}
-
-.play-copy {
-  position: relative;
-  z-index: 1;
-  width: fit-content;
-  max-width: min(100%, 620px);
-}
-
-.play-title {
-  margin: 0;
-  font-size: clamp(2.8rem, 6.4vw, 5.8rem);
-  font-stretch: 68%;
-  font-weight: 800;
-  line-height: 0.9;
-  text-wrap: balance;
-}
-
-.play-text {
-  max-width: 40ch;
-  margin: 1.1rem 0 0;
-  color: var(--foam-dim);
-  font-size: clamp(1.05rem, 1.4vw, 1.2rem);
-}
-
-.play-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 1.8rem;
-}
-
-.button-primary,
-.button-quiet {
+.project-source {
   display: inline-flex;
+  gap: 0.4em;
   align-items: center;
-  gap: 0.5em;
-  min-height: 52px;
-  padding: 0 1.4em;
-  font-size: 1.1rem;
-  font-weight: 700;
-  white-space: nowrap;
-  transition:
-    font-stretch var(--dur-long) var(--ease-out),
-    background-color var(--dur-short) var(--ease-out),
-    color var(--dur-short) var(--ease-out);
 }
 
-.button-primary {
-  background: var(--crema);
-  color: var(--blue-ink);
+.snake-box {
+  justify-content: space-between;
+  height: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  background: #171717;
+  color: #fff;
+  text-decoration: none;
 }
 
-.button-quiet {
-  border: 1px solid var(--foam-line);
-  color: var(--foam);
+.snake-box canvas {
+  width: 100%;
+  height: auto;
+  background: transparent;
 }
 
-.button-primary:hover,
-.button-primary:focus-visible,
-.button-quiet:hover,
-.button-quiet:focus-visible {
-  font-stretch: 125%;
+.work-rest {
+  padding: 0 var(--gutter) 64px;
 }
-
-.button-quiet:hover,
-.button-quiet:focus-visible {
-  background: var(--foam);
-  color: var(--blue-ink);
-}
-
-.button-primary:active,
-.button-quiet:active {
-  transform: translateY(1px);
-}
-
-.button-primary .glyph,
-.button-quiet .glyph {
-  font-size: 1.25em;
-}
-
-/* Colophon --------------------------------------------------------------------- */
 
 .colophon {
   display: grid;
-  gap: clamp(48px, 8vh, 96px);
-  padding: clamp(96px, 16vh, 180px) var(--gutter) var(--gutter);
-}
-
-.colophon-links ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  gap: 28px;
+  padding: 24px var(--gutter) var(--gutter);
 }
 
 .colophon-link {
   display: grid;
   grid-template-columns: auto auto minmax(0, 1fr);
-  align-items: center;
-  gap: 0.4em;
-  padding: 0.35em 0;
-  border-top: 1px solid var(--foam-line);
-  font-size: clamp(1.8rem, 3.4vw, 2.8rem);
-  font-weight: 600;
-}
-
-.colophon-link .glyph {
-  font-size: 0.8em;
+  gap: 0.6rem;
+  align-items: baseline;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
 }
 
 .colophon-blurb {
   justify-self: end;
-  color: var(--foam-dim);
-  font-size: max(0.95rem, 0.36em);
-  font-weight: 400;
   text-align: right;
-}
-
-.colophon-mark {
-  margin: 0;
-  overflow: hidden;
-  font-weight: 800;
-  line-height: 0.8;
-}
-
-.colophon-mark span {
-  display: block;
-  width: max-content;
-  font-size: clamp(48px, 10vw, 180px);
-  white-space: nowrap;
 }
 
 .colophon-meta {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 0.75rem 2.5rem;
-  color: var(--foam-dim);
+  gap: 8px 24px;
+  color: var(--ink-dim);
   font-size: 0.95rem;
 }
 
-.colophon-meta p {
-  margin: 0;
+@media (min-width: 721px) {
+  .board {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: stretch;
+    min-height: calc(100svh - 4.5rem);
+  }
+
+  .board-lead[data-count='2'] {
+    grid-template-rows: 1.35fr 0.9fr 0.7fr;
+  }
+
+  .board-lead[data-count='1'] {
+    grid-template-rows: 1.35fr 0.7fr;
+  }
+
+  .board-lead[data-count='0'] {
+    grid-template-rows: 0.7fr;
+  }
+
+  .work-rest {
+    grid-template-columns: 1.3fr 0.7fr;
+  }
+
+  .project-card.is-wide {
+    grid-row: span 2;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .project-art [id='caret'] {
+    animation: caret-blink 1.1s steps(1) infinite;
+  }
+
+  .project-art [id='strokes'] {
+    font-weight: 450;
+    animation: stroke-weight 2.8s ease-in-out infinite;
+  }
+}
+
+@keyframes caret-blink {
+  50% { opacity: 0; }
+}
+
+@keyframes stroke-weight {
+  50% { font-weight: 700; }
 }
 
 @media (hover: none), (pointer: coarse) {
   .colophon-shortcut,
   .topbar .palette-trigger {
     display: none;
-  }
-}
-
-/* A tap leaves hover on, so there "Copied" recolors but never widens into the words beside it. */
-@media (hover: none), (pointer: coarse) {
-  .glyph-host:is(:hover, :focus-visible) .copy-roll {
-    font-stretch: 100%;
-    font-weight: 600;
-  }
-}
-
-/*
- * The avatar leaves the top bar little slack on the narrowest windows. There the handle
- * recolors on hover but never widens, and below 360px the menu button goes: Cmd/Ctrl+K
- * still opens the menu, and the colophon still says so.
- */
-@media (max-width: 419px) {
-  .topbar-mark:hover {
-    font-stretch: 80%;
-  }
-}
-
-@media (max-width: 359px) {
-  .topbar .palette-trigger {
-    display: none;
-  }
-}
-
-/* Small screens ---------------------------------------------------------------- */
-
-@media (max-width: 720px) {
-  .topbar {
-    height: 60px;
-  }
-
-  .topbar-avatar {
-    width: 28px;
-    height: 28px;
-  }
-
-  .specimen {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 1fr auto auto;
-    row-gap: 1.6rem;
-    padding-top: 80px;
-  }
-
-  .specimen-copy {
-    grid-row: 2;
-  }
-
-  .specimen-links {
-    grid-column: 1;
-    grid-row: 3;
-    justify-items: start;
-    gap: 0.4rem;
-  }
-
-  /* Stacked under the copy, the links read from the left, glyph first. */
-  .link-row {
-    flex-direction: row;
-    font-size: clamp(1.6rem, 8vw, 2.2rem);
-  }
-
-  .link-row .copy-roll > span {
-    justify-self: start;
-  }
-
-  .specimen-links .link-row .link-label {
-    white-space: nowrap;
-  }
-
-  .work-item {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .case-head {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .case-stage {
-    height: 62vh;
-  }
-
-  .colophon-link {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .colophon-blurb {
-    grid-column: 1 / -1;
-    justify-self: start;
-    text-align: left;
   }
 }

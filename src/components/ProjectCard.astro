@@ -1,0 +1,55 @@
+---
+import Glyph from './Glyph.astro';
+
+type Art = {
+  image: { src: string; width: number; height: number };
+  alt: string;
+};
+
+type Props = {
+  title: string;
+  summary: string;
+  tags: readonly string[];
+  href: string;
+  repo?: string;
+  art: Art;
+  motion?: 'caret' | 'strokes';
+  svg?: string;
+  wide?: boolean;
+};
+
+const { title, summary, tags, href, repo, art, motion, svg, wide = false } = Astro.props;
+const ready =
+  svg !== undefined &&
+  ((motion === 'caret' && svg.includes('id="caret"')) ||
+    (motion === 'strokes' && svg.includes('id="strokes"')));
+---
+
+<li class:list={['project-card', { 'is-wide': wide }]}>
+  <div class="project-art">
+    {ready ? <div set:html={svg} /> : (
+      <img
+        src={art.image.src}
+        width={art.image.width}
+        height={art.image.height}
+        alt={art.alt}
+        loading="lazy"
+        decoding="async"
+      />
+    )}
+  </div>
+  <h3 class="project-title">
+    <a href={href} target="_blank" rel="noreferrer">
+      {title}
+      <Glyph icon="arrow-up-right" class="project-out" />
+    </a>
+  </h3>
+  <p class="project-summary">{summary}</p>
+  <p class="project-tags">{tags.join(', ')}</p>
+  {repo && (
+    <a class="project-source glyph-host" href={repo} target="_blank" rel="noreferrer">
+      <Glyph icon="github-logo" motion="commit" />
+      Source
+    </a>
+  )}
+</li>

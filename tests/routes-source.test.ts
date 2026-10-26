@@ -15,21 +15,27 @@ describe('route source contract', () => {
     expect(play).toContain('<CommandPalette />');
   });
 
-  it('builds the landing from the specimen, work, play band and colophon', () => {
+  it('builds the landing as the paper board', () => {
     expect(landing).not.toContain('SnakeExperience');
+    expect(landing).not.toContain('mountSpecimen');
+    expect(landing).not.toContain('mountPlayBand');
+    expect(landing).not.toContain('type-case');
+    expect(landing).not.toContain('id="play"');
+    expect(landing).not.toContain('field-canvas');
+    expect(landing).not.toContain('Every line of moving text is laid out with pretext.');
     expect(landing).toContain('id="top"');
     expect(landing).toContain('id="work"');
-    expect(landing).toContain('id="play"');
     expect(landing).toContain('class="colophon"');
-    expect(landing).toContain('mountSpecimen');
-    expect(landing).toContain('mountPlayBand');
+    expect(landing).toContain('<SiteHeader');
     expect(landing).toContain('<CommandPalette />');
-    expect(landing).toContain("withBase('play/')");
+    expect(landing).toContain('themeColor="#fafafa"');
+    expect(landing).toContain('data-snake-preview');
+    expect(landing).not.toContain('view-transition-name');
   });
 
-  it('marks the moving canvases as decorative and keeps the name as real text', () => {
-    expect(landing).toContain('<canvas class="field-canvas" data-field-canvas aria-hidden="true"></canvas>');
+  it('keeps the name as real text', () => {
     expect(landing).toContain('<h1 id="name"');
     expect(landing).toContain('lang="ko"');
+    expect(landing).toContain('data-name-letter');
   });
 });
