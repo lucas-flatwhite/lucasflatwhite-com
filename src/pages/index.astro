@@ -12,11 +12,24 @@ import portraitSvg from '../assets/work/lucasflatwhite-com.svg?raw';
 import { featuredLinks } from '../data/links';
 import { siteProfile } from '../data/site';
 import { pictureForId } from '../lib/project-picture';
-import { placeProjects } from '../lib/projects';
+import { boardGaps, gapNote, NAME_ROWS, placeProjects, stackBoard } from '../lib/projects';
 import { withBase } from '../lib/paths';
 import '../styles/landing.css';
 
 const placed = placeProjects(await getCollection('projects'));
+// Every pictured project, then Snake, then the numbered gaps.
+const filled = placed.board.length + 1;
+const count = filled + boardGaps(filled);
+// The board runs three columns on a mid screen and four on a wide one; the spans match.
+const three = stackBoard(count, 3);
+const four = stackBoard(count, 4);
+const place = (index: number) =>
+  [
+    `--c3: ${three[index].column}; --r3: ${three[index].row}`,
+    `--c4: ${four[index].column}; --r4: ${four[index].row}`,
+    `--span: ${four[index].span}`,
+  ].join('; ');
+const gaps = Array.from({ length: count - filled }, (_, index) => filled + index);
 const playHref = withBase('play/');
 const year = new Date().getFullYear();
 const rawById: Record<string, string> = {
@@ -34,74 +47,70 @@ const rawById: Record<string, string> = {
   <SiteHeader href="#top" />
   <main id="top">
     <section class="board">
-      <div class="board-copy">
-        <h1 id="name" class="name" data-name>
-          <span class="name-line">
-            {'Lucas'.split('').map((letter) => <span data-name-letter>{letter}</span>)}
-          </span>
-          <span class="name-line">
-            {'Flatwhite'.split('').map((letter) => <span data-name-letter>{letter}</span>)}
-          </span>
-        </h1>
-        <p class="name-ko" lang="ko">{siteProfile.nameKo}</p>
-        <p class="intro">{siteProfile.intro}</p>
-        <ul class="name-links">
-          {featuredLinks.map((link) => (
-            <li>
-              {link.copy !== null ? (
-                <a class="glyph-host" href={link.href} data-copy={link.copy}>
-                  <CopyMark icon={link.icon} motion={link.motion} />
-                  <CopyRoll text={link.label} />
-                </a>
-              ) : (
-                <a class="glyph-host" href={link.href} target="_blank" rel="noreferrer me">
-                  <Glyph icon={link.icon} motion={link.motion} />
-                  {link.label}
-                </a>
-              )}
+      <div class="board-grid">
+        <div class="board-copy" style={`--span: ${NAME_ROWS}`}>
+          <h1 id="name" class="name" data-name>
+            <span class="name-line">
+              {'Lucas'.split('').map((letter) => <span data-name-letter>{letter}</span>)}
+            </span>
+            <span class="name-line">
+              {'Flatwhite'.split('').map((letter) => <span data-name-letter>{letter}</span>)}
+            </span>
+          </h1>
+          <p class="name-ko" lang="ko">{siteProfile.nameKo}</p>
+          <p class="intro">{siteProfile.intro}</p>
+          <ul class="name-links">
+            {featuredLinks.map((link) => (
+              <li>
+                {link.copy !== null ? (
+                  <a class="glyph-host" href={link.href} data-copy={link.copy}>
+                    <CopyMark icon={link.icon} motion={link.motion} />
+                    <CopyRoll text={link.label} />
+                  </a>
+                ) : (
+                  <a class="glyph-host" href={link.href} target="_blank" rel="noreferrer me">
+                    <Glyph icon={link.icon} motion={link.motion} />
+                    {link.label}
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <ol class="board-cards" id="work">
+          {placed.board.map((entry, index) => (
+            <ProjectCard
+              title={entry.data.title}
+              summary={entry.data.summary}
+              href={entry.data.href}
+              repo={entry.data.repo}
+              art={entry.data.art!}
+              motion={entry.data.motion}
+              svg={entry.data.motion ? pictureForId(rawById, entry.id) : undefined}
+              place={place(index)}
+            />
+          ))}
+          <li class="project-card snake-card" style={place(filled - 1)}>
+            <div class="project-art snake-art">
+              <canvas data-snake-preview width="160" height="96" aria-hidden="true"></canvas>
+            </div>
+            <span class="project-label" aria-hidden="true">Snake</span>
+            <div class="project-text">
+              <h3 class="project-title">
+                <a href={playHref}>Snake</a>
+              </h3>
+              <p class="project-summary">Play Snake, in a field of words.</p>
+            </div>
+          </li>
+          {gaps.map((index, order) => (
+            <li class="board-gap" style={place(index)} aria-hidden="true">
+              <span class="gap-number">{String(index + 1).padStart(2, '0')}</span>
+              <span class="gap-note">{gapNote(order)}</span>
             </li>
           ))}
-        </ul>
+        </ol>
       </div>
-      <ol class="board-lead" id="work" data-count={placed.lead.length}>
-        {placed.lead.map((entry) => (
-          <ProjectCard
-            title={entry.data.title}
-            summary={entry.data.summary}
-            tags={entry.data.tags}
-            href={entry.data.href}
-            repo={entry.data.repo}
-            art={entry.data.art!}
-            motion={entry.data.motion}
-            svg={entry.data.motion ? pictureForId(rawById, entry.id) : undefined}
-          />
-        ))}
-        <li class="snake-slot">
-          <a class="snake-box" href={playHref} aria-label="Play Snake, in a field of words">
-            <canvas data-snake-preview width="160" height="96" aria-hidden="true"></canvas>
-            <span>Snake</span>
-          </a>
-        </li>
-      </ol>
     </section>
-
-    {placed.rest.length > 0 && (
-      <ol class="work-rest">
-        {placed.rest.map((entry, index) => (
-          <ProjectCard
-            title={entry.data.title}
-            summary={entry.data.summary}
-            tags={entry.data.tags}
-            href={entry.data.href}
-            repo={entry.data.repo}
-            art={entry.data.art!}
-            motion={entry.data.motion}
-            svg={entry.data.motion ? pictureForId(rawById, entry.id) : undefined}
-            wide={(index + 3) % 3 === 0}
-          />
-        ))}
-      </ol>
-    )}
   </main>
 
   <footer class="colophon">

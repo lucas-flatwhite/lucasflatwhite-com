@@ -45,15 +45,17 @@ describe('anti-slop contract', () => {
     }
   });
 
-  it('keeps one sharp corner system on the landing', () => {
+  it('keeps the landing corners on its corner tokens', () => {
     const landing = files.filter((file) => /landing\.css|global\.css|Glyph|CommandPalette/.test(file.path));
+    // Controls stay at 6px; cards, pills and the hover ring read the tokens set in global.css.
+    const allowed = /^(?:0(?:px)?|6px|var\(--radius-(?:card|pill)\)|calc\(var\(--radius-card\) \+ \d+px\))$/;
 
     for (const file of landing) {
       // The X profile picture in the top bar is the one round shape, as it is on X.
       const source = file.source.replace(/\.topbar-avatar \{[^}]*\}/g, '');
+      const values = [...source.matchAll(/border-radius:\s*([^;]+);/g)].map((match) => match[1].trim());
 
-      // \s* would give its space back and then match the allowed value. Require a non-space first.
-      expect(source).not.toMatch(/border-radius:\s*(?!0(?:px)?[;\s]|6px)(?=\S)[^;]+/);
+      expect(values.filter((value) => !allowed.test(value))).toEqual([]);
     }
   });
 
