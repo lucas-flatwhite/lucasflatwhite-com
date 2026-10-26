@@ -1,5 +1,6 @@
 ---
 import Glyph from './Glyph.astro';
+import { cropPicture } from '../lib/project-picture';
 
 type Art = {
   image: { src: string; width: number; height: number };
@@ -18,11 +19,12 @@ type Props = {
   wide?: boolean;
 };
 
-const { title, summary, tags, href, repo, art, motion, svg, wide = false } = Astro.props;
+const { title, summary, tags, href, repo, art, motion, svg: picture, wide = false } = Astro.props;
 const ready =
-  svg !== undefined &&
-  ((motion === 'caret' && svg.includes('id="caret"')) ||
-    (motion === 'strokes' && svg.includes('id="strokes"')));
+  picture !== undefined &&
+  ((motion === 'caret' && picture.includes('id="caret"')) ||
+    (motion === 'strokes' && picture.includes('id="strokes"')));
+const svg = ready ? cropPicture(picture) : picture;
 ---
 
 <li class:list={['project-card', { 'is-wide': wide }]}>

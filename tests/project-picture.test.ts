@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pictureForId } from '../src/lib/project-picture';
+import { cropPicture, pictureForId } from '../src/lib/project-picture';
 
 const plate = '<svg id="caret"></svg>';
 const portrait = '<svg id="strokes"></svg>';
@@ -21,5 +21,31 @@ describe('pictureForId', () => {
 
   it('returns undefined for an unknown id', () => {
     expect(pictureForId(pictures, 'missing.md')).toBeUndefined();
+  });
+});
+
+describe('cropPicture', () => {
+  it('gives a root svg with no aspect ratio the slice crop', () => {
+    expect(cropPicture('<svg viewBox="0 0 720 480"></svg>')).toBe(
+      '<svg preserveAspectRatio="xMidYMid slice" viewBox="0 0 720 480"></svg>',
+    );
+  });
+
+  it('leaves a string that already has preserveAspectRatio unchanged', () => {
+    const marked = '<svg preserveAspectRatio="xMidYMid meet" id="caret"></svg>';
+
+    expect(cropPicture(marked)).toBe(marked);
+  });
+
+  it('leaves the caret and strokes ids otherwise untouched', () => {
+    const caret = '<svg viewBox="0 0 720 480"><rect id="caret" width="14" height="48"/></svg>';
+    const strokes = '<svg viewBox="0 0 720 480"><g id="strokes"></g></svg>';
+
+    expect(cropPicture(caret)).toBe(
+      '<svg preserveAspectRatio="xMidYMid slice" viewBox="0 0 720 480"><rect id="caret" width="14" height="48"/></svg>',
+    );
+    expect(cropPicture(strokes)).toBe(
+      '<svg preserveAspectRatio="xMidYMid slice" viewBox="0 0 720 480"><g id="strokes"></g></svg>',
+    );
   });
 });
