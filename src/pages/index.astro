@@ -49,13 +49,14 @@ const rawById: Record<string, string> = {
     <section class="board">
       <div class="board-grid">
         <div class="board-copy" style={`--span: ${NAME_ROWS}`}>
-          <h1 id="name" class="name" data-name>
-            <span class="name-line">
-              {'Lucas'.split('').map((letter) => <span data-name-letter>{letter}</span>)}
-            </span>
-            <span class="name-line">
-              {'Flatwhite'.split('').map((letter) => <span data-name-letter>{letter}</span>)}
-            </span>
+          <h1 id="name" class="name" data-name aria-label={siteProfile.name}>
+            {['Lucas', 'Flatwhite'].map((word) => (
+              <span class="name-line" aria-hidden="true">
+                {word.split('').map((letter) => (
+                  <span data-name-letter><span class="name-letter-face">{letter}</span></span>
+                ))}
+              </span>
+            ))}
           </h1>
           <p class="name-ko" lang="ko">{siteProfile.nameKo}</p>
           <p class="intro">{siteProfile.intro}</p>
@@ -124,7 +125,7 @@ const rawById: Record<string, string> = {
 
 <script>
   import { mountCopyLinks } from '../lib/copy-link';
-  import { bindNameMotion } from '../lib/name-motion';
+  import { bindNameSwap } from '../lib/name-swap';
   import { mountSnakePreview } from '../lib/snake-preview';
   import { bindWorkMotion } from '../lib/work-motion';
 
@@ -132,7 +133,7 @@ const rawById: Record<string, string> = {
   const preview = document.querySelector<HTMLCanvasElement>('[data-snake-preview]');
 
   if (name) {
-    bindNameMotion(name);
+    bindNameSwap(name);
   }
 
   if (preview) {
