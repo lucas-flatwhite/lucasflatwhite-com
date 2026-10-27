@@ -75,16 +75,29 @@ export function mountSnakePreview(canvas: HTMLCanvasElement): void {
     return;
   }
 
+  // On a phone the snake rests where it starts, so only the name moves on the first screen.
+  const phone = window.matchMedia('(max-width: 720px)');
+  let timer: number | undefined;
+
+  const stop = () => {
+    window.clearInterval(timer);
+    timer = undefined;
+  };
+
   const start = () => {
-    const timer = window.setInterval(() => {
+    if (timer !== undefined || phone.matches) {
+      return;
+    }
+
+    timer = window.setInterval(() => {
       state = stepPreview(state);
       drawPreview(canvas, state);
     }, 180);
-
-    window.addEventListener('pagehide', () => window.clearInterval(timer), { once: true });
   };
 
   start();
+  phone.addEventListener('change', () => (phone.matches ? stop() : start()));
+  window.addEventListener('pagehide', stop);
   window.addEventListener('pageshow', (event) => {
     if (event.persisted) {
       start();
