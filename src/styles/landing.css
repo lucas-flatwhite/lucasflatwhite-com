@@ -136,6 +136,13 @@
   gap: 8px;
 }
 
+.name-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  line-height: 1.2;
+}
+
 .name-links a,
 .project-title a,
 .project-source {
@@ -193,6 +200,13 @@
 /* src/lib/work-motion.ts marks a picture paused while it is off screen or the tab is hidden. */
 .project-motion[data-motion='paused'] * {
   animation-play-state: paused;
+}
+
+/* On a phone the glass filters cost too much to redraw, so the pictures rest as they do under reduced motion. */
+@media (max-width: 720px) {
+  .project-motion svg * {
+    animation: none !important;
+  }
 }
 
 .snake-art {
