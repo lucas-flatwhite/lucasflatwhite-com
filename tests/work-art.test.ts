@@ -14,7 +14,7 @@ const projects = readdirSync(projectsDir)
   .map((name) => ({ name, source: readFileSync(resolve(projectsDir, name), 'utf8') }))
   .filter((project) => /^featured: true$/m.test(project.source));
 const pictures = {
-  plate: read('src/assets/work/ai-timeline-log.svg'),
+  years: read('src/assets/work/ai-timeline-log.svg'),
   ripple: read('src/assets/work/lucasflatwhite-com.svg'),
 };
 // What a visitor who asked for less motion sees: the picture with its motion-only rules removed.
@@ -47,8 +47,37 @@ describe('Work pictures', () => {
     expect([...svg.matchAll(/\b(?:href|src)="([^"]*)"/g)].every(([, target]) => /^(?:#|data:)/.test(target))).toBe(true);
   });
 
-  it('keeps a blinkable caret on the plate', () => {
-    expect(pictures.plate).toContain('id="caret"');
+  it('turns the window through 2022 to 2026 in order, in plain type', () => {
+    const shown = [...pictures.years.matchAll(/<text\b[^>]*>(20\d\d)<\/text>/g)].map(([, year]) => year);
+
+    // Later years sit lower in the stack, so they come first in the document.
+    expect(shown).toEqual(['2026', '2025', '2024', '2023', '2022']);
+    expect(pictures.years).toContain('2022.11.30');
+    expect(pictures.years).toContain('2026.01.22');
+    expect(pictures.years).toMatch(/font-size="76"/);
+    expect(pictures.years).not.toMatch(/lucasflatwhite|ChatGPT/i);
+    expect(pictures.years).not.toMatch(/#1f35b5|#16278a|#0e1a5e/i);
+  });
+
+  it('rests the years picture on the 2026 window without motion', () => {
+    expect(still(pictures.years)).not.toMatch(/animation:/);
+    expect(still(pictures.years)).toMatch(/\.years-last \{ opacity: 1; \}/);
+    expect(pictures.years).toMatch(/animation: years-[\w-]+ 4\.88s infinite both/);
+  });
+
+  it('carries Anybody with both of its axes in the years picture', () => {
+    const anybody = fontFaces(pictures.years).find((face) => face.family === 'Anybody');
+
+    expect(anybody?.rule).toContain('font-weight:100 900');
+    expect(anybody?.rule).toContain('font-stretch:50% 150%');
+  });
+
+  it('shares no id or class between the two pictures', () => {
+    const names = (svg: string) =>
+      new Set([...svg.matchAll(/\b(?:id|class)="([^"]+)"/g)].flatMap(([, value]) => value.split(/\s+/)));
+    const ripple = names(pictures.ripple);
+
+    expect([...names(pictures.years)].filter((name) => ripple.has(name))).toEqual([]);
   });
 
   it('marks the ripple picture for inlining and keeps names out of it', () => {
@@ -64,7 +93,7 @@ describe('Work pictures', () => {
   });
 
   it('stays within its weight budget once compressed', () => {
-    expect(gzipSync(pictures.plate).length).toBeLessThanOrEqual(40 * 1024);
+    expect(gzipSync(pictures.years).length).toBeLessThanOrEqual(100 * 1024);
     expect(gzipSync(pictures.ripple).length).toBeLessThanOrEqual(100 * 1024);
   });
 

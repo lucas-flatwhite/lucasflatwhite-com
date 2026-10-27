@@ -85,13 +85,15 @@ const shine = (bezel, light) => (d, nx, ny, res) => {
   const spec = Math.max(0, facing) ** 1.6 + 0.55 * Math.max(0, -facing) ** 2.2;
   const edge = Math.exp(-((d + 1.1) ** 2) / 1.1);
   const band = d < 0 ? Math.exp(-((d + bezel * 0.18) ** 2) / (bezel * 0.9)) : 0;
-  return [255, 255, 255, Math.round(Math.min(1, (edge * (0.22 + 0.9 * spec) + band * (0.08 + 0.35 * spec)) * light) * cover * 255)];
+  const alpha = Math.round(Math.min(1, (edge * (0.22 + 0.9 * spec) + band * (0.08 + 0.35 * spec)) * light) * cover * 255);
+  // Below 3/255 the light can't be seen, and leaving those pixels empty keeps the PNG small.
+  return [255, 255, 255, alpha < 3 ? 0 : alpha];
 };
 
 /** The filters, mask and rim light one pane shape needs. Panes of the same shape share them. */
-export function glassDefs(id, box, { bezel, shift, frost, shadowColor, light = 1 }) {
+export function glassDefs(id, box, { bezel, shift, frost, shadowColor, light = 1, lightRes = LIGHT_RES }) {
   const map = paint(box, MAP_RES, bend(bezel));
-  const lit = paint(box, LIGHT_RES, shine(bezel, light));
+  const lit = paint(box, lightRes, shine(bezel, light));
   const a = area(box);
   const room = `x="${a.x - 80}" y="${a.y - 80}" width="${a.w + 160}" height="${a.h + 160}"`;
 
