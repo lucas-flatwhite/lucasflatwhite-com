@@ -101,6 +101,8 @@ describe('Work pictures', () => {
     const card = read('src/components/ProjectCard.astro');
 
     expect(card).toContain('set:html={svg}');
+    // Each moving picture is inlined when it carries a group named after its motion.
+    expect(card).toContain('id="${motion}"');
     expect(card).toContain('loading="lazy"');
     expect(card).toContain('width={art.image.width}');
     expect(card).toContain('height={art.image.height}');

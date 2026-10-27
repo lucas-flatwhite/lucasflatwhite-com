@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { cropPicture, pictureForId } from '../src/lib/project-picture';
 
-const plate = '<svg id="caret"></svg>';
-const portrait = '<svg id="strokes"></svg>';
+const plate = '<svg><g id="years"></g></svg>';
+const portrait = '<svg><g id="ripple"></g></svg>';
 const pictures = {
   'ai-timeline-log': plate,
   'lucasflatwhite-com': portrait,
@@ -32,20 +32,24 @@ describe('cropPicture', () => {
   });
 
   it('leaves a string that already has preserveAspectRatio unchanged', () => {
-    const marked = '<svg preserveAspectRatio="xMidYMid meet" id="caret"></svg>';
+    const marked = '<svg preserveAspectRatio="xMidYMid meet" id="years"></svg>';
 
     expect(cropPicture(marked)).toBe(marked);
   });
 
-  it('leaves the caret and strokes ids otherwise untouched', () => {
-    const caret = '<svg viewBox="0 0 720 480"><rect id="caret" width="14" height="48"/></svg>';
-    const strokes = '<svg viewBox="0 0 720 480"><g id="strokes"></g></svg>';
+  it('leaves the ripple and years ids otherwise untouched', () => {
+    const ripple = '<svg viewBox="0 0 720 480"><g id="ripple"></g></svg>';
+    const years = '<svg viewBox="0 0 720 480"><g id="years"></g></svg>';
 
-    expect(cropPicture(caret)).toBe(
-      '<svg preserveAspectRatio="xMidYMid slice" viewBox="0 0 720 480"><rect id="caret" width="14" height="48"/></svg>',
-    );
-    expect(cropPicture(strokes)).toBe(
-      '<svg preserveAspectRatio="xMidYMid slice" viewBox="0 0 720 480"><g id="strokes"></g></svg>',
+    expect(cropPicture(ripple)).toBe('<svg preserveAspectRatio="xMidYMid slice" viewBox="0 0 720 480"><g id="ripple"></g></svg>');
+    expect(cropPicture(years)).toBe('<svg preserveAspectRatio="xMidYMid slice" viewBox="0 0 720 480"><g id="years"></g></svg>');
+  });
+
+  it('adds the slice crop when only an inner element has preserveAspectRatio', () => {
+    const svg = '<svg viewBox="0 0 720 480"><image preserveAspectRatio="none"/></svg>';
+
+    expect(cropPicture(svg)).toBe(
+      '<svg preserveAspectRatio="xMidYMid slice" viewBox="0 0 720 480"><image preserveAspectRatio="none"/></svg>',
     );
   });
 });

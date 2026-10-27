@@ -10,10 +10,10 @@ href: https://github.com/lucas-flatwhite/lucasflatwhite-com
 repo: https://github.com/lucas-flatwhite/lucasflatwhite-com
 order: 2
 featured: true
-motion: strokes
+motion: ripple
 art:
   image: ../../assets/work/lucasflatwhite-com.svg
-  alt: "A tabby cat seated in blue swirls after Van Gogh's 1889 self-portrait, every stroke a word that swells in weight and width."
+  alt: "Three frosted glass panes, shaped like the cards on this board, float over fine grey ripples while a crema ring spreads out beneath them."
 ---
 
 Built with Astro and pretext. The text on every page is laid out by hand, line by line, around whatever moves.
