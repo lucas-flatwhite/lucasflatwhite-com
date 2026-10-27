@@ -9,6 +9,7 @@ export function pictureForId(
 
 /** Chrome does not crop an inline SVG with object-fit, so the root has to slice. */
 export function cropPicture(svg: string): string {
-  if (svg.includes('preserveAspectRatio')) return svg;
+  // Only the root's own attribute counts: the glass maps inside set preserveAspectRatio="none".
+  if (/^<svg\b[^>]*\bpreserveAspectRatio=/.test(svg)) return svg;
   return svg.replace(/^<svg /, '<svg preserveAspectRatio="xMidYMid slice" ');
 }

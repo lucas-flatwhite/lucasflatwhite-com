@@ -13,16 +13,13 @@ type Props = {
   href: string;
   repo?: string;
   art: Art;
-  motion?: 'caret' | 'strokes';
+  motion?: 'ripple' | 'years';
   svg?: string;
   place: string;
 };
 
 const { title, summary, href, repo, art, motion, svg: picture, place } = Astro.props;
-const ready =
-  picture !== undefined &&
-  ((motion === 'caret' && picture.includes('id="caret"')) ||
-    (motion === 'strokes' && picture.includes('id="strokes"')));
+const ready = picture !== undefined && motion !== undefined && picture.includes(`id="${motion}"`);
 const svg = ready ? cropPicture(picture) : picture;
 ---
 
