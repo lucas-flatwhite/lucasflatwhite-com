@@ -17,7 +17,7 @@ import { chromium } from 'playwright-core';
 import { embedFonts } from './fonts.ts';
 import { plateSvg, simplifyPath } from './svg.ts';
 
-type Art = { plate: string; portrait: string };
+type Art = { plate: string; ripple: string };
 
 const HERE = new URL('.', import.meta.url);
 const OUT = new URL('../../src/assets/work/', import.meta.url);
@@ -64,4 +64,4 @@ async function save(name: string, svg: string): Promise<void> {
 const art = await render();
 await mkdir(OUT, { recursive: true });
 await save('ai-timeline-log.svg', plateSvg(simplifyPath(art.plate, 0.15)));
-await save('lucasflatwhite-com.svg', `${await embedFonts(art.portrait)}\n`);
+await save('lucasflatwhite-com.svg', `${art.ripple}\n`);
