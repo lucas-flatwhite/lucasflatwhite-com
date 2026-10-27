@@ -126,6 +126,7 @@ const rawById: Record<string, string> = {
   import { mountCopyLinks } from '../lib/copy-link';
   import { bindNameMotion } from '../lib/name-motion';
   import { mountSnakePreview } from '../lib/snake-preview';
+  import { bindWorkMotion } from '../lib/work-motion';
 
   const name = document.querySelector<HTMLElement>('[data-name]');
   const preview = document.querySelector<HTMLCanvasElement>('[data-snake-preview]');
@@ -137,6 +138,8 @@ const rawById: Record<string, string> = {
   if (preview) {
     mountSnakePreview(preview);
   }
+
+  bindWorkMotion(document.querySelectorAll<HTMLElement>('.project-motion'));
 
   mountCopyLinks();
 </script>
