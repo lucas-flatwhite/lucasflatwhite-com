@@ -30,7 +30,7 @@ const place = (index: number) =>
     `--span: ${four[index].span}`,
   ].join('; ');
 const gaps = Array.from({ length: count - filled }, (_, index) => filled + index);
-const playHref = withBase('play/');
+const playHref = withBase('arcade/snake/');
 const year = new Date().getFullYear();
 const rawById: Record<string, string> = {
   'ai-timeline-log': timelineSvg,

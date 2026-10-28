@@ -1,21 +1,27 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8');
 const landing = read('src/pages/index.astro');
-const play = read('src/pages/play/index.astro');
+const vercel = JSON.parse(read('vercel.json'));
 
 describe('route source contract', () => {
-  it('keeps the snake game on its own /play page', () => {
-    expect(play).toContain("import SnakeExperience from '../../components/SnakeExperience.astro';");
-    expect(play).toContain('<SnakeExperience />');
-    expect(play).toContain('bodyClass="play"');
-    expect(play).toContain("import '../../styles/play.css';");
-    expect(play).toContain('<CommandPalette />');
-    expect(play).toContain('<SiteHeader');
-    expect(play).toContain('<SnakeExperience />');
-    expect(play).toContain('themeColor="#06070f"');
+  it('sends the snake game to the arcade and keeps /play working', () => {
+    expect(existsSync(resolve(process.cwd(), 'src/pages/play'))).toBe(false);
+    expect(landing).toContain("const playHref = withBase('arcade/snake/');");
+    expect(vercel.redirects).toEqual(
+      expect.arrayContaining([
+        { source: '/play', destination: '/arcade/snake/', permanent: true },
+        { source: '/play/:path*', destination: '/arcade/snake/', permanent: true },
+      ]),
+    );
+    expect(vercel.rewrites).toEqual(
+      expect.arrayContaining([
+        { source: '/arcade/', destination: 'https://flatwhite-arcade.vercel.app/arcade/index.html' },
+        { source: '/arcade/:path*', destination: 'https://flatwhite-arcade.vercel.app/arcade/:path*' },
+      ]),
+    );
   });
 
   it('builds the landing as the paper board', () => {

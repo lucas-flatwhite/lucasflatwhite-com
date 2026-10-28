@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { featuredLinks, siteLinks } from '../src/data/links';
-import { homepageSections, identityLinks, sectionIds, siteProfile } from '../src/data/site';
+import { homepageSections, sectionIds, siteProfile } from '../src/data/site';
 import { icons } from '../src/lib/icons';
 import { getHomepageSections, getSectionIds } from '../src/lib/site';
 
@@ -60,12 +60,5 @@ describe('site links', () => {
       expect(link.blurb.length).toBeGreaterThan(8);
       expect(wordCount(link.blurb)).toBeLessThanOrEqual(20);
     }
-  });
-
-  it('shares the featured links with the game strip', () => {
-    expect(identityLinks).toEqual(
-      featuredLinks.filter((link) => link.copy === null).map(({ label, href }) => ({ label, href })),
-    );
-    expect(identityLinks.map((link) => link.label)).toEqual(['GitHub', 'Twitter']);
   });
 });

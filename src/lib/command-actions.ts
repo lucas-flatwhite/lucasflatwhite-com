@@ -37,7 +37,7 @@ const sectionCommands: readonly SectionCommand[] = [
 
 /**
  * Builds the command menu: sections, featured projects, the game, then every link.
- * `home` is the landing page URL (base-aware) so section jumps work from /play too.
+ * `home` is the landing page URL (base-aware), so section jumps carry the deploy base.
  */
 export function buildPaletteCommands(
   home: string,

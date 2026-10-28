@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { siteLinks } from '../src/data/links';
 import { buildPaletteCommands, filterPaletteCommands } from '../src/lib/command-actions';
 
-const commands = buildPaletteCommands('/', '/play/', ['top', 'work']);
+const commands = buildPaletteCommands('/', '/arcade/snake/', ['top', 'work']);
 
 describe('command palette commands', () => {
   it('lists sections, the game and every link', () => {
@@ -13,11 +13,11 @@ describe('command palette commands', () => {
     ]);
   });
 
-  it('resolves section jumps against the landing page so they work from /play', () => {
-    const base = buildPaletteCommands('/lucasflatwhite-com/', '/lucasflatwhite-com/play/', ['top', 'work']);
+  it('resolves section jumps against the landing page so they keep the deploy base', () => {
+    const base = buildPaletteCommands('/lucasflatwhite-com/', '/lucasflatwhite-com/arcade/snake/', ['top', 'work']);
 
     expect(base.find((command) => command.id === 'work')?.href).toBe('/lucasflatwhite-com/#work');
-    expect(base.find((command) => command.id === 'play')?.href).toBe('/lucasflatwhite-com/play/');
+    expect(base.find((command) => command.id === 'play')?.href).toBe('/lucasflatwhite-com/arcade/snake/');
   });
 
   it('opens only the outside links in a new tab', () => {
@@ -43,7 +43,7 @@ describe('command palette commands', () => {
   });
 
   it('rejects a section command that points at a missing section', () => {
-    expect(() => buildPaletteCommands('/', '/play/', ['top'])).toThrow('Unknown section target: work');
+    expect(() => buildPaletteCommands('/', '/arcade/snake/', ['top'])).toThrow('Unknown section target: work');
   });
 
   it('keeps ids unique', () => {
@@ -62,7 +62,7 @@ describe('command palette commands', () => {
 });
 
 describe('project commands', () => {
-  const withProjects = buildPaletteCommands('/', '/play/', ['top', 'work'], [
+  const withProjects = buildPaletteCommands('/', '/arcade/snake/', ['top', 'work'], [
     { id: 'old', title: 'Old', tags: ['Astro'], href: 'https://example.com/old', order: 1, featured: true },
     { id: 'new', title: 'New', tags: ['Canvas', 'TypeScript'], href: 'https://example.com/new', order: 3, featured: true },
     { id: 'draft', title: 'Draft', tags: ['Hidden'], href: 'https://example.com/draft', order: 9, featured: false },
