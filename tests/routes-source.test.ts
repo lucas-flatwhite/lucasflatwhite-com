@@ -7,15 +7,10 @@ const landing = read('src/pages/index.astro');
 const vercel = JSON.parse(read('vercel.json'));
 
 describe('route source contract', () => {
-  it('sends the snake game to the arcade and keeps /play working', () => {
+  it('sends the board to the arcade lobby and leaves /play behind', () => {
     expect(existsSync(resolve(process.cwd(), 'src/pages/play'))).toBe(false);
-    expect(landing).toContain("const playHref = withBase('arcade/snake/');");
-    expect(vercel.redirects).toEqual(
-      expect.arrayContaining([
-        { source: '/play', destination: '/arcade/snake/', permanent: true },
-        { source: '/play/:path*', destination: '/arcade/snake/', permanent: true },
-      ]),
-    );
+    expect(landing).toContain("const arcadeHref = withBase('arcade/');");
+    expect(vercel.redirects.filter((redirect: { source: string }) => redirect.source.startsWith('/play'))).toEqual([]);
     expect(vercel.rewrites).toEqual(
       expect.arrayContaining([
         { source: '/arcade/', destination: 'https://flatwhite-arcade.vercel.app/arcade/index.html' },
@@ -38,7 +33,7 @@ describe('route source contract', () => {
     expect(landing).toContain('<SiteHeader');
     expect(landing).toContain('<CommandPalette />');
     expect(landing).toContain('themeColor="#fafafa"');
-    expect(landing).toContain('data-snake-preview');
+    expect(landing).toContain('<ArcadeHandheld />');
     expect(landing).not.toContain('view-transition-name');
   });
 

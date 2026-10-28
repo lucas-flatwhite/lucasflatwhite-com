@@ -36,12 +36,12 @@ const sectionCommands: readonly SectionCommand[] = [
 ];
 
 /**
- * Builds the command menu: sections, featured projects, the game, then every link.
+ * Builds the command menu: sections, featured projects, the arcade, then every link.
  * `home` is the landing page URL (base-aware), so section jumps carry the deploy base.
  */
 export function buildPaletteCommands(
   home: string,
-  playHref: string,
+  arcadeHref: string,
   availableSections: readonly SectionId[],
   projects: readonly PaletteProject[] = [],
 ): PaletteCommand[] {
@@ -78,11 +78,11 @@ export function buildPaletteCommands(
     ...sections,
     ...projectCommands,
     {
-      id: 'play',
-      label: 'Play',
-      hint: 'Snake on a paper board, in the arcade',
+      id: 'arcade',
+      label: 'Arcade',
+      hint: 'Small games, starting with Snake',
       icon: 'game-controller',
-      href: playHref,
+      href: arcadeHref,
       external: false,
       copy: null,
     },

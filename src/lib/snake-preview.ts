@@ -17,7 +17,7 @@ const TURNS: Cell[] = [
 export function createPreview(): Preview {
   return {
     cols: 8,
-    rows: 5,
+    rows: 6,
     dir: { x: 1, y: 0 },
     body: [
       { x: 2, y: 2 },
@@ -60,10 +60,12 @@ export function drawPreview(canvas: HTMLCanvasElement, state: Preview): void {
   const height = canvas.height;
   const cell = Math.floor(Math.min(width / state.cols, height / state.rows));
   context.clearRect(0, 0, width, height);
-  context.fillStyle = '#fafafa';
+  context.fillStyle = '#171717';
 
   for (const part of state.body) {
-    context.fillRect(part.x * cell + 1, part.y * cell + 1, cell - 2, cell - 2);
+    context.beginPath();
+    context.roundRect(part.x * cell + 2, part.y * cell + 2, cell - 4, cell - 4, cell / 5);
+    context.fill();
   }
 }
 

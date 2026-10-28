@@ -209,15 +209,53 @@
   }
 }
 
-.snake-art {
-  display: grid;
-  place-items: center;
-  background: #171717;
+/* The arcade card stands the lobby's handheld on the lobby's ground. */
+.arcade-art {
+  position: relative;
+  background: linear-gradient(to top, rgba(23, 23, 23, 0.035), rgba(23, 23, 23, 0) 30%), #f4f4f2;
 }
 
-.snake-art canvas {
-  width: 80%;
-  height: auto;
+.arcade-handheld {
+  position: absolute;
+  top: 12%;
+  left: 50%;
+  height: 66%;
+  aspect-ratio: 410 / 720;
+  translate: -50% 0;
+}
+
+.project-art .arcade-handheld svg {
+  overflow: visible;
+  filter: drop-shadow(0 14px 18px rgba(23, 23, 23, 0.16));
+}
+
+.arcade-handheld text {
+  font-family: var(--font-display);
+}
+
+.arcade-handheld .arcade-small {
+  letter-spacing: 0.14em;
+}
+
+.arcade-handheld .arcade-logo {
+  font-stretch: 125%;
+  font-weight: 720;
+  letter-spacing: -0.03em;
+}
+
+.arcade-handheld .arcade-logo .arcade-small {
+  font-stretch: 100%;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+}
+
+/* The canvas covers the screen's dotted board: x 101, y 156, 256 by 192 in the 410 by 720 drawing. */
+.arcade-handheld canvas {
+  position: absolute;
+  left: calc(101 / 410 * 100%);
+  top: calc(156 / 720 * 100%);
+  width: calc(256 / 410 * 100%);
+  height: calc(192 / 720 * 100%);
 }
 
 .project-label {

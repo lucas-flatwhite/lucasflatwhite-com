@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import ArcadeHandheld from '../components/ArcadeHandheld.astro';
 import CommandPalette from '../components/CommandPalette.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import SiteHeader from '../components/SiteHeader.astro';
@@ -17,7 +18,7 @@ import { withBase } from '../lib/paths';
 import '../styles/landing.css';
 
 const placed = placeProjects(await getCollection('projects'));
-// Every pictured project, then Snake, then the numbered gaps.
+// Every pictured project, then the arcade, then the numbered gaps.
 const filled = placed.board.length + 1;
 const count = filled + boardGaps(filled);
 // The board runs three columns on a mid screen and four on a wide one; the spans match.
@@ -30,7 +31,7 @@ const place = (index: number) =>
     `--span: ${four[index].span}`,
   ].join('; ');
 const gaps = Array.from({ length: count - filled }, (_, index) => filled + index);
-const playHref = withBase('arcade/snake/');
+const arcadeHref = withBase('arcade/');
 const year = new Date().getFullYear();
 const rawById: Record<string, string> = {
   'ai-timeline-log': timelineSvg,
@@ -91,16 +92,16 @@ const rawById: Record<string, string> = {
               place={place(index)}
             />
           ))}
-          <li class="project-card snake-card" style={place(filled - 1)}>
-            <div class="project-art snake-art">
-              <canvas data-snake-preview width="160" height="96" aria-hidden="true"></canvas>
+          <li class="project-card arcade-card" style={place(filled - 1)}>
+            <div class="project-art arcade-art">
+              <ArcadeHandheld />
             </div>
-            <span class="project-label" aria-hidden="true">Snake</span>
+            <span class="project-label" aria-hidden="true">Flatwhite Arcade</span>
             <div class="project-text">
               <h3 class="project-title">
-                <a href={playHref}>Snake</a>
+                <a href={arcadeHref}>Flatwhite Arcade</a>
               </h3>
-              <p class="project-summary">Play Snake on a paper board.</p>
+              <p class="project-summary">Small games, one cartridge at a time.</p>
             </div>
           </li>
           {gaps.map((index, order) => (

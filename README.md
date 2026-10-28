@@ -2,7 +2,7 @@
 
 Personal site for **Lucas Flatwhite (루카스 플랫화이트)**. Endless curiosity. Spotting problems, then solving them. That's the kind of software engineer I am.
 
-The homepage is a paper board: the name shares the first screen with two project boxes, a small snake preview, and links. Newer featured projects take the upper slots.
+The homepage is a paper board: the name shares the first screen with two project boxes, the arcade box, and links. Newer featured projects take the upper slots.
 
 - **Site**: [lucasflatwhite.com](https://lucasflatwhite.com)
 - **GitHub**: [@lucas-flatwhite](https://github.com/lucas-flatwhite)
@@ -10,9 +10,9 @@ The homepage is a paper board: the name shares the first screen with two project
 
 ## Pages and Sections
 
-- **Board (`/`, `#top`, `#work`)**: Paper page (`body.landing`). The name uses Anybody's weight axis and moves a few pixels toward the pointer (`src/lib/name-motion.ts`). Featured projects with pictures fill the board through `placeProjects`. The two current pictures move: a crema ring spreads under glass panes, and a stack of glass windows turns from 2022 to 2026. They pause while off screen or in a hidden tab (`src/lib/work-motion.ts`) and stand still for visitors who ask for less motion. Every later picture stays still. The snake box is a preview (`src/lib/snake-preview.ts`) and links to `/arcade/snake/`.
-- **Arcade (`/arcade/`)**: Games live in [flatwhite-arcade](https://github.com/lucas-flatwhite/flatwhite-arcade), its own Vercel project. `vercel.json` rewrites `/arcade/*` to it, the way it serves `/ai-timeline-log/`. The snake game is at `/arcade/snake/`, and the old `/play` address redirects there.
-- **Command menu (`Cmd/Ctrl + K`)**: Work, featured projects, Play (the snake game in the arcade), then the profile links (`src/components/CommandPalette.astro`).
+- **Board (`/`, `#top`, `#work`)**: Paper page (`body.landing`). The name swaps one letter at a time for a cartoon picture of itself, and a pointer over a letter swaps it at once (`src/lib/name-swap.ts`). Featured projects with pictures fill the board through `placeProjects`. The two current pictures move: a crema ring spreads under glass panes, and a stack of glass windows turns from 2022 to 2026. They pause while off screen or in a hidden tab (`src/lib/work-motion.ts`) and stand still for visitors who ask for less motion. Every later picture stays still. The arcade box draws the lobby's paper handheld (`src/components/ArcadeHandheld.astro`) with a snake preview on its screen (`src/lib/snake-preview.ts`) and links to the lobby at `/arcade/`.
+- **Arcade (`/arcade/`)**: Games live in [flatwhite-arcade](https://github.com/lucas-flatwhite/flatwhite-arcade), its own Vercel project. `vercel.json` rewrites `/arcade/*` to it, the way it serves `/ai-timeline-log/`. The snake game is at `/arcade/snake/`. The old `/play` address is gone.
+- **Command menu (`Cmd/Ctrl + K`)**: Work, featured projects, Arcade (the lobby), then the profile links (`src/components/CommandPalette.astro`).
 
 ## Content and Code
 
@@ -33,7 +33,7 @@ The homepage is a paper board: the name shares the first screen with two project
 │   ├── content/      # Project markdown entries
 │   ├── data/         # Site profile and links
 │   ├── layouts/      # Shared page layout
-│   ├── lib/          # Name motion, board order, icons, and the snake preview
+│   ├── lib/          # Name swap, board order, icons, and the snake preview
 │   ├── pages/        # Route entry (/)
 │   └── styles/       # Global tokens and landing styles
 └── tests/            # Vitest source contracts and anti-slop checks
