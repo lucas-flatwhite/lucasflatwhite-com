@@ -5,7 +5,7 @@ describe('snake preview', () => {
   it('starts as a short snake facing right', () => {
     expect(createPreview()).toEqual({
       cols: 8,
-      rows: 5,
+      rows: 6,
       dir: { x: 1, y: 0 },
       body: [
         { x: 2, y: 2 },

@@ -1,0 +1,79 @@
+---
+// The arcade lobby's paper handheld, drawn small for the board. Its screen holds the
+// snake preview canvas, placed over the dotted board by the viewBox numbers below.
+---
+
+<div class="arcade-handheld">
+  <svg viewBox="0 0 410 720" overflow="visible" aria-hidden="true">
+    <defs>
+      <pattern id="arcade-grip" width="7" height="10" patternUnits="userSpaceOnUse" x="44" y="1">
+        <rect width="2" height="10" fill="#d3d3ce" />
+      </pattern>
+      <pattern id="arcade-dots" width="32" height="32" patternUnits="userSpaceOnUse" x="101" y="156">
+        <circle cx="16" cy="16" r="1.4" fill="#d9d9d3" />
+      </pattern>
+    </defs>
+
+    <rect x="44" y="0" width="322" height="64" rx="8" fill="#e6e6e1" stroke="#d3d3ce" />
+    <rect x="45" y="1" width="320" height="10" fill="url(#arcade-grip)" />
+    <rect x="68" y="16" width="274" height="17" rx="3" fill="#ffc457" />
+    <text class="arcade-small" x="205" y="28" text-anchor="middle" font-size="10" fill="#171717">FA-01 · SNAKE</text>
+
+    <path
+      d="M30 40H380A30 30 0 0 1 410 70V624A96 96 0 0 1 314 720H30A30 30 0 0 1 0 690V70A30 30 0 0 1 30 40Z"
+      fill="#ffffff"
+      stroke="#dededa"
+    />
+    <text class="arcade-small" x="32" y="78" font-size="9" fill="#a5a5a0">◀ OFF · ON ▶</text>
+    <text class="arcade-small" x="378" y="78" text-anchor="end" font-size="9" fill="#a5a5a0">FA-01 · MADE IN PAPER</text>
+
+    <path
+      d="M40 94H370A14 14 0 0 1 384 108V328A46 46 0 0 1 338 374H40A14 14 0 0 1 26 360V108A14 14 0 0 1 40 94Z"
+      fill="#2a2a2d"
+    />
+    <rect x="44" y="111" width="84" height="2" fill="#ffc457" />
+    <rect x="282" y="111" width="84" height="2" fill="#55555a" />
+    <text class="arcade-small" x="205" y="115" text-anchor="middle" font-size="8" fill="#8d8d90">PAPER MATRIX DISPLAY</text>
+    <circle cx="61" cy="242" r="8" fill="#ff7a3d" opacity="0.25" />
+    <circle cx="61" cy="242" r="4" fill="#ff7a3d" />
+
+    <rect x="92" y="128" width="274" height="228" rx="4" fill="#fbfbf8" />
+    <text class="arcade-small" x="100" y="143" font-size="8" fill="#171717">LEN 03</text>
+    <text class="arcade-small" x="358" y="143" text-anchor="end" font-size="8" fill="#171717">CPU 03</text>
+    <rect x="92" y="150" width="274" height="1" fill="#ecece7" />
+    <rect x="101" y="156" width="256" height="192" rx="3" fill="url(#arcade-dots)" stroke="#ecece7" />
+    <g transform="rotate(-25 213 268)">
+      <ellipse cx="213" cy="268" rx="6" ry="8" fill="#6b4423" />
+      <rect x="212" y="262" width="2" height="12" rx="1" fill="#c99a6b" />
+    </g>
+
+    <text class="arcade-logo" x="32" y="414" font-size="25" fill="#171717">
+      Flatwhite<tspan class="arcade-small" dx="6" font-size="10">ARCADE</tspan>
+    </text>
+
+    <rect x="72" y="457" width="32" height="96" rx="5" fill="#0b0b0b" />
+    <rect x="40" y="489" width="96" height="32" rx="5" fill="#0b0b0b" />
+    <rect x="72" y="454" width="32" height="96" rx="5" fill="#171717" />
+    <rect x="40" y="486" width="96" height="32" rx="5" fill="#171717" />
+
+    <g transform="rotate(-25 306 485)">
+      <rect x="240" y="454" width="132" height="62" rx="31" fill="#f1f1ee" />
+      <circle cx="272" cy="488" r="26" fill="#0b0b0b" />
+      <circle cx="272" cy="485" r="26" fill="#171717" />
+      <circle cx="340" cy="488" r="26" fill="#c98a1c" />
+      <circle cx="340" cy="485" r="26" fill="#ffc457" />
+    </g>
+    <g transform="rotate(-25 175 574)" fill="#cfcfca">
+      <rect x="122" y="569" width="44" height="11" rx="5.5" />
+      <rect x="184" y="569" width="44" height="11" rx="5.5" />
+    </g>
+    <g transform="rotate(-25 333 567)" fill="#e2e2dd">
+      <rect x="303" y="542" width="5" height="50" rx="2.5" />
+      <rect x="317" y="542" width="5" height="50" rx="2.5" />
+      <rect x="331" y="542" width="5" height="50" rx="2.5" />
+      <rect x="345" y="542" width="5" height="50" rx="2.5" />
+      <rect x="359" y="542" width="5" height="50" rx="2.5" />
+    </g>
+  </svg>
+  <canvas data-snake-preview width="256" height="192" aria-hidden="true"></canvas>
+</div>

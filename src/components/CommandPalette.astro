@@ -17,7 +17,7 @@ const projects = placeProjects(await getCollection('projects')).palette.map((ent
   featured: entry.data.featured,
 }));
 
-const commands = buildPaletteCommands(withBase(), withBase('arcade/snake/'), sectionIds, projects);
+const commands = buildPaletteCommands(withBase(), withBase('arcade/'), sectionIds, projects);
 ---
 
 <dialog class="palette" data-palette aria-label="Command menu">

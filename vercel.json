@@ -1,8 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
-    { "source": "/play", "destination": "/arcade/snake/", "permanent": true },
-    { "source": "/play/:path*", "destination": "/arcade/snake/", "permanent": true },
     { "source": "/arcade", "destination": "/arcade/", "permanent": true }
   ],
   "rewrites": [
