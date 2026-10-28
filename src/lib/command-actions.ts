@@ -80,7 +80,7 @@ export function buildPaletteCommands(
     {
       id: 'play',
       label: 'Play',
-      hint: 'Snake, in a field of words',
+      hint: 'Snake on a paper board, in the arcade',
       icon: 'game-controller',
       href: playHref,
       external: false,
