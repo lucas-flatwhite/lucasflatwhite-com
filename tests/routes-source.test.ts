@@ -13,6 +13,7 @@ describe('route source contract', () => {
     expect(vercel.redirects).toEqual(
       expect.arrayContaining([
         { source: '/play', destination: '/arcade/snake/', permanent: true },
+        { source: '/play/', destination: '/arcade/snake/', permanent: true },
         { source: '/play/:path*', destination: '/arcade/snake/', permanent: true },
       ]),
     );
