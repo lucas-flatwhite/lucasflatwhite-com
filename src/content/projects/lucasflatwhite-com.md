@@ -1,11 +1,10 @@
 ---
 title: lucasflatwhite.com
-summary: 'My home on the web: a field of words that moves out of your way, a metal type press run by your scroll, and a snake game.'
+summary: 'My home on the web: a paper board where the letters of my name turn into cartoons, projects rest under glass, and a paper handheld opens the arcade.'
 tags:
   - Astro
   - TypeScript
-  - Three.js
-  - pretext
+  - SVG
 href: https://github.com/lucas-flatwhite/lucasflatwhite-com
 repo: https://github.com/lucas-flatwhite/lucasflatwhite-com
 order: 2
@@ -16,4 +15,4 @@ art:
   alt: "Three frosted glass panes, shaped like the cards on this board, float over fine grey ripples while a crema ring spreads out beneath them."
 ---
 
-Built with Astro and pretext. The text on every page is laid out by hand, line by line, around whatever moves.
+Built with Astro and plain TypeScript. The glass pictures and the name's cartoons are drawn as SVG, and the games live in their own arcade project.
