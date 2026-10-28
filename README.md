@@ -33,7 +33,7 @@ The homepage is a paper board: the name shares the first screen with two project
 │   ├── content/      # Project markdown entries
 │   ├── data/         # Site profile and links
 │   ├── layouts/      # Shared page layout
-│   ├── lib/          # Name motion, board order, icons, and the snake preview
+│   ├── lib/          # Name swap, board order, icons, and the snake preview
 │   ├── pages/        # Route entry (/)
 │   └── styles/       # Global tokens and landing styles
 └── tests/            # Vitest source contracts and anti-slop checks
