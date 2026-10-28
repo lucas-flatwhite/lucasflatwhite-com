@@ -10,17 +10,17 @@ The homepage is a paper board: the name shares the first screen with two project
 
 ## Pages and Sections
 
-- **Board (`/`, `#top`, `#work`)**: Paper page (`body.landing`). The name uses Anybody's weight axis and moves a few pixels toward the pointer (`src/lib/name-motion.ts`). Featured projects with pictures fill the board through `placeProjects`. The two current pictures move: a crema ring spreads under glass panes, and a stack of glass windows turns from 2022 to 2026. They pause while off screen or in a hidden tab (`src/lib/work-motion.ts`) and stand still for visitors who ask for less motion. Every later picture stays still. The snake box is a preview (`src/lib/snake-preview.ts`) and links to `/play`.
-- **Play (`/play`)**: The full-screen snake game (`src/lib/snake-experience.ts`). Its field, rules, and identity strip are unchanged. The page adds the same header and command menu as the homepage.
-- **Command menu (`Cmd/Ctrl + K`)**: Work, featured projects, Play, then the profile links (`src/components/CommandPalette.astro`).
+- **Board (`/`, `#top`, `#work`)**: Paper page (`body.landing`). The name uses Anybody's weight axis and moves a few pixels toward the pointer (`src/lib/name-motion.ts`). Featured projects with pictures fill the board through `placeProjects`. The two current pictures move: a crema ring spreads under glass panes, and a stack of glass windows turns from 2022 to 2026. They pause while off screen or in a hidden tab (`src/lib/work-motion.ts`) and stand still for visitors who ask for less motion. Every later picture stays still. The snake box is a preview (`src/lib/snake-preview.ts`) and links to `/arcade/snake/`.
+- **Arcade (`/arcade/`)**: Games live in [flatwhite-arcade](https://github.com/lucas-flatwhite/flatwhite-arcade), its own Vercel project. `vercel.json` rewrites `/arcade/*` to it, the way it serves `/ai-timeline-log/`. The snake game is at `/arcade/snake/`, and the old `/play` address redirects there.
+- **Command menu (`Cmd/Ctrl + K`)**: Work, featured projects, Play (the snake game in the arcade), then the profile links (`src/components/CommandPalette.astro`).
 
 ## Content and Code
 
-- **Profile and word pools**: `src/data/site.ts` holds `siteProfile`, `playfieldConfig`, `backgroundWordPool`, and the Korean/English burst phrase pools.
-- **Links and icons**: `src/data/links.ts` defines external links. Each entry references a Phosphor icon from `src/lib/icons.ts` and a hover motion (`commit`, `cross`, `lift`). Links marked `featured: true` appear in the opening viewport and the `/play` top strip; all links appear in the footer and command menu.
+- **Profile**: `src/data/site.ts` holds `siteProfile` and the homepage sections.
+- **Links and icons**: `src/data/links.ts` defines external links. Each entry references a Phosphor icon from `src/lib/icons.ts` and a hover motion (`commit`, `cross`, `lift`). Links marked `featured: true` appear in the opening viewport; all links appear in the footer and command menu.
 - **Projects**: `src/content/projects/*.md`. `placeProjects` sorts `featured` entries with the highest `order` first. A featured entry with `art` gets a board box. A featured entry without `art` appears only in the command menu. `motion` is `ripple` or `years` for the two current pictures and is omitted for every later project.
 - **Work pictures**: Run `npm run art` to regenerate `src/assets/work/*.svg` from the generators in `scripts/work-art/`. It drives the installed Google Chrome through `playwright-core` and embeds subset fonts in the years picture. The glass is drawn inside each SVG with filters (`scripts/work-art/glass.js`), not with `backdrop-filter`. The output is committed, and a rerun with no changes writes the same bytes.
-- **Styles and design contract**: Design tokens live in `src/styles/global.css`, page styles in `src/styles/landing.css` and `src/styles/play.css`. `tests/anti-slop.test.ts` enforces the typography, icon, and styling constraints across `src/`.
+- **Styles and design contract**: Design tokens live in `src/styles/global.css`, page styles in `src/styles/landing.css`. `tests/anti-slop.test.ts` enforces the typography, icon, and styling constraints across `src/`.
 
 ## Structure
 
@@ -28,15 +28,14 @@ The homepage is a paper board: the name shares the first screen with two project
 ├── public/           # Static assets
 ├── scripts/          # Build scripts: the Work pictures (`work-art/`)
 ├── src/
-│   ├── assets/fonts/ # Bundled font files
 │   ├── assets/work/  # Generated Work pictures
 │   ├── components/   # Astro UI components
 │   ├── content/      # Project markdown entries
-│   ├── data/         # Site profile, links, and word pools
+│   ├── data/         # Site profile and links
 │   ├── layouts/      # Shared page layout
-│   ├── lib/          # Name motion, board order, icons, and the snake
-│   ├── pages/        # Route entries (/ and /play)
-│   └── styles/       # Global tokens, landing, and game styles
+│   ├── lib/          # Name motion, board order, icons, and the snake preview
+│   ├── pages/        # Route entry (/)
+│   └── styles/       # Global tokens and landing styles
 └── tests/            # Vitest source contracts and anti-slop checks
 ```
 

@@ -30,7 +30,7 @@ const place = (index: number) =>
     `--span: ${four[index].span}`,
   ].join('; ');
 const gaps = Array.from({ length: count - filled }, (_, index) => filled + index);
-const playHref = withBase('play/');
+const playHref = withBase('arcade/snake/');
 const year = new Date().getFullYear();
 const rawById: Record<string, string> = {
   'ai-timeline-log': timelineSvg,
@@ -100,7 +100,7 @@ const rawById: Record<string, string> = {
               <h3 class="project-title">
                 <a href={playHref}>Snake</a>
               </h3>
-              <p class="project-summary">Play Snake, in a field of words.</p>
+              <p class="project-summary">Play Snake on a paper board.</p>
             </div>
           </li>
           {gaps.map((index, order) => (
