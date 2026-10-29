@@ -1,0 +1,36 @@
+---
+// The photos beside the name. They sit side by side and snap, the first one in view.
+// The first is above the fold on every screen, so it loads at once; the rest wait.
+import type { CollectionEntry } from 'astro:content';
+import { Picture } from 'astro:assets';
+
+type Props = {
+  photos: CollectionEntry<'photos'>[];
+  rows: number;
+};
+
+const { photos, rows } = Astro.props;
+// Two of four columns on a wide board, two of three on a mid one, the full width otherwise.
+const sizes = [
+  '(min-width: 1100px) and (hover: hover) 50vw',
+  '(min-width: 721px) and (hover: hover) 67vw',
+  '100vw',
+].join(', ');
+// sharp's AVIF default (50) smooths skin and wall texture away; 64 keeps them at about 26 kB.
+const quality = 64;
+---
+
+<div class="board-photos" style={`--span: ${rows}`}>
+  {photos.map(({ data }, index) => (
+    <Picture
+      src={data.image}
+      alt={data.alt}
+      formats={['avif', 'webp']}
+      widths={[480, 800, 1200, 1600, 2000]}
+      sizes={sizes}
+      quality={quality}
+      priority={index === 0}
+      style={data.position && `object-position: ${data.position}`}
+    />
+  ))}
+</div>

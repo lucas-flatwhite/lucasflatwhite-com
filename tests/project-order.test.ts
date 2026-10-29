@@ -3,6 +3,7 @@ import {
   BOARD_SLOTS,
   GAP_NOTES,
   NAME_ROWS,
+  PHOTO_ROWS,
   boardGaps,
   gapNote,
   placeProjects,
@@ -115,14 +116,36 @@ describe('stackBoard', () => {
 
   it('never stacks two slots over the same rows of a column', () => {
     for (const columns of [3, 4]) {
-      const slots = stackBoard(BOARD_SLOTS, columns);
+      for (const photoRows of [0, PHOTO_ROWS]) {
+        const slots = stackBoard(BOARD_SLOTS, columns, NAME_ROWS, photoRows);
 
-      for (const [index, slot] of slots.entries()) {
-        for (const other of slots.slice(index + 1)) {
-          if (other.column !== slot.column) continue;
-          expect(other.row >= slot.row + slot.span || slot.row >= other.row + other.span).toBe(true);
+        for (const [index, slot] of slots.entries()) {
+          for (const other of slots.slice(index + 1)) {
+            if (other.column !== slot.column) continue;
+            expect(other.row >= slot.row + slot.span || slot.row >= other.row + other.span).toBe(true);
+          }
         }
       }
+    }
+  });
+
+  it('pushes the cards beside the name down under the photos and leaves the last column be', () => {
+    const slots = stackBoard(BOARD_SLOTS, 4, NAME_ROWS, PHOTO_ROWS);
+
+    expect(slots.slice(0, 3).map((slot) => [slot.column, slot.row])).toEqual([
+      [2, PHOTO_ROWS + 1],
+      [3, PHOTO_ROWS + 1],
+      [4, 1],
+    ]);
+  });
+
+  it('keeps every slot off the rows the photos cover', () => {
+    for (const columns of [3, 4]) {
+      const slots = stackBoard(BOARD_SLOTS, columns, NAME_ROWS, PHOTO_ROWS);
+      const underPhotos = slots.filter((slot) => slot.column === 2 || slot.column === 3);
+
+      expect(underPhotos.length).toBeGreaterThan(0);
+      expect(underPhotos.every((slot) => slot.row > PHOTO_ROWS)).toBe(true);
     }
   });
 });

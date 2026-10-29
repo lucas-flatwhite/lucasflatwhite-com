@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import ArcadeHandheld from '../components/ArcadeHandheld.astro';
+import BoardPhotos from '../components/BoardPhotos.astro';
 import CommandPalette from '../components/CommandPalette.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import SiteHeader from '../components/SiteHeader.astro';
@@ -12,18 +13,28 @@ import timelineSvg from '../assets/work/ai-timeline-log.svg?raw';
 import portraitSvg from '../assets/work/lucasflatwhite-com.svg?raw';
 import { featuredLinks } from '../data/links';
 import { siteProfile } from '../data/site';
+import { newestFirst } from '../lib/photos';
 import { pictureForId } from '../lib/project-picture';
-import { boardGaps, gapNote, NAME_ROWS, placeProjects, stackBoard } from '../lib/projects';
+import {
+  boardGaps,
+  gapNote,
+  NAME_ROWS,
+  PHOTO_ROWS,
+  placeProjects,
+  stackBoard,
+} from '../lib/projects';
 import { withBase } from '../lib/paths';
 import '../styles/landing.css';
 
 const placed = placeProjects(await getCollection('projects'));
+const photos = newestFirst(await getCollection('photos'));
 // Every pictured project, then the arcade, then the numbered gaps.
 const filled = placed.board.length + 1;
 const count = filled + boardGaps(filled);
+const photoRows = photos.length > 0 ? PHOTO_ROWS : 0;
 // The board runs three columns on a mid screen and four on a wide one; the spans match.
-const three = stackBoard(count, 3);
-const four = stackBoard(count, 4);
+const three = stackBoard(count, 3, NAME_ROWS, photoRows);
+const four = stackBoard(count, 4, NAME_ROWS, photoRows);
 const place = (index: number) =>
   [
     `--c3: ${three[index].column}; --r3: ${three[index].row}`,
@@ -79,6 +90,7 @@ const rawById: Record<string, string> = {
             ))}
           </ul>
         </div>
+        {photoRows > 0 && <BoardPhotos photos={photos} rows={photoRows} />}
         <ol class="board-cards" id="work">
           {placed.board.map((entry, index) => (
             <ProjectCard
