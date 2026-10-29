@@ -2,7 +2,9 @@
  * The name swaps one letter at a time for a cartoon picture of itself, holds it a beat,
  * then lets the letter spring back upright from the picture's tilt. A pointer over a
  * letter swaps it at once. The cycle runs only while the name is on screen and the tab
- * is showing; with reduced motion there is no cycle and the swaps are instant.
+ * is showing, and on a phone it comes round once every PHONE_CYCLE_MS, since redrawing the
+ * pictures is what keeps a phone busy; with reduced motion there is no cycle and the swaps
+ * are instant.
  */
 import { drawGlyph, GLYPH_ANGLES, GLYPH_STYLES, GLYPH_THEMES, GLYPH_WEIGHT, type Glyph, type GlyphTheme } from './name-glyphs';
 import { motionState } from './work-motion';
@@ -10,6 +12,7 @@ import { motionState } from './work-motion';
 export const SHOW_MS = 950;
 export const GAP_MS = 450;
 export const LEAVE_DELAY_MS = 250;
+export const PHONE_CYCLE_MS = 4000;
 const EXIT_MS = 160;
 
 export function pickOther<T>(items: readonly T[], previous: T | undefined, random: () => number = Math.random): T {
@@ -25,6 +28,11 @@ export function rollGlyph(previous: GlyphTheme | undefined, random: () => number
   };
 }
 
+/** The pause after a picture goes, so a phone sees one picture every PHONE_CYCLE_MS. */
+export function gapAfterSwap(phone: boolean): number {
+  return phone ? PHONE_CYCLE_MS - SHOW_MS : GAP_MS;
+}
+
 type Letter = {
   host: HTMLElement;
   ch: string;
@@ -36,6 +44,8 @@ type Letter = {
 
 export function bindNameSwap(root: HTMLElement): void {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // The same breakpoint that stills the snake and the Work pictures on a phone.
+  const phone = window.matchMedia('(max-width: 720px)');
   const letters: Letter[] = [...root.querySelectorAll<HTMLElement>('[data-name-letter]')].map((host) => ({
     host,
     ch: host.textContent?.trim() ?? '',
@@ -100,7 +110,7 @@ export function bindNameSwap(root: HTMLElement): void {
           hide(letter);
         }
       }
-      cycle = window.setTimeout(step, GAP_MS);
+      cycle = window.setTimeout(step, gapAfterSwap(phone.matches));
     }, SHOW_MS);
   };
 
