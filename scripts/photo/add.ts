@@ -1,7 +1,7 @@
 /*
  * Adds a photo to the board. Run it on your own machine before committing:
  *
- *     npm run photo -- <file> <slug> [--alt "..."] [--date YYYY-MM-DD]
+ *     npm run photo -- <file> <slug> [--alt "..."] [--caption "..."] [--date YYYY-MM-DD]
  *
  * It writes the master to src/assets/photos/ and its entry to src/content/photos/, both
  * named after the month the photo was taken, and leaves the original where it is. The
@@ -19,7 +19,7 @@ import { SLUG, captureDate, photoEntry, photoName, preparePhoto } from './prepar
 
 const MASTERS = new URL('../../src/assets/photos/', import.meta.url);
 const ENTRIES = new URL('../../src/content/photos/', import.meta.url);
-const USAGE = 'Usage: npm run photo -- <file> <slug> [--alt "..."] [--date YYYY-MM-DD]';
+const USAGE = 'Usage: npm run photo -- <file> <slug> [--alt "..."] [--caption "..."] [--date YYYY-MM-DD]';
 
 function fail(message: string): never {
   console.error(message);
@@ -43,7 +43,7 @@ function read(path: string): Buffer {
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
-  options: { alt: { type: 'string' }, date: { type: 'string' } },
+  options: { alt: { type: 'string' }, caption: { type: 'string' }, date: { type: 'string' } },
 });
 const [source, slug] = positionals;
 
@@ -71,7 +71,7 @@ const stripped = (['exif', 'xmp', 'iptc'] as const).filter((key) => original[key
 mkdirSync(MASTERS, { recursive: true });
 mkdirSync(ENTRIES, { recursive: true });
 writeFileSync(master, photo.data);
-writeFileSync(entry, photoEntry({ name, date, alt: values.alt }));
+writeFileSync(entry, photoEntry({ name, date, alt: values.alt, caption: values.caption }));
 
 console.log(
   [
@@ -81,7 +81,7 @@ console.log(
       ? `Removed the original's ${stripped.join(', ').toUpperCase()} (place, camera and the like).`
       : 'The original carried no metadata.',
     `Dated from ${values.date ? '--date' : taken ? 'the photo' : 'today, since the photo has no date'}.`,
-    values.alt ? '' : 'Write the alt in the entry next; the build stops while it is empty.',
+    values.alt && values.caption ? '' : 'Write the alt and caption in the entry next; the build stops while either is empty.',
   ]
     .filter(Boolean)
     .join('\n'),

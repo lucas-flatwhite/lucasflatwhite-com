@@ -139,11 +139,13 @@ const rawById: Record<string, string> = {
 <script>
   import { mountCopyLinks } from '../lib/copy-link';
   import { bindNameSwap } from '../lib/name-swap';
+  import { bindPhotoDeck } from '../lib/photo-deck';
   import { mountSnakePreview } from '../lib/snake-preview';
   import { bindWorkMotion } from '../lib/work-motion';
 
   const name = document.querySelector<HTMLElement>('[data-name]');
   const preview = document.querySelector<HTMLCanvasElement>('[data-snake-preview]');
+  const deck = document.querySelector<HTMLElement>('[data-photo-deck]');
 
   if (name) {
     bindNameSwap(name);
@@ -151,6 +153,10 @@ const rawById: Record<string, string> = {
 
   if (preview) {
     mountSnakePreview(preview);
+  }
+
+  if (deck) {
+    bindPhotoDeck(deck);
   }
 
   bindWorkMotion(document.querySelectorAll<HTMLElement>('.project-motion'));
