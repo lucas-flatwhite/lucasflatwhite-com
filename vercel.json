@@ -1,13 +1,16 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
-    { "source": "/arcade", "destination": "/arcade/", "permanent": true }
+    { "source": "/arcade", "destination": "/arcade/", "permanent": true },
+    { "source": "/arcade/suika", "destination": "/arcade/suika/", "permanent": true }
   ],
   "rewrites": [
     { "source": "/ai-timeline-log/", "destination": "https://ai-timeline-log.vercel.app/ai-timeline-log/index.html" },
     { "source": "/ai-timeline-log/:path*/", "destination": "https://ai-timeline-log.vercel.app/ai-timeline-log/:path*/index.html" },
     { "source": "/ai-timeline-log/:path*", "destination": "https://ai-timeline-log.vercel.app/ai-timeline-log/:path*" },
     { "source": "/arcade/", "destination": "https://flatwhite-arcade.vercel.app/arcade/index.html" },
+    { "source": "/arcade/suika/", "destination": "https://suika-balls.vercel.app/index.html" },
+    { "source": "/arcade/suika/:path*", "destination": "https://suika-balls.vercel.app/:path*" },
     { "source": "/arcade/:path*/", "destination": "https://flatwhite-arcade.vercel.app/arcade/:path*/index.html" },
     { "source": "/arcade/:path*", "destination": "https://flatwhite-arcade.vercel.app/arcade/:path*" }
   ]
