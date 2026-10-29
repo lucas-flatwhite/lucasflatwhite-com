@@ -77,7 +77,7 @@ export function photoEntry({
   return [
     `image: ../../assets/photos/${name}.jpg`,
     `alt: ${quoted(alt)}`,
-    '# A few words shown on the photo, at most 60 characters.',
+    '# A few words shown on the photo, at most 40 characters.',
     `caption: ${quoted(caption)}`,
     `date: ${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
     '# Where the crop keeps its middle when the frame is narrower than the photo.',

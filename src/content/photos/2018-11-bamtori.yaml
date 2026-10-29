@@ -1,6 +1,6 @@
 image: ../../assets/photos/2018-11-bamtori.jpg
 alt: "Bamtori, a cream Scottish Fold with folded ears and amber eyes, sitting in a white cabinet and glaring up at the camera."
-# A few words shown on the photo, at most 60 characters.
+# A few words shown on the photo, at most 40 characters.
 caption: "Bamtori, on guard in the closet."
 date: 2018-11-25
 # Where the crop keeps its middle when the frame is narrower than the photo.

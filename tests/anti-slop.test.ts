@@ -47,8 +47,9 @@ describe('anti-slop contract', () => {
 
   it('keeps the landing corners on its corner tokens', () => {
     const landing = files.filter((file) => /landing\.css|global\.css|Glyph|CommandPalette/.test(file.path));
-    // Controls stay at 6px; cards, pills and the hover ring read the tokens set in global.css.
-    const allowed = /^(?:0(?:px)?|6px|var\(--radius-(?:card|pill)\)|calc\(var\(--radius-card\) \+ \d+px\))$/;
+    // Controls stay at 6px; cards, pills, the hover ring and boxes set inside a card read the
+    // tokens set in global.css.
+    const allowed = /^(?:0(?:px)?|6px|var\(--radius-(?:card|pill)\)|calc\(var\(--radius-card\) [+-] \d+px\))$/;
 
     for (const file of landing) {
       // The X profile picture in the top bar is the one round shape, as it is on X.

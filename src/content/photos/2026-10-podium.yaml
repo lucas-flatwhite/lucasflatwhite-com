@@ -1,6 +1,6 @@
 image: ../../assets/photos/2026-10-podium.jpg
 alt: "Lucas speaking into a microphone at a white podium, a laptop open on it."
-# A few words shown on the photo, at most 60 characters.
+# A few words shown on the photo, at most 40 characters.
 caption: "On stage, talking about what I build."
 date: 2026-10-29
 # Where the crop keeps its middle when the frame is narrower than the photo.

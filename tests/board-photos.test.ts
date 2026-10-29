@@ -69,7 +69,7 @@ describe('photo masters', () => {
       const caption = entry.source.match(/^caption: "(.+)"$/m)?.[1] ?? '';
 
       expect(caption.length, entry.name).toBeGreaterThan(0);
-      expect(caption.length, entry.name).toBeLessThanOrEqual(60);
+      expect(caption.length, entry.name).toBeLessThanOrEqual(40);
     }
   });
 

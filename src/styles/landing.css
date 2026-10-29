@@ -197,66 +197,104 @@
   object-fit: cover;
 }
 
-/* The caption and the dots share a line along the bottom, on the dark pill the Work labels wear. */
+/*
+ * The caption and the dots share a line along the bottom, on two dark boxes of the same
+ * height: the caption nearly solid, the dots see-through. --photo-count comes from
+ * BoardPhotos.astro; the current dot takes two slots, so the dots need one slot more than
+ * there are photos, and the caption stops short of them.
+ */
+.board-photos {
+  --photo-inset: 12px;
+  --photo-bar: 36px;
+  --dot: 14px;
+}
+
+.board-photos:has(.photo-dots) {
+  --dots-room: calc((var(--photo-count) + 1) * var(--dot) + 20px + 8px);
+}
+
 .photo-caption,
 .photo-dots {
   position: absolute;
-  bottom: 12px;
-  border-radius: var(--radius-pill);
-  background: rgba(23, 23, 23, 0.78);
+  bottom: var(--photo-inset);
+  min-height: var(--photo-bar);
+  border-radius: calc(var(--radius-card) - 6px);
 }
 
 .photo-caption {
-  left: 12px;
-  /* --dots-room (BoardPhotos.astro) keeps the caption clear of the dots. */
-  max-width: calc(100% - 24px - var(--dots-room, 0px));
-  padding: 5px 12px;
+  left: var(--photo-inset);
+  max-width: calc(100% - 2 * var(--photo-inset) - var(--dots-room, 0px));
+  /* One line, so it matches the dots; a caption too long for a phone ends in an ellipsis. */
+  overflow: hidden;
+  padding: 0 12px;
+  background: rgba(23, 23, 23, 0.85);
   color: #fafafa;
-  font-size: 0.85rem;
-  font-weight: 500;
-  line-height: 1.5;
+  font-size: 0.875rem;
+  line-height: var(--photo-bar);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .photo-dots {
-  right: 12px;
+  right: var(--photo-inset);
   z-index: 2;
   display: flex;
   margin: 0;
-  padding: 0 4px;
+  padding: 0 10px;
+  background: rgba(23, 23, 23, 0.45);
   list-style: none;
 }
 
-/* A 20px target around a small mark; the current photo's mark stretches into a bar. */
+/* Each dot is a full-height target; the current one stretches into a bar two slots wide. */
 .photo-dot {
   display: grid;
   place-items: center;
-  width: 20px;
-  height: 30px;
+  width: var(--dot);
+  height: var(--photo-bar);
   padding: 0;
   border: 0;
   background: none;
   cursor: pointer;
+  transition: width var(--dur-short) var(--ease-out);
 }
 
 .photo-dot::after {
   content: '';
-  width: 6px;
-  height: 6px;
+  width: calc(var(--dot) / 2);
+  height: calc(var(--dot) / 2);
   border-radius: var(--radius-pill);
   background: #fafafa;
-  opacity: 0.45;
+  opacity: 0.7;
   transition:
     width var(--dur-short) var(--ease-out),
     opacity var(--dur-short) var(--ease-out);
 }
 
+.photo-dot[aria-current='true'] {
+  width: calc(var(--dot) * 2);
+}
+
 .photo-dot[aria-current='true']::after {
-  width: 14px;
+  width: calc(var(--dot) * 1.5);
   opacity: 1;
 }
 
 .photo-dot:focus-visible {
   outline-offset: -2px;
+}
+
+/* On the board the frame is wider than a phone, so the caption and dots grow with it. */
+@media (min-width: 721px) and (hover: hover) {
+  .board-photos {
+    --photo-inset: 16px;
+    --photo-bar: 44px;
+    --dot: 18px;
+  }
+
+  .photo-caption {
+    padding: 0 20px;
+    font-size: 1.125rem;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -277,6 +315,7 @@
 @media (prefers-reduced-motion: reduce) {
   .photo-slide,
   .photo-slide.is-current,
+  .photo-dot,
   .photo-dot::after {
     transition: none;
   }

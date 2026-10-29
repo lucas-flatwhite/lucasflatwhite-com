@@ -30,7 +30,7 @@ const photos = defineCollection({
       image: image(),
       alt: z.string().min(1),
       // Shown on the photo while it is up, so it stays short.
-      caption: z.string().min(1).max(60),
+      caption: z.string().min(1).max(40),
       date: z.coerce.date(),
       // Where the crop keeps its middle, as "x% y%"; the middle of the photo when left out.
       position: z.string().regex(/^\d{1,3}% \d{1,3}%$/).optional()

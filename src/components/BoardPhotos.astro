@@ -19,13 +19,11 @@ const sizes = [
 ].join(', ');
 // sharp's AVIF default (50) smooths skin and wall texture away; 64 keeps them at about 26 kB.
 const quality = 64;
-// Each dot is 20px wide; the pill around them adds 8px and an 8px gap keeps the caption off it.
-const dotsRoom = photos.length > 1 ? photos.length * 20 + 16 : 0;
 ---
 
 <div
   class="board-photos"
-  style={`--span: ${rows}; --dots-room: ${dotsRoom}px`}
+  style={`--span: ${rows}; --photo-count: ${photos.length}`}
   role="region"
   aria-roledescription="carousel"
   aria-label="Photos"
