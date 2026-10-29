@@ -3,6 +3,7 @@ import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { describe, expect, it } from 'vitest';
 import { LONG_EDGE, MAX_BYTES } from '../scripts/photo/prepare.ts';
+import { nextIndex } from '../src/lib/photo-deck';
 import { newestFirst } from '../src/lib/photos';
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8');
@@ -26,13 +27,25 @@ describe('board photos', () => {
     expect(work).toBeGreaterThan(strip);
   });
 
-  it('cover their frame edge to edge whatever shape the board gives it', () => {
+  it('stack in one frame and cover it edge to edge whatever shape the board gives it', () => {
     // The frame's shape follows the rows beside the name, so a photo is cropped to it, never fitted.
-    expect(landingStyles).toMatch(/\.board-photos picture \{[^}]*flex: 0 0 100%;/);
+    expect(landingStyles).toMatch(/\.photo-slide \{[^}]*position: absolute;[^}]*inset: 0;[^}]*opacity: 0;/);
+    expect(landingStyles).toMatch(/\.photo-slide\.is-current \{[^}]*opacity: 1;/);
     expect(landingStyles).toMatch(
-      /\.board-photos img \{[^}]*width: 100%;[^}]*height: 100%;[^}]*object-fit: cover;/,
+      /\.photo-slide img \{[^}]*width: 100%;[^}]*height: 100%;[^}]*object-fit: cover;/,
     );
-    expect(landingStyles).toMatch(/\.board-photos::-webkit-scrollbar \{[^}]*display: none;/);
+  });
+
+  it('show each photo with its caption and a dot to jump to it', () => {
+    expect(photos).toContain('<figcaption class="photo-caption">{data.caption}</figcaption>');
+    expect(photos).toContain('data-photo-dot');
+    expect(photos).toContain("class:list={['photo-slide', { 'is-current': index === 0 }]}");
+    expect(landing).toContain('bindPhotoDeck(deck)');
+  });
+
+  it('turn to the next photo and back to the first after the last', () => {
+    expect([0, 1, 2].map((index) => nextIndex(index, 3))).toEqual([1, 2, 0]);
+    expect(nextIndex(0, 1)).toBe(0);
   });
 
   it('load the first photo at once and cut AVIF and WebP copies for each screen', () => {
@@ -51,6 +64,15 @@ describe('board photos', () => {
 
 // Guards the rules `npm run photo` applies, so a photo dropped in by hand is caught too.
 describe('photo masters', () => {
+  it('give every photo a short caption', () => {
+    for (const entry of entries) {
+      const caption = entry.source.match(/^caption: "(.+)"$/m)?.[1] ?? '';
+
+      expect(caption.length, entry.name).toBeGreaterThan(0);
+      expect(caption.length, entry.name).toBeLessThanOrEqual(40);
+    }
+  });
+
   it('pair every master with one entry that points at it', () => {
     const pointedAt = entries.map((entry) => entry.source.match(/^image: \.\.\/\.\.\/assets\/photos\/(.+)$/m)?.[1]);
 

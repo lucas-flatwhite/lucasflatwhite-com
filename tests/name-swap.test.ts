@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { GLYPH_ANGLES, GLYPH_STYLES, GLYPH_THEMES } from '../src/lib/name-glyphs';
-import { pickOther, rollGlyph } from '../src/lib/name-swap';
+import { GAP_MS, gapAfterSwap, PHONE_CYCLE_MS, pickOther, rollGlyph, SHOW_MS } from '../src/lib/name-swap';
 
 const sequence = (...values: number[]) => {
   let i = 0;
@@ -50,5 +50,16 @@ describe('rollGlyph', () => {
 
   it('never leaves the letter upright', () => {
     expect(GLYPH_ANGLES).not.toContain(0);
+  });
+});
+
+describe('gapAfterSwap', () => {
+  it('keeps the quick cycle on a wide screen', () => {
+    expect(gapAfterSwap(false)).toBe(GAP_MS);
+  });
+
+  it('shows one picture every four seconds on a phone', () => {
+    expect(PHONE_CYCLE_MS).toBe(4000);
+    expect(SHOW_MS + gapAfterSwap(true)).toBe(PHONE_CYCLE_MS);
   });
 });

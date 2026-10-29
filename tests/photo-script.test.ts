@@ -84,12 +84,19 @@ describe('preparePhoto', () => {
 });
 
 describe('photoEntry', () => {
-  it('points at the master and leaves the alt to fill when none is given', () => {
+  it('points at the master and leaves the alt and caption to fill when none is given', () => {
     const entry = photoEntry({ name: '2026-10-podium', date: new Date(2026, 9, 28) });
 
     expect(entry).toContain('image: ../../assets/photos/2026-10-podium.jpg\n');
     expect(entry).toContain('date: 2026-10-28\n');
     expect(entry).toContain("alt: ''\n");
+    expect(entry).toContain("caption: ''\n");
+  });
+
+  it('writes the caption when one is given', () => {
+    const entry = photoEntry({ name: 'x', date: new Date(2026, 9, 28), caption: 'Bamtori, on guard.' });
+
+    expect(entry).toContain('caption: "Bamtori, on guard."\n');
   });
 
   it('quotes the alt so any sentence stays valid YAML', () => {
