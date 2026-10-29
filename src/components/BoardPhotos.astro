@@ -1,6 +1,7 @@
 ---
-// The photos beside the name. They sit side by side and snap, the first one in view.
-// The first is above the fold on every screen, so it loads at once; the rest wait.
+// The photos beside the name. They take turns in one frame, each with its caption
+// (photo-deck.ts); without script the first one stays up. The first is above the fold on
+// every screen, so it loads at once; the rest wait.
 import type { CollectionEntry } from 'astro:content';
 import { Picture } from 'astro:assets';
 
@@ -18,19 +19,50 @@ const sizes = [
 ].join(', ');
 // sharp's AVIF default (50) smooths skin and wall texture away; 64 keeps them at about 26 kB.
 const quality = 64;
+// Each dot is 20px wide; the pill around them adds 8px and an 8px gap keeps the caption off it.
+const dotsRoom = photos.length > 1 ? photos.length * 20 + 16 : 0;
 ---
 
-<div class="board-photos" style={`--span: ${rows}`}>
+<div
+  class="board-photos"
+  style={`--span: ${rows}; --dots-room: ${dotsRoom}px`}
+  role="region"
+  aria-roledescription="carousel"
+  aria-label="Photos"
+  data-photo-deck
+>
   {photos.map(({ data }, index) => (
-    <Picture
-      src={data.image}
-      alt={data.alt}
-      formats={['avif', 'webp']}
-      widths={[480, 800, 1200, 1600, 2000]}
-      sizes={sizes}
-      quality={quality}
-      priority={index === 0}
-      style={data.position && `object-position: ${data.position}`}
-    />
+    <figure
+      class:list={['photo-slide', { 'is-current': index === 0 }]}
+      aria-hidden={index === 0 ? undefined : 'true'}
+      data-photo-slide
+    >
+      <Picture
+        src={data.image}
+        alt={data.alt}
+        formats={['avif', 'webp']}
+        widths={[480, 800, 1200, 1600, 2000]}
+        sizes={sizes}
+        quality={quality}
+        priority={index === 0}
+        style={data.position && `object-position: ${data.position}`}
+      />
+      <figcaption class="photo-caption">{data.caption}</figcaption>
+    </figure>
   ))}
+  {photos.length > 1 && (
+    <ol class="photo-dots">
+      {photos.map(({ data }, index) => (
+        <li>
+          <button
+            type="button"
+            class="photo-dot"
+            aria-label={`Photo ${index + 1} of ${photos.length}: ${data.caption}`}
+            aria-current={index === 0 ? 'true' : 'false'}
+            data-photo-dot
+          ></button>
+        </li>
+      ))}
+    </ol>
+  )}
 </div>

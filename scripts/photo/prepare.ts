@@ -60,11 +60,25 @@ export async function preparePhoto(input: Buffer, { maxBytes = MAX_BYTES } = {})
   );
 }
 
-/** The collection entry for a master. An empty alt stops the build until it is written. */
-export function photoEntry({ name, date, alt }: { name: string; date: Date; alt?: string }): string {
+/** The collection entry for a master. An empty alt or caption stops the build until it is written. */
+export function photoEntry({
+  name,
+  date,
+  alt,
+  caption,
+}: {
+  name: string;
+  date: Date;
+  alt?: string;
+  caption?: string;
+}): string {
+  const quoted = (text?: string) => (text ? JSON.stringify(text) : "''");
+
   return [
     `image: ../../assets/photos/${name}.jpg`,
-    `alt: ${alt ? JSON.stringify(alt) : "''"}`,
+    `alt: ${quoted(alt)}`,
+    '# A few words shown on the photo, at most 60 characters.',
+    `caption: ${quoted(caption)}`,
     `date: ${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
     '# Where the crop keeps its middle when the frame is narrower than the photo.',
     '# position: 50% 50%',

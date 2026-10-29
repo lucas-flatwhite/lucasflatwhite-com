@@ -22,13 +22,15 @@ const projects = defineCollection({
     })
 });
 
-// Photos beside the name, one YAML entry per master. `npm run photo` writes both.
+// Photos beside the name, one YAML entry per master, taking turns in one frame. `npm run photo` writes both.
 const photos = defineCollection({
   type: 'data',
   schema: ({ image }) =>
     z.object({
       image: image(),
       alt: z.string().min(1),
+      // Shown on the photo while it is up, so it stays short.
+      caption: z.string().min(1).max(60),
       date: z.coerce.date(),
       // Where the crop keeps its middle, as "x% y%"; the middle of the photo when left out.
       position: z.string().regex(/^\d{1,3}% \d{1,3}%$/).optional()

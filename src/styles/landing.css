@@ -152,34 +152,134 @@
 
 /*
  * The photos sit between the name and the cards on a phone and span two columns beside
- * the name on the board. Each one fills the frame, side by side, and they snap.
+ * the name on the board. They stack in one frame and take turns (photo-deck.ts): the
+ * current one fades in over the last with its caption. Each fills the frame edge to edge.
  */
 .board-photos {
-  display: flex;
+  position: relative;
   aspect-ratio: 16 / 10;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: hidden;
   border-radius: var(--radius-card);
   background: #ebebeb;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
+  cursor: pointer;
 }
 
-/* A scrollbar that takes room would leave a bare band under the photos in older Safari. */
-.board-photos::-webkit-scrollbar {
-  display: none;
+.photo-slide {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 700ms var(--ease-out),
+    visibility 0s linear 700ms;
 }
 
-.board-photos picture {
-  flex: 0 0 100%;
-  scroll-snap-align: start;
+.photo-slide.is-current {
+  z-index: 1;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 700ms var(--ease-out),
+    visibility 0s;
 }
 
-.board-photos img {
+.photo-slide picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.photo-slide img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* The caption and the dots share a line along the bottom, on the dark pill the Work labels wear. */
+.photo-caption,
+.photo-dots {
+  position: absolute;
+  bottom: 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(23, 23, 23, 0.78);
+}
+
+.photo-caption {
+  left: 12px;
+  /* --dots-room (BoardPhotos.astro) keeps the caption clear of the dots. */
+  max-width: calc(100% - 24px - var(--dots-room, 0px));
+  padding: 5px 12px;
+  color: #fafafa;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.photo-dots {
+  right: 12px;
+  z-index: 2;
+  display: flex;
+  margin: 0;
+  padding: 0 4px;
+  list-style: none;
+}
+
+/* A 20px target around a small mark; the current photo's mark stretches into a bar. */
+.photo-dot {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.photo-dot::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: #fafafa;
+  opacity: 0.45;
+  transition:
+    width var(--dur-short) var(--ease-out),
+    opacity var(--dur-short) var(--ease-out);
+}
+
+.photo-dot[aria-current='true']::after {
+  width: 14px;
+  opacity: 1;
+}
+
+.photo-dot:focus-visible {
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .photo-slide .photo-caption {
+    translate: 0 6px;
+    opacity: 0;
+    transition:
+      translate var(--dur-long) var(--ease-out) 200ms,
+      opacity var(--dur-long) var(--ease-out) 200ms;
+  }
+
+  .photo-slide.is-current .photo-caption {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-slide,
+  .photo-slide.is-current,
+  .photo-dot::after {
+    transition: none;
+  }
 }
 
 /*
