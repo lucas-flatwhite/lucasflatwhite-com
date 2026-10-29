@@ -151,6 +151,38 @@
 }
 
 /*
+ * The photos sit between the name and the cards on a phone and span two columns beside
+ * the name on the board. Each one fills the frame, side by side, and they snap.
+ */
+.board-photos {
+  display: flex;
+  aspect-ratio: 16 / 10;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-radius: var(--radius-card);
+  background: #ebebeb;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+/* A scrollbar that takes room would leave a bare band under the photos in older Safari. */
+.board-photos::-webkit-scrollbar {
+  display: none;
+}
+
+.board-photos picture {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+}
+
+.board-photos img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/*
  * A card is one picture with its title. The title link stretches over the whole card,
  * and the Source mark sits above it so the two never nest.
  * On a phone (and any screen without hover) the words sit under a square picture;
@@ -391,6 +423,14 @@
     grid-column: 1;
     grid-row: 1 / span var(--span);
     padding-right: 8px;
+  }
+
+  /* The rows set the height, so a tall photo is cropped instead of stretching them. */
+  .board-photos {
+    grid-column: 2 / span 2;
+    grid-row: 1 / span var(--span);
+    aspect-ratio: auto;
+    contain: size;
   }
 
   .name {

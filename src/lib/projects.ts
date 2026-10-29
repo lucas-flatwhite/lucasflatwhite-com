@@ -68,6 +68,9 @@ export function gapNote(index: number): string {
 /** The name heads the first column and takes this many rows before any card lands under it. */
 export const NAME_ROWS = 5;
 
+/** The photos span the second and third columns beside the name, as tall as the name. */
+export const PHOTO_ROWS = NAME_ROWS;
+
 /** Rows each shape spans; a column is four rows wide, so these read as 4:5, 4:3 and 1:1. */
 const SHAPE_ROWS = { tall: 5, wide: 3, square: 4 } as const;
 const SHAPE_CYCLE = ['tall', 'wide', 'square', 'square', 'tall', 'wide'] as const;
@@ -77,15 +80,23 @@ export type Slot = { column: number; row: number; span: number };
 /**
  * Drops each slot, in reading order, into the shortest column, so the first card sits
  * beside the name and the next ones fill across. Columns and rows are 1-based grid lines.
+ * The photos push the cards under them down: a column under the photos still takes its
+ * turn across the first row, and its first card lands below them.
  */
-export function stackBoard(count: number, columns: number, nameRows = NAME_ROWS): Slot[] {
+export function stackBoard(
+  count: number,
+  columns: number,
+  nameRows = NAME_ROWS,
+  photoRows = 0,
+): Slot[] {
   const heights = Array.from({ length: columns }, (_, column) => (column === 0 ? nameRows : 0));
+  const floors = heights.map((_, column) => (column === 1 || column === 2 ? photoRows : 0));
 
   return Array.from({ length: count }, (_, index) => {
     const span = SHAPE_ROWS[SHAPE_CYCLE[index % SHAPE_CYCLE.length]];
     const column = heights.indexOf(Math.min(...heights));
-    const row = heights[column] + 1;
-    heights[column] += span;
+    const row = Math.max(heights[column], floors[column]) + 1;
+    heights[column] = row - 1 + span;
     return { column: column + 1, row, span };
   });
 }

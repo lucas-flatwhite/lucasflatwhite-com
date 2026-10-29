@@ -22,6 +22,20 @@ const projects = defineCollection({
     })
 });
 
+// Photos beside the name, one YAML entry per master. `npm run photo` writes both.
+const photos = defineCollection({
+  type: 'data',
+  schema: ({ image }) =>
+    z.object({
+      image: image(),
+      alt: z.string().min(1),
+      date: z.coerce.date(),
+      // Where the crop keeps its middle, as "x% y%"; the middle of the photo when left out.
+      position: z.string().regex(/^\d{1,3}% \d{1,3}%$/).optional()
+    })
+});
+
 export const collections = {
-  projects
+  projects,
+  photos
 };

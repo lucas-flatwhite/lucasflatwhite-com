@@ -2,7 +2,7 @@
 
 Personal site for **Lucas Flatwhite (루카스 플랫화이트)**. Endless curiosity. Spotting problems, then solving them. That's the kind of software engineer I am.
 
-The homepage is a paper board: the name shares the first screen with two project boxes, the arcade box, and links. Newer featured projects take the upper slots.
+The homepage is a paper board: the name shares the first screen with a photo, the arcade box, and links. The photo spans the two columns beside the name, and the project boxes sit under it, newer ones higher.
 
 - **Site**: [lucasflatwhite.com](https://lucasflatwhite.com)
 - **GitHub**: [@lucas-flatwhite](https://github.com/lucas-flatwhite)
@@ -18,6 +18,7 @@ The homepage is a paper board: the name shares the first screen with two project
 
 - **Profile**: `src/data/site.ts` holds `siteProfile` and the homepage sections.
 - **Links and icons**: `src/data/links.ts` defines external links. Each entry references a Phosphor icon from `src/lib/icons.ts` and a hover motion (`commit`, `cross`, `lift`). Links marked `featured: true` appear in the opening viewport; all links appear in the footer and command menu.
+- **Photos**: Add one with `npm run photo -- <file> <slug> [--alt "..."] [--date YYYY-MM-DD]` on your own machine, then commit. `scripts/photo/` stands the photo upright, fits its long edge in 2000px, saves a JPEG of at most 600 kB, and strips all metadata, so no place or camera leaves with it. It writes the master to `src/assets/photos/` and an entry to `src/content/photos/`, both named after the month the photo was taken (`2026-10-podium`), and leaves the original where it is. Write the `alt` in the entry if you did not pass one; the build stops while it is empty. `position` (`x% y%`) picks where the crop keeps its middle. The newest photo comes first. The build cuts AVIF and WebP copies from each master, and the first photo loads at once because it is in the first screen. `tests/board-photos.test.ts` checks every master against the same rules, so run `npm test` before a pull request. Anything pushed stays in the public history, even after it is deleted.
 - **Projects**: `src/content/projects/*.md`. `placeProjects` sorts `featured` entries with the highest `order` first. A featured entry with `art` gets a board box. A featured entry without `art` appears only in the command menu. `motion` is `ripple` or `years` for the two current pictures and is omitted for every later project.
 - **Work pictures**: Run `npm run art` to regenerate `src/assets/work/*.svg` from the generators in `scripts/work-art/`. It drives the installed Google Chrome through `playwright-core` and embeds subset fonts in the years picture. The glass is drawn inside each SVG with filters (`scripts/work-art/glass.js`), not with `backdrop-filter`. The output is committed, and a rerun with no changes writes the same bytes.
 - **Styles and design contract**: Design tokens live in `src/styles/global.css`, page styles in `src/styles/landing.css`. `tests/anti-slop.test.ts` enforces the typography, icon, and styling constraints across `src/`.
@@ -26,14 +27,15 @@ The homepage is a paper board: the name shares the first screen with two project
 
 ```text
 ├── public/           # Static assets
-├── scripts/          # Build scripts: the Work pictures (`work-art/`)
+├── scripts/          # The Work pictures (`work-art/`) and adding photos (`photo/`)
 ├── src/
+│   ├── assets/photos/ # Photos beside the name
 │   ├── assets/work/  # Generated Work pictures
 │   ├── components/   # Astro UI components
-│   ├── content/      # Project markdown entries
+│   ├── content/      # Project markdown and photo entries
 │   ├── data/         # Site profile and links
 │   ├── layouts/      # Shared page layout
-│   ├── lib/          # Name swap, board order, icons, and the snake preview
+│   ├── lib/          # Name swap, board and photo order, icons, and the snake preview
 │   ├── pages/        # Route entry (/)
 │   └── styles/       # Global tokens and landing styles
 └── tests/            # Vitest source contracts and anti-slop checks
@@ -48,4 +50,5 @@ npm run check
 npm test -- --run
 npm run build
 npm run art
+npm run photo -- <file> <slug>
 ```

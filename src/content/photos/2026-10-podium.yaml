@@ -1,0 +1,5 @@
+image: ../../assets/photos/2026-10-podium.jpg
+alt: "Lucas speaking into a microphone at a white podium, a laptop open on it."
+date: 2026-10-29
+# Where the crop keeps its middle when the frame is narrower than the photo.
+# position: 50% 50%
