@@ -2,7 +2,7 @@
  * The photos beside the name take turns in one frame: each holds for HOLD_MS, then the
  * next fades in over it with its caption. The dots beside the caption jump to a photo, and
  * a click on the frame moves to the next one. The turn runs only while the frame is on
- * screen, the tab is showing, and no pointer or focus rests on it; with reduced motion
+ * screen, the tab is showing, and no mouse or keyboard focus rests on it; with reduced motion
  * there is no turn and a jump is instant.
  */
 import { motionState } from './work-motion';
@@ -72,7 +72,8 @@ export function bindPhotoDeck(root: HTMLElement): void {
   });
   root.addEventListener('pointerenter', (event) => event.pointerType === 'mouse' && hold(true));
   root.addEventListener('pointerleave', () => hold(false));
-  root.addEventListener('focusin', () => hold(true));
+  // A tapped dot keeps focus on a phone, so only keyboard focus holds the turn.
+  root.addEventListener('focusin', (event) => (event.target as Element).matches(':focus-visible') && hold(true));
   root.addEventListener('focusout', (event) => {
     if (!root.contains(event.relatedTarget as Node | null)) {
       hold(false);
