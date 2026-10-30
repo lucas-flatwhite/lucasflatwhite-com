@@ -13,3 +13,6 @@ coverage/
 
 # OS
 .DS_Store
+
+# Superpowers docs
+docs/superpowers/
