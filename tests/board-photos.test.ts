@@ -4,7 +4,7 @@ import sharp from 'sharp';
 import { describe, expect, it } from 'vitest';
 import { LONG_EDGE, MAX_BYTES } from '../scripts/photo/prepare.ts';
 import { nextIndex } from '../src/lib/photo-deck';
-import { newestFirst } from '../src/lib/photos';
+import { deckOrder } from '../src/lib/photos';
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8');
 const landing = read('src/pages/index.astro');
@@ -56,9 +56,16 @@ describe('board photos', () => {
 
   it('put the newest photo first and break a tie by name', () => {
     const photo = (id: string, date: string) => ({ id, data: { date: new Date(date) } });
-    const sorted = newestFirst([photo('a', '2026-01-01'), photo('c', '2026-10-01'), photo('b', '2026-10-01')]);
+    const sorted = deckOrder([photo('a', '2026-01-01'), photo('c', '2026-10-01'), photo('b', '2026-10-01')]);
 
     expect(sorted.map((entry) => entry.id)).toEqual(['b', 'c', 'a']);
+  });
+
+  it('put a pinned photo ahead of newer ones', () => {
+    const photo = (id: string, date: string, pinned = false) => ({ id, data: { date: new Date(date), pinned } });
+    const sorted = deckOrder([photo('new', '2026-10-01'), photo('old', '2018-11-25', true)]);
+
+    expect(sorted.map((entry) => entry.id)).toEqual(['old', 'new']);
   });
 });
 

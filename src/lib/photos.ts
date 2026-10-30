@@ -1,8 +1,11 @@
-type Dated = { id: string; data: { date: Date } };
+type Dated = { id: string; data: { date: Date; pinned?: boolean } };
 
-/** The newest photo leads the strip; photos from the same day go by name. */
-export function newestFirst<T extends Dated>(entries: T[]): T[] {
+/** A pinned photo leads the deck, then the newest; photos from the same day go by name. */
+export function deckOrder<T extends Dated>(entries: T[]): T[] {
   return [...entries].sort(
-    (left, right) => right.data.date.valueOf() - left.data.date.valueOf() || left.id.localeCompare(right.id),
+    (left, right) =>
+      Number(right.data.pinned ?? false) - Number(left.data.pinned ?? false) ||
+      right.data.date.valueOf() - left.data.date.valueOf() ||
+      left.id.localeCompare(right.id),
   );
 }

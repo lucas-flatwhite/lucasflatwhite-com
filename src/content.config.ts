@@ -33,7 +33,9 @@ const photos = defineCollection({
       caption: z.string().min(1).max(40),
       date: z.coerce.date(),
       // Where the crop keeps its middle, as "x% y%"; the middle of the photo when left out.
-      position: z.string().regex(/^\d{1,3}% \d{1,3}%$/).optional()
+      position: z.string().regex(/^\d{1,3}% \d{1,3}%$/).optional(),
+      // Leads the deck whatever its date.
+      pinned: z.boolean().default(false)
     })
 });
 
