@@ -1,5 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "headers": [
+    { "source": "/arcade/suika/releases/:path*", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] }
+  ],
   "redirects": [
     { "source": "/arcade", "destination": "/arcade/", "permanent": true },
     { "source": "/arcade/suika", "destination": "/arcade/suika/", "permanent": true }

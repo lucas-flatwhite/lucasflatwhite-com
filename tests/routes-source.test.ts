@@ -15,6 +15,12 @@ function destinationFor(path: string): string | undefined {
 }
 
 describe('route source contract', () => {
+  it('gives only content-addressed Suika releases an immutable browser cache', () => {
+    expect(vercel.headers ?? []).toContainEqual({
+      source: '/arcade/suika/releases/:path*',
+      headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+    });
+  });
   it('normalizes the Suika entry to a directory so Godot asset URLs resolve below it', () => {
     expect(vercel.redirects).toContainEqual({source: '/arcade/suika', destination: '/arcade/suika/', permanent: true});
   });
