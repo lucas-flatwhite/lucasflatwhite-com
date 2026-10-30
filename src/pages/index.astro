@@ -13,7 +13,7 @@ import timelineSvg from '../assets/work/ai-timeline-log.svg?raw';
 import portraitSvg from '../assets/work/lucasflatwhite-com.svg?raw';
 import { featuredLinks } from '../data/links';
 import { siteProfile } from '../data/site';
-import { newestFirst } from '../lib/photos';
+import { deckOrder } from '../lib/photos';
 import { pictureForId } from '../lib/project-picture';
 import {
   boardGaps,
@@ -27,7 +27,7 @@ import { withBase } from '../lib/paths';
 import '../styles/landing.css';
 
 const placed = placeProjects(await getCollection('projects'));
-const photos = newestFirst(await getCollection('photos'));
+const photos = deckOrder(await getCollection('photos'));
 // Every pictured project, then the arcade, then the numbered gaps.
 const filled = placed.board.length + 1;
 const count = filled + boardGaps(filled);
