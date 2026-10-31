@@ -34,6 +34,9 @@ describe('route source contract', () => {
     expect(destinationFor('/arcade/assets/snake.js')).toBe('https://flatwhite-arcade.vercel.app/arcade/assets/snake.js');
     expect(destinationFor('/ai-timeline-log/')).toBe('https://ai-timeline-log.vercel.app/ai-timeline-log/index.html');
   });
+  it('draws the arcade card without model codes, as the lobby does', () => {
+    expect(read('src/components/ArcadeHandheld.astro')).not.toMatch(/FA-\d/);
+  });
   it('sends the board to the arcade lobby and leaves /play behind', () => {
     expect(existsSync(resolve(process.cwd(), 'src/pages/play'))).toBe(false);
     expect(landing).toContain("const arcadeHref = withBase('arcade/');");
