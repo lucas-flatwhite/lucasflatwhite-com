@@ -46,6 +46,11 @@ describe('command palette commands', () => {
     expect(() => buildPaletteCommands('/', '/arcade/', ['top'])).toThrow('Unknown section target: work');
   });
 
+  it('sends no two commands to the same address', () => {
+    const hrefs = commands.map((command) => command.href);
+    expect(new Set(hrefs).size).toBe(hrefs.length);
+  });
+
   it('keeps ids unique', () => {
     const ids = commands.map((command) => command.id);
     expect(new Set(ids).size).toBe(ids.length);
