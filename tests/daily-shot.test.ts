@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { dailyShot } from '../src/data/daily-shot';
-import { popupFeatures, receiptStamp, untilNextMinute } from '../src/lib/daily-shot';
+import { receiptStamp, untilNextMinute } from '../src/lib/daily-shot';
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8');
 
@@ -20,25 +20,13 @@ describe('untilNextMinute', () => {
   });
 });
 
-describe('popupFeatures', () => {
-  it('centres a 600 by 760 popup on the browser window', () => {
-    expect(popupFeatures({ screenX: 100, screenY: 40, outerWidth: 1400, outerHeight: 960 })).toBe(
-      'popup,width=600,height=760,left=500,top=140',
-    );
-  });
-
-  it('pins the popup to the window corner when the window is smaller than it', () => {
-    expect(popupFeatures({ screenX: 10, screenY: 20, outerWidth: 500, outerHeight: 600 })).toBe(
-      'popup,width=600,height=760,left=10,top=20',
-    );
-  });
-});
-
 describe('the Daily Shot card', () => {
   const landing = read('src/pages/index.astro');
 
-  it('opens the X profile', () => {
+  it('opens the X profile in a new tab, as the project cards do, and never in a popup', () => {
     expect(dailyShot.href).toBe('https://x.com/lucas_flatwhite');
+    expect(landing).toContain('<a href={dailyShot.href} target="_blank" rel="noreferrer me">');
+    expect(read('src/lib/daily-shot.ts')).not.toMatch(/window\.open|preventDefault/);
   });
 
   it('takes the slot after the projects and pushes the arcade one down', () => {
