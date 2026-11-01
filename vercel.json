@@ -2,7 +2,9 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
     { "source": "/arcade", "destination": "/arcade/", "permanent": true },
-    { "source": "/arcade/suika", "destination": "/arcade/suika/", "permanent": true }
+    { "source": "/arcade/suika", "destination": "/arcade/suika/", "permanent": true },
+    { "source": "/ai-timeline-log/en", "destination": "/ai-timeline-log/", "permanent": true },
+    { "source": "/ai-timeline-log/en/:path*", "destination": "/ai-timeline-log/:path*", "permanent": true }
   ],
   "rewrites": [
     { "source": "/ai-timeline-log/", "destination": "https://ai-timeline-log.vercel.app/ai-timeline-log/index.html" },

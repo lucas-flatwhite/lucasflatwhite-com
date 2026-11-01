@@ -34,6 +34,13 @@ describe('route source contract', () => {
     expect(destinationFor('/arcade/assets/snake.js')).toBe('https://flatwhite-arcade.vercel.app/arcade/assets/snake.js');
     expect(destinationFor('/ai-timeline-log/')).toBe('https://ai-timeline-log.vercel.app/ai-timeline-log/index.html');
   });
+  it('sends the old English timeline addresses to the timeline base, where English now lives', () => {
+    // Redirects run before rewrites, so /en/ links never reach the timeline project as /en/index.html.
+    expect(vercel.redirects).toContainEqual({source: '/ai-timeline-log/en', destination: '/ai-timeline-log/', permanent: true});
+    expect(vercel.redirects).toContainEqual({source: '/ai-timeline-log/en/:path*', destination: '/ai-timeline-log/:path*', permanent: true});
+    expect(destinationFor('/ai-timeline-log/ko/')).toBe('https://ai-timeline-log.vercel.app/ai-timeline-log/ko/index.html');
+    expect(destinationFor('/ai-timeline-log/ko/feed.xml')).toBe('https://ai-timeline-log.vercel.app/ai-timeline-log/ko/feed.xml');
+  });
   it('draws the arcade card without model codes, as the lobby does', () => {
     expect(read('src/components/ArcadeHandheld.astro')).not.toMatch(/FA-\d/);
   });
