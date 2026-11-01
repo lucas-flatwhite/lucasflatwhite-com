@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { siteLinks } from '../src/data/links';
-import { buildPaletteCommands, filterPaletteCommands } from '../src/lib/command-actions';
+import { buildPaletteCommands, filterPaletteCommands, svgPaths, toPublicCommands } from '../src/lib/command-actions';
 
 const commands = buildPaletteCommands('/', '/arcade/', ['top', 'work']);
 
@@ -91,5 +91,31 @@ describe('project commands', () => {
       copy: null,
       icon: 'arrow-up-right',
     });
+  });
+});
+
+describe('published commands', () => {
+  const svg = '<svg viewBox="0 0 256 256"><path d="M1,2Z"/><path fill="none" d="M3,4Z"/></svg>';
+  const published = toPublicCommands(
+    buildPaletteCommands('/', '/arcade/', ['top', 'work']),
+    'https://lucasflatwhite.com',
+    () => svg,
+  );
+
+  it('makes every href absolute, so a page on another deployment can follow it', () => {
+    expect(published.commands.find((command) => command.id === 'work')?.href).toBe('https://lucasflatwhite.com/#work');
+    expect(published.commands.find((command) => command.id === 'arcade')?.href).toBe('https://lucasflatwhite.com/arcade/');
+    expect(published.commands.find((command) => command.id === 'github')?.href).toBe('https://github.com/lucas-flatwhite');
+    expect(published.commands.find((command) => command.id === 'email')?.href).toBe('mailto:lucas.flatwhite@gmail.com');
+  });
+
+  it('sends icons as path data rather than markup', () => {
+    expect(svgPaths(svg)).toEqual(['M1,2Z', 'M3,4Z']);
+    expect(published.commands.every((command) => command.icon.length === 2)).toBe(true);
+  });
+
+  it('keeps the same commands, in the same order, as the homepage menu', () => {
+    expect(published.version).toBe(1);
+    expect(published.commands.map((command) => command.id)).toEqual(commands.map((command) => command.id));
   });
 });

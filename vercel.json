@@ -1,5 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "headers": [
+    { "source": "/commands.json", "headers": [{ "key": "Access-Control-Allow-Origin", "value": "*" }] }
+  ],
   "redirects": [
     { "source": "/ai-timeline-log/en/", "destination": "/ai-timeline-log/", "permanent": true },
     { "source": "/arcade", "destination": "/arcade/", "permanent": true },
