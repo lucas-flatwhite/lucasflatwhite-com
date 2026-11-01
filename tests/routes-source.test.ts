@@ -36,6 +36,8 @@ describe('route source contract', () => {
   });
   it('sends the old English timeline addresses to the timeline base, where English now lives', () => {
     // Redirects run before rewrites, so /en/ links never reach the timeline project as /en/index.html.
+    // /en/:path* does not match an empty path, so the bare /en/ needs its own rule, first.
+    expect(vercel.redirects[0]).toEqual({source: '/ai-timeline-log/en/', destination: '/ai-timeline-log/', permanent: true});
     expect(vercel.redirects).toContainEqual({source: '/ai-timeline-log/en', destination: '/ai-timeline-log/', permanent: true});
     expect(vercel.redirects).toContainEqual({source: '/ai-timeline-log/en/:path*', destination: '/ai-timeline-log/:path*', permanent: true});
     expect(destinationFor('/ai-timeline-log/ko/')).toBe('https://ai-timeline-log.vercel.app/ai-timeline-log/ko/index.html');
