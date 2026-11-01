@@ -1,10 +1,9 @@
 ---
 // The Daily Shot card's picture: one thermal receipt lying on the board, a little askew and
-// longer than the card. DATE and TIME are stamped again in the browser (src/lib/daily-shot.ts);
-// the values written here only stand in until then.
-import { receiptStamp } from '../lib/daily-shot';
-
-const { date, time } = receiptStamp(new Date());
+// longer than the card. DATE and TIME are stamped in the browser from the visitor's clock
+// (src/lib/daily-shot.ts); until then they read as blank fields, never as the build's time.
+const date = '----.--.-- ---';
+const time = '--:--';
 
 // Barcode bars, narrow and wide.
 const widths = [3, 1.5, 4, 1.5, 3, 1.5, 4, 1.5, 3, 1.5, 4, 3, 1.5, 4, 1.5, 3, 1.5, 4, 1.5, 3, 1.5, 4, 1.5, 3, 1.5, 4, 1.5, 3, 1.5, 4, 1.5, 3, 1.5, 4];

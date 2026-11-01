@@ -16,8 +16,6 @@ import githubLogoBold from '@phosphor-icons/core/bold/github-logo-bold.svg?raw';
 import githubLogoRegular from '@phosphor-icons/core/regular/github-logo.svg?raw';
 import hammerBold from '@phosphor-icons/core/bold/hammer-bold.svg?raw';
 import hammerRegular from '@phosphor-icons/core/regular/hammer.svg?raw';
-import receiptBold from '@phosphor-icons/core/bold/receipt-bold.svg?raw';
-import receiptRegular from '@phosphor-icons/core/regular/receipt.svg?raw';
 import xLogoBold from '@phosphor-icons/core/bold/x-logo-bold.svg?raw';
 import xLogoRegular from '@phosphor-icons/core/regular/x-logo.svg?raw';
 
@@ -30,7 +28,6 @@ export const icons = {
   'game-controller': { regular: gameControllerRegular, bold: gameControllerBold },
   'github-logo': { regular: githubLogoRegular, bold: githubLogoBold },
   hammer: { regular: hammerRegular, bold: hammerBold },
-  receipt: { regular: receiptRegular, bold: receiptBold },
   'x-logo': { regular: xLogoRegular, bold: xLogoBold },
 } as const;
 

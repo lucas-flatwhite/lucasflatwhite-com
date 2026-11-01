@@ -54,4 +54,12 @@ describe('the Daily Shot card', () => {
     expect(receipt).toContain('data-receipt-date');
     expect(receipt).toContain('data-receipt-time');
   });
+
+  it('prints blank fields until the browser stamps the visitor\'s time, never the build\'s', () => {
+    const receipt = read('src/components/DailyShotReceipt.astro');
+
+    expect(receipt).not.toMatch(/receiptStamp|new Date\(/);
+    expect(receipt).toContain("const date = '----.--.-- ---';");
+    expect(receipt).toContain("const time = '--:--';");
+  });
 });

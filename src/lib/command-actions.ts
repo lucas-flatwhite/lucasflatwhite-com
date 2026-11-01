@@ -1,4 +1,3 @@
-import { dailyShot } from '../data/daily-shot';
 import { siteLinks } from '../data/links';
 import type { SectionId } from '../data/site';
 import type { IconName } from './icons';
@@ -37,7 +36,7 @@ const sectionCommands: readonly SectionCommand[] = [
 ];
 
 /**
- * Builds the command menu: sections, featured projects, Daily Shot, the arcade, then every link.
+ * Builds the command menu: sections, featured projects, the arcade, then every link.
  * `home` is the landing page URL (base-aware), so section jumps carry the deploy base.
  */
 export function buildPaletteCommands(
@@ -78,15 +77,6 @@ export function buildPaletteCommands(
   return [
     ...sections,
     ...projectCommands,
-    {
-      id: 'daily-shot',
-      label: dailyShot.title,
-      hint: dailyShot.hint,
-      icon: 'receipt',
-      href: dailyShot.href,
-      external: true,
-      copy: null,
-    },
     {
       id: 'arcade',
       label: 'Arcade',
