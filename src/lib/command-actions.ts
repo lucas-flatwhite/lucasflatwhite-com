@@ -113,3 +113,35 @@ export function filterPaletteCommands(
     `${command.label} ${command.hint}`.toLowerCase().includes(needle),
   );
 }
+
+/** A command as `/commands.json` publishes it for pages served from other projects. */
+export type PublicCommand = Omit<PaletteCommand, 'icon'> & {
+  /** The `d` of each path in the command's Phosphor regular glyph, on a 256 by 256 box. */
+  icon: string[];
+};
+
+export const PUBLIC_COMMANDS_VERSION = 1;
+
+/** Pulls each path's `d` out of a Phosphor SVG, so a reader draws it without parsing markup. */
+export function svgPaths(svg: string): string[] {
+  return [...svg.matchAll(/<path\b[^>]*\sd="([^"]+)"/g)].map((match) => match[1]!);
+}
+
+/**
+ * The menu as other pages read it: every href made absolute against `origin`, and each
+ * icon as path data, since the reader is on another deployment with its own base.
+ */
+export function toPublicCommands(
+  commands: readonly PaletteCommand[],
+  origin: string | URL,
+  iconSvg: (name: IconName) => string,
+): { version: number; commands: PublicCommand[] } {
+  return {
+    version: PUBLIC_COMMANDS_VERSION,
+    commands: commands.map((command) => ({
+      ...command,
+      href: new URL(command.href, origin).href,
+      icon: svgPaths(iconSvg(command.icon)),
+    })),
+  };
+}

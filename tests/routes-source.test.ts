@@ -18,6 +18,13 @@ describe('route source contract', () => {
   it('inherits the upstream release cache policy instead of caching every response', () => {
     expect((vercel.headers ?? []).filter((rule: { source: string }) => rule.source.startsWith('/arcade/suika/releases'))).toEqual([]);
   });
+  it('lets the arcade read the command menu from its own deployment too', () => {
+    expect(vercel.headers).toContainEqual({
+      source: '/commands.json',
+      headers: [{ key: 'Access-Control-Allow-Origin', value: '*' }],
+    });
+    expect(existsSync(resolve(process.cwd(), 'src/pages/commands.json.ts'))).toBe(true);
+  });
   it('normalizes the Suika entry to a directory so Godot asset URLs resolve below it', () => {
     expect(vercel.redirects).toContainEqual({source: '/arcade/suika', destination: '/arcade/suika/', permanent: true});
   });
