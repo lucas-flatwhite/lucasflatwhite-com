@@ -5,9 +5,10 @@ import { buildPaletteCommands, filterPaletteCommands, svgPaths, toPublicCommands
 const commands = buildPaletteCommands('/', '/arcade/', ['top', 'work']);
 
 describe('command palette commands', () => {
-  it('lists sections, the arcade and every link', () => {
+  it('lists sections, Daily Shot, the arcade and every link', () => {
     expect(commands.map((command) => command.id)).toEqual([
       'work',
+      'daily-shot',
       'arcade',
       ...siteLinks.map((link) => link.id),
     ]);
@@ -22,6 +23,7 @@ describe('command palette commands', () => {
 
   it('opens only the outside links in a new tab', () => {
     expect(commands.filter((command) => command.external).map((command) => command.id)).toEqual([
+      'daily-shot',
       'github',
       'x',
     ]);
@@ -44,6 +46,16 @@ describe('command palette commands', () => {
 
   it('rejects a section command that points at a missing section', () => {
     expect(() => buildPaletteCommands('/', '/arcade/', ['top'])).toThrow('Unknown section target: work');
+  });
+
+  it('opens Daily Shot on the X profile', () => {
+    expect(commands.find((command) => command.id === 'daily-shot')).toMatchObject({
+      label: 'Daily Shot',
+      href: 'https://x.com/lucas_flatwhite',
+      icon: 'receipt',
+      external: true,
+      copy: null,
+    });
   });
 
   it('keeps ids unique', () => {
@@ -75,6 +87,7 @@ describe('project commands', () => {
       'project-new',
       'project-mid',
       'project-old',
+      'daily-shot',
       'arcade',
       'github',
       'x',

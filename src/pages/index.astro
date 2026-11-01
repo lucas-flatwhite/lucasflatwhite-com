@@ -7,10 +7,12 @@ import ProjectCard from '../components/ProjectCard.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import CopyMark from '../components/CopyMark.astro';
 import CopyRoll from '../components/CopyRoll.astro';
+import DailyShotReceipt from '../components/DailyShotReceipt.astro';
 import Glyph from '../components/Glyph.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import timelineSvg from '../assets/work/ai-timeline-log.svg?raw';
 import portraitSvg from '../assets/work/lucasflatwhite-com.svg?raw';
+import { dailyShot } from '../data/daily-shot';
 import { featuredLinks } from '../data/links';
 import { siteProfile } from '../data/site';
 import { deckOrder } from '../lib/photos';
@@ -28,8 +30,9 @@ import '../styles/landing.css';
 
 const placed = placeProjects(await getCollection('projects'));
 const photos = deckOrder(await getCollection('photos'));
-// Every pictured project, then the arcade, then the numbered gaps.
-const filled = placed.board.length + 1;
+// Every pictured project, then Daily Shot, then the arcade, then the numbered gaps.
+const dailySlot = placed.board.length;
+const filled = placed.board.length + 2;
 const count = filled + boardGaps(filled);
 const photoRows = photos.length > 0 ? PHOTO_ROWS : 0;
 // The board runs three columns on a mid screen and four on a wide one; the spans match.
@@ -104,6 +107,21 @@ const rawById: Record<string, string> = {
               place={place(index)}
             />
           ))}
+          <li class="project-card receipt-card" style={place(dailySlot)} data-daily-shot>
+            <div class="project-art receipt-art">
+              <DailyShotReceipt />
+            </div>
+            <span class="project-label" aria-hidden="true">{dailyShot.title}</span>
+            <div class="project-text">
+              <h3 class="project-title">
+                <a href={dailyShot.href} target="_blank" rel="noreferrer me" data-daily-shot-link>
+                  {dailyShot.title}
+                  <Glyph icon="arrow-up-right" class="project-out" />
+                </a>
+              </h3>
+              <p class="project-summary">{dailyShot.summary}</p>
+            </div>
+          </li>
           <li class="project-card arcade-card" style={place(filled - 1)}>
             <div class="project-art arcade-art">
               <ArcadeHandheld />
@@ -138,6 +156,7 @@ const rawById: Record<string, string> = {
 
 <script>
   import { mountCopyLinks } from '../lib/copy-link';
+  import { bindDailyShot } from '../lib/daily-shot';
   import { bindNameSwap } from '../lib/name-swap';
   import { bindPhotoDeck } from '../lib/photo-deck';
   import { mountSnakePreview } from '../lib/snake-preview';
@@ -146,6 +165,7 @@ const rawById: Record<string, string> = {
   const name = document.querySelector<HTMLElement>('[data-name]');
   const preview = document.querySelector<HTMLCanvasElement>('[data-snake-preview]');
   const deck = document.querySelector<HTMLElement>('[data-photo-deck]');
+  const receipt = document.querySelector<HTMLElement>('[data-daily-shot]');
 
   if (name) {
     bindNameSwap(name);
@@ -157,6 +177,10 @@ const rawById: Record<string, string> = {
 
   if (deck) {
     bindPhotoDeck(deck);
+  }
+
+  if (receipt) {
+    bindDailyShot(receipt);
   }
 
   bindWorkMotion(document.querySelectorAll<HTMLElement>('.project-motion'));
