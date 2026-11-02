@@ -57,6 +57,12 @@ export async function dropCostlyFilms(sources: FilmSource[], check: DecodeCheck)
 }
 
 async function prepareFilm(video: HTMLVideoElement): Promise<void> {
+  // The cards can sit in the first screen; a film fetched before the page has loaded would
+  // share the network with the photo and fonts. The still is up meanwhile.
+  if (document.readyState !== 'complete') {
+    await new Promise((resolve) => window.addEventListener('load', resolve, { once: true }));
+  }
+
   if (!('mediaCapabilities' in navigator)) {
     return;
   }
