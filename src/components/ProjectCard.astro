@@ -1,6 +1,7 @@
 ---
 import Glyph from './Glyph.astro';
-import { cropPicture } from '../lib/project-picture';
+import WorkRipple from './WorkRipple.astro';
+import WorkYears from './WorkYears.astro';
 
 type Art = {
   image: { src: string; width: number; height: number };
@@ -14,18 +15,15 @@ type Props = {
   repo?: string;
   art: Art;
   motion?: 'ripple' | 'years';
-  svg?: string;
   place: string;
 };
 
-const { title, summary, href, repo, art, motion, svg: picture, place } = Astro.props;
-const ready = picture !== undefined && motion !== undefined && picture.includes(`id="${motion}"`);
-const svg = ready ? cropPicture(picture) : picture;
+const { title, summary, href, repo, art, motion, place } = Astro.props;
 ---
 
 <li class="project-card" style={place}>
   <div class="project-art">
-    {ready ? <div class="project-motion" set:html={svg} role="img" aria-label={art.alt} /> : (
+    {motion === 'years' ? <WorkYears alt={art.alt} /> : motion === 'ripple' ? <WorkRipple alt={art.alt} /> : (
       <img
         src={art.image.src}
         width={art.image.width}

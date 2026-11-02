@@ -1,0 +1,67 @@
+{
+  "tiers": [
+    {
+      "name": "phone",
+      "media": "(max-width: 720px)",
+      "width": 576,
+      "height": 576,
+      "still": "ripple-phone.webp",
+      "framerate": 30,
+      "start": 0.9417,
+      "sources": [
+        {
+          "file": "ripple-phone.av1.mp4",
+          "type": "video/mp4; codecs=\"av01.0.04M.08\"",
+          "bitrate": 142310
+        },
+        {
+          "file": "ripple-phone.h264.mp4",
+          "type": "video/mp4; codecs=\"avc1.64001e\"",
+          "bitrate": 217010
+        }
+      ]
+    },
+    {
+      "name": "desk",
+      "media": "(max-width: 1599px)",
+      "width": 816,
+      "height": 816,
+      "still": "ripple-desk.webp",
+      "framerate": 30,
+      "start": 0.9417,
+      "sources": [
+        {
+          "file": "ripple-desk.av1.mp4",
+          "type": "video/mp4; codecs=\"av01.0.04M.08\"",
+          "bitrate": 206235
+        },
+        {
+          "file": "ripple-desk.h264.mp4",
+          "type": "video/mp4; codecs=\"avc1.64001f\"",
+          "bitrate": 336928
+        }
+      ]
+    },
+    {
+      "name": "wide",
+      "media": "",
+      "width": 1024,
+      "height": 1024,
+      "still": "ripple-wide.webp",
+      "framerate": 30,
+      "start": 0.9417,
+      "sources": [
+        {
+          "file": "ripple-wide.av1.mp4",
+          "type": "video/mp4; codecs=\"av01.0.05M.08\"",
+          "bitrate": 254480
+        },
+        {
+          "file": "ripple-wide.h264.mp4",
+          "type": "video/mp4; codecs=\"avc1.640020\"",
+          "bitrate": 468839
+        }
+      ]
+    }
+  ]
+}

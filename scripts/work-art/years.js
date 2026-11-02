@@ -30,37 +30,53 @@ const SINK = 0.36;
 const LAG = 0.16;
 const LOOP = STEP * (YEARS.length - 1) + HOLD;
 
+/* Where a window sits in each pose, in picture units: it turns about ORIGIN. */
+export const ORIGIN = { x: 360, y: 248 };
 const STATES = {
-  back: 'opacity: 0; transform: translateY(-24px) scale(0.86)',
-  front: 'opacity: 1; transform: none',
-  falling: 'opacity: 0.1; transform: translateY(26px) scale(0.985)',
-  down: 'opacity: 0; transform: translateY(70px) scale(0.96)',
+  back: { opacity: 0, y: -24, scale: 0.86 },
+  front: { opacity: 1, y: 0, scale: 1 },
+  falling: { opacity: 0.1, y: 26, scale: 0.985 },
+  down: { opacity: 0, y: 70, scale: 0.96 },
 };
 const EASES = {
   spring: 'cubic-bezier(0.3, 1.6, 0.55, 1)',
   drop: 'cubic-bezier(0.55, 0, 0.8, 0.4)',
   hold: 'linear',
 };
+export const DURATION = `${+LOOP.toFixed(2)}s`;
 
 /* When window i takes the front, and when it starts to drop. The last one hands back to 2022 just before the loop closes. */
 const start = (i) => i * STEP;
 const leave = (i) => (i === YEARS.length - 1 ? LOOP - POP - LAG : start(i + 1));
 
-function keyframes(i) {
+/** Window i's poses through one loop: [time in seconds, pose, ease into the next pose]. */
+function marks(i) {
   const drop = (t) => [[t, 'front', 'drop'], [t + SINK / 2, 'falling', 'hold'], [t + SINK, 'down', 'hold']];
-  const marks = i === 0
+  return i === 0
     ? [[0, 'front', 'hold'], ...drop(leave(0)), [leave(0) + SINK + 0.01, 'back', 'hold'], [LOOP - POP, 'back', 'spring'], [LOOP, 'front', 'hold']]
     : [[0, 'back', 'hold'], [start(i) + LAG, 'back', 'spring'], [start(i) + LAG + POP, 'front', 'hold'], ...drop(leave(i)), [LOOP, 'down', 'hold']];
-  const at = (t) => `${((t / LOOP) * 100).toFixed(2)}%`;
+}
 
-  return `@keyframes years-y${i} { ${marks.map(([t, state, ease]) => `${at(t)} { ${STATES[state]}; animation-timing-function: ${EASES[ease]}; }`).join(' ')} }`;
+/* In the picture a lift of 24 units is 24px; a baked window is lifted by its share of its own height. */
+const svgLift = (y) => `${y}px`;
+
+/**
+ * The keyframes for window i, named `${prefix}${i}`. `lift` writes a vertical shift given in
+ * picture units, so the same timeline drives the SVG and the baked layers.
+ */
+export function keyframes(i, prefix = 'years-y', lift = svgLift) {
+  const at = (t) => `${((t / LOOP) * 100).toFixed(2)}%`;
+  const pose = ({ opacity, y, scale }) =>
+    `opacity: ${opacity}; transform: ${y === 0 && scale === 1 ? 'none' : `translateY(${lift(y)}) scale(${scale})`}`;
+
+  return `@keyframes ${prefix}${i} { ${marks(i).map(([t, state, ease]) => `${at(t)} { ${pose(STATES[state])}; animation-timing-function: ${EASES[ease]}; }`).join(' ')} }`;
 }
 
 const STYLE = `<style>
-.years-yr { opacity: 0; transform-origin: 360px 248px; }
+.years-yr { opacity: 0; transform-origin: ${ORIGIN.x}px ${ORIGIN.y}px; }
 .years-last { opacity: 1; }
 @media (prefers-reduced-motion: no-preference) {
-${YEARS.map((_, i) => `.years-yr${i} { animation: years-y${i} ${+LOOP.toFixed(2)}s infinite both; }`).join('\n')}
+${YEARS.map((_, i) => `.years-yr${i} { animation: years-y${i} ${DURATION} infinite both; }`).join('\n')}
 ${YEARS.map((_, i) => keyframes(i)).join('\n')}
 }
 </style>`;

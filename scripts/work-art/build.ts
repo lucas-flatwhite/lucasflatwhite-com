@@ -6,7 +6,7 @@
  *
  * The generators draw on canvas and serialize SVG, so they run in the installed Google
  * Chrome (playwright-core drives it and downloads no browser). This script then embeds
- * the fonts the years picture sets its type in.
+ * the fonts the years picture sets its type in, and motion.ts bakes both pictures' motion.
  */
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { createServer } from 'node:http';
@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { chromium } from 'playwright-core';
 import { embedFonts } from './fonts.ts';
+import { bakeMotion } from './motion.ts';
 
 type Art = { ripple: string; years: string };
 
@@ -64,3 +65,4 @@ const art = await render();
 await mkdir(OUT, { recursive: true });
 await save('ai-timeline-log.svg', `${await embedFonts(art.years)}\n`);
 await save('lucasflatwhite-com.svg', `${art.ripple}\n`);
+await bakeMotion();
