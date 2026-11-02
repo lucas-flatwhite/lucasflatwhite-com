@@ -82,3 +82,10 @@ describe('ripple films', () => {
     expect(card).toContain('role="img"');
   });
 });
+
+describe('phones', () => {
+  it('play the pictures like every other screen, since nothing is redrawn as they move', () => {
+    expect(read('src/styles/landing.css')).not.toMatch(/\.project-motion[^{]*\{[^}]*animation: none/);
+    expect(read('src/lib/work-motion.ts')).not.toContain('max-width: 720px');
+  });
+});

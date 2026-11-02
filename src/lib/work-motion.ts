@@ -28,13 +28,11 @@ export function bindWorkMotion(cards: Iterable<HTMLElement>): void {
     return;
   }
 
-  // Phones keep the pictures at rest for now, as the CSS rule in landing.css does.
-  const phone = window.matchMedia('(max-width: 720px)');
   const onScreen = new Map<HTMLElement, boolean>();
   const update = (card: HTMLElement) => {
     const state = motionState(onScreen.get(card) ?? false, document.hidden);
     card.dataset.motion = state;
-    steerFilm(card.querySelector('video'), phone.matches ? 'paused' : state);
+    steerFilm(card.querySelector('video'), state);
   };
   const observer = new IntersectionObserver((entries) => {
     for (const entry of entries) {
