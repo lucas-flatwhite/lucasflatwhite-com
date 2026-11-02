@@ -9,6 +9,7 @@
     "check": "astro check",
     "test": "vitest",
     "art": "node scripts/work-art/build.ts",
+    "art:motion": "node scripts/work-art/motion.ts",
     "photo": "node scripts/photo/add.ts"
   },
   "devDependencies": {

@@ -10,7 +10,6 @@ import CopyRoll from '../components/CopyRoll.astro';
 import DailyShotReceipt from '../components/DailyShotReceipt.astro';
 import Glyph from '../components/Glyph.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import timelineSvg from '../assets/work/ai-timeline-log.svg?raw';
 import portraitSvg from '../assets/work/lucasflatwhite-com.svg?raw';
 import { dailyShot } from '../data/daily-shot';
 import { featuredLinks } from '../data/links';
@@ -47,8 +46,8 @@ const place = (index: number) =>
 const gaps = Array.from({ length: count - filled }, (_, index) => filled + index);
 const arcadeHref = withBase('arcade/');
 const year = new Date().getFullYear();
+// The years picture is baked into layers (WorkYears); only the ripple is still inlined.
 const rawById: Record<string, string> = {
-  'ai-timeline-log': timelineSvg,
   'lucasflatwhite-com': portraitSvg,
 };
 ---

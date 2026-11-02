@@ -1,0 +1,36 @@
+---
+/*
+ * The years picture, baked by scripts/work-art/motion.ts: the ground and back windows as one
+ * image, each year's window as another, moved by the picture's own keyframes in years.css.
+ * Only transform and opacity change, so the browser composites the frames without redrawing.
+ */
+import '../assets/work/motion/years.css';
+
+type Props = { alt: string };
+
+const { alt } = Astro.props;
+const files = import.meta.glob<string>('../assets/work/motion/years-*.webp', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+});
+const url = (name: string) => files[`../assets/work/motion/${name}.webp`];
+const count = Object.keys(files).filter((path) => /years-\d+\.webp$/.test(path)).length;
+// Later years sit lower in the stack, so they come first.
+const windows = Array.from({ length: count }, (_, i) => count - 1 - i);
+---
+
+<div class="project-motion work-baked" role="img" aria-label={alt}>
+  <div class="work-frame">
+    <img class="work-ground" src={url('years-base')} alt="" loading="lazy" decoding="async" />
+    {windows.map((i) => (
+      <img
+        class:list={['years-window', `years-window${i}`, { 'years-last': i === count - 1 }]}
+        src={url(`years-${i}`)}
+        alt=""
+        loading="lazy"
+        decoding="async"
+      />
+    ))}
+  </div>
+</div>

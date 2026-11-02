@@ -1,5 +1,6 @@
 ---
 import Glyph from './Glyph.astro';
+import WorkYears from './WorkYears.astro';
 import { cropPicture } from '../lib/project-picture';
 
 type Art = {
@@ -25,7 +26,7 @@ const svg = ready ? cropPicture(picture) : picture;
 
 <li class="project-card" style={place}>
   <div class="project-art">
-    {ready ? <div class="project-motion" set:html={svg} role="img" aria-label={art.alt} /> : (
+    {motion === 'years' ? <WorkYears alt={art.alt} /> : ready ? <div class="project-motion" set:html={svg} role="img" aria-label={art.alt} /> : (
       <img
         src={art.image.src}
         width={art.image.width}
