@@ -102,4 +102,13 @@ describe('phones', () => {
     expect(read('src/styles/landing.css')).not.toMatch(/\.project-motion[^{]*\{[^}]*animation: none/);
     expect(read('src/lib/work-motion.ts')).not.toContain('max-width: 720px');
   });
+
+  it('swap the name at the same pace and keep the snake crawling, as every other screen does', () => {
+    for (const path of ['src/lib/name-swap.ts', 'src/lib/snake-preview.ts']) {
+      expect(read(path), path).not.toMatch(/max-width: 720px|PHONE_/);
+    }
+    // The snake still rests off screen and in a hidden tab, like the Work pictures.
+    expect(read('src/lib/snake-preview.ts')).toContain('IntersectionObserver');
+    expect(read('src/lib/snake-preview.ts')).toContain('visibilitychange');
+  });
 });

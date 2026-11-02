@@ -1,3 +1,5 @@
+import { motionState } from './work-motion';
+
 export type Cell = { x: number; y: number };
 
 export type Preview = {
@@ -69,6 +71,7 @@ export function drawPreview(canvas: HTMLCanvasElement, state: Preview): void {
   }
 }
 
+/** The snake crawls only while its screen is in view and the tab is showing, on every screen size. */
 export function mountSnakePreview(canvas: HTMLCanvasElement): void {
   let state = createPreview();
   drawPreview(canvas, state);
@@ -77,8 +80,7 @@ export function mountSnakePreview(canvas: HTMLCanvasElement): void {
     return;
   }
 
-  // On a phone the snake rests where it starts, so only the name moves on the first screen.
-  const phone = window.matchMedia('(max-width: 720px)');
+  let onScreen = false;
   let timer: number | undefined;
 
   const stop = () => {
@@ -87,7 +89,7 @@ export function mountSnakePreview(canvas: HTMLCanvasElement): void {
   };
 
   const start = () => {
-    if (timer !== undefined || phone.matches) {
+    if (timer !== undefined || motionState(onScreen, document.hidden) === 'paused') {
       return;
     }
 
@@ -97,12 +99,17 @@ export function mountSnakePreview(canvas: HTMLCanvasElement): void {
     }, 180);
   };
 
-  start();
-  phone.addEventListener('change', () => (phone.matches ? stop() : start()));
+  const update = () => (motionState(onScreen, document.hidden) === 'running' ? start() : stop());
+
+  new IntersectionObserver(([entry]) => {
+    onScreen = entry.isIntersecting;
+    update();
+  }).observe(canvas);
+  document.addEventListener('visibilitychange', update);
   window.addEventListener('pagehide', stop);
   window.addEventListener('pageshow', (event) => {
     if (event.persisted) {
-      start();
+      update();
     }
   });
 }
