@@ -15,7 +15,7 @@
  * Needs the installed Google Chrome and ffmpeg (with libsvtav1 and libx264) on the PATH.
  */
 import { execFile } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -60,7 +60,9 @@ export type RippleTier = {
   width: number;
   height: number;
   still: string;
-  sources: { file: string; type: string }[];
+  framerate: number;
+  /* bitrate (bits per second) lets the page ask the browser whether it decodes a film in hardware. */
+  sources: { file: string; type: string; bitrate: number }[];
 };
 
 async function open(svg: string, width: number, height: number, scale: number, slice = false): Promise<Page> {
@@ -239,9 +241,11 @@ async function bakeRipple(svg: string): Promise<RippleTier[]> {
 
     const sources = [];
     for (const file of [av1, h264]) {
-      sources.push({ file, type: `video/mp4; codecs="${await codec(fileURLToPath(new URL(file, OUT)))}"` });
+      const path = fileURLToPath(new URL(file, OUT));
+      const bitrate = Math.round(((await stat(path)).size * 8) / (RIPPLE_LOOP_MS / 1000));
+      sources.push({ file, type: `video/mp4; codecs="${await codec(path)}"`, bitrate });
     }
-    tiers.push({ name: tier.name, media: tier.media, width: tier.width, height: tier.height, still, sources });
+    tiers.push({ name: tier.name, media: tier.media, width: tier.width, height: tier.height, still, framerate: FPS, sources });
     console.log(`ripple ${tier.name}: ring ${ring}px in a ${tier.width}x${tier.height} film`);
   }
 

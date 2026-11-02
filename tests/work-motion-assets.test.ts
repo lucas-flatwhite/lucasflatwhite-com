@@ -46,7 +46,7 @@ describe('years layers', () => {
 });
 
 describe('ripple films', () => {
-  type Tier = { name: string; media: string; still: string; sources: { file: string; type: string }[] };
+  type Tier = { name: string; media: string; still: string; framerate: number; sources: { file: string; type: string; bitrate: number }[] };
   const { tiers } = JSON.parse(read('src/assets/work/motion/ripple.json')) as { tiers: Tier[] };
 
   it('films the ripple once per card size, the widest without a media query', () => {
@@ -64,10 +64,13 @@ describe('ripple films', () => {
     }
   });
 
-  it('keeps every film light enough to fetch when its card comes on screen', () => {
+  it('keeps every film light enough to fetch when its card comes on screen, and records its bitrate', () => {
     for (const tier of tiers) {
-      for (const { file } of tier.sources) {
-        expect(readFileSync(motion(file)).length, file).toBeLessThanOrEqual(400 * 1024);
+      expect(tier.framerate).toBe(30);
+      for (const { file, bitrate } of tier.sources) {
+        const bytes = readFileSync(motion(file)).length;
+        expect(bytes, file).toBeLessThanOrEqual(400 * 1024);
+        expect(bitrate, file).toBe(Math.round((bytes * 8) / 6.4));
       }
     }
   });

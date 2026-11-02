@@ -5,6 +5,8 @@
  * film's first frame, so the card looks the same before, while and after it plays.
  * src/lib/work-motion.ts loads and plays the film only while the card is on screen; it
  * stays hidden until its first frame is up, and never plays for anyone who asked for less motion.
+ * The data-* on each source describe it, so the page can skip a film the device can't decode
+ * in hardware.
  */
 import manifest from '../assets/work/motion/ripple.json';
 
@@ -30,7 +32,15 @@ const widest = tiers[tiers.length - 1];
   </picture>
   <video muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1">
     {tiers.flatMap((tier) => tier.sources.map((source) => (
-      <source src={url(source.file)} type={source.type} media={tier.media || undefined} />
+      <source
+        src={url(source.file)}
+        type={source.type}
+        media={tier.media || undefined}
+        data-width={tier.width}
+        data-height={tier.height}
+        data-bitrate={source.bitrate}
+        data-framerate={tier.framerate}
+      />
     )))}
   </video>
 </div>

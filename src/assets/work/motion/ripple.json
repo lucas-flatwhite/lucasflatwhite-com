@@ -6,14 +6,17 @@
       "width": 576,
       "height": 576,
       "still": "ripple-phone.webp",
+      "framerate": 30,
       "sources": [
         {
           "file": "ripple-phone.av1.mp4",
-          "type": "video/mp4; codecs=\"av01.0.04M.08\""
+          "type": "video/mp4; codecs=\"av01.0.04M.08\"",
+          "bitrate": 146770
         },
         {
           "file": "ripple-phone.h264.mp4",
-          "type": "video/mp4; codecs=\"avc1.64001e\""
+          "type": "video/mp4; codecs=\"avc1.64001e\"",
+          "bitrate": 219281
         }
       ]
     },
@@ -23,14 +26,17 @@
       "width": 816,
       "height": 816,
       "still": "ripple-desk.webp",
+      "framerate": 30,
       "sources": [
         {
           "file": "ripple-desk.av1.mp4",
-          "type": "video/mp4; codecs=\"av01.0.04M.08\""
+          "type": "video/mp4; codecs=\"av01.0.04M.08\"",
+          "bitrate": 213175
         },
         {
           "file": "ripple-desk.h264.mp4",
-          "type": "video/mp4; codecs=\"avc1.64001f\""
+          "type": "video/mp4; codecs=\"avc1.64001f\"",
+          "bitrate": 336431
         }
       ]
     },
@@ -40,14 +46,17 @@
       "width": 1024,
       "height": 1024,
       "still": "ripple-wide.webp",
+      "framerate": 30,
       "sources": [
         {
           "file": "ripple-wide.av1.mp4",
-          "type": "video/mp4; codecs=\"av01.0.05M.08\""
+          "type": "video/mp4; codecs=\"av01.0.05M.08\"",
+          "bitrate": 264280
         },
         {
           "file": "ripple-wide.h264.mp4",
-          "type": "video/mp4; codecs=\"avc1.640020\""
+          "type": "video/mp4; codecs=\"avc1.640020\"",
+          "bitrate": 465293
         }
       ]
     }
