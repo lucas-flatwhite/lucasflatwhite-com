@@ -24,7 +24,9 @@ describe('years layers', () => {
     expect(still).not.toMatch(/animation:/);
     expect(still).toMatch(/\.years-last \{ opacity: 1; \}/);
     expect(moving.match(/@keyframes years-layer\d/g)).toHaveLength(YEARS.length);
-    expect(moving).toMatch(/animation: years-layer0 4\.88s infinite both/);
+    expect(moving).toMatch(/animation-name: years-layer0; animation-duration: 4\.88s; animation-iteration-count: infinite; animation-fill-mode: both;/);
+    // The shorthand would reset animation-play-state, which the off-screen pause relies on.
+    expect(css).not.toMatch(/\banimation:/);
   });
 
   it('moves the windows with transform and opacity alone', () => {
@@ -46,7 +48,7 @@ describe('years layers', () => {
 });
 
 describe('ripple films', () => {
-  type Tier = { name: string; media: string; still: string; framerate: number; sources: { file: string; type: string; bitrate: number }[] };
+  type Tier = { name: string; media: string; still: string; framerate: number; start: number; sources: { file: string; type: string; bitrate: number }[] };
   const { tiers } = JSON.parse(read('src/assets/work/motion/ripple.json')) as { tiers: Tier[] };
 
   it('films the ripple once per card size, the widest without a media query', () => {
@@ -73,6 +75,15 @@ describe('ripple films', () => {
         expect(bitrate, file).toBe(Math.round((bytes * 8) / 6.4));
       }
     }
+  });
+
+  it('starts each film inside the loop, on a frame, so it can loop where the ring has faded', () => {
+    for (const tier of tiers) {
+      expect(tier.start).toBeGreaterThan(0);
+      expect(tier.start).toBeLessThan(6.4);
+      expect((tier.start * tier.framerate) % 1).toBeCloseTo(0.25, 2);
+    }
+    expect(read('src/components/WorkRipple.astro')).toContain('#t=${tier.start}');
   });
 
   it('loads the film only on play, keeps it out of the accessibility tree, and never autoplays', () => {

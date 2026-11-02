@@ -9,8 +9,9 @@
  *   The ground and the two back windows become one image, each year's window another, and
  *   years.css plays the picture's own keyframes on them.
  * - ripple: the ring bends differently under every pane as it spreads, so it is filmed.
- *   One film per card size, because the ring is always drawn 3px wide on screen. Each film
- *   starts on the still picture, so nothing jumps when it begins to play.
+ *   One film per card size, because the ring is always drawn 3px wide on screen. A film
+ *   loops where the ring has faded out, so a decoder's hitch at the seam can't be seen,
+ *   and first plays from the still picture's moment (ripple.json's start), so nothing jumps.
  *
  * Needs the installed Google Chrome and ffmpeg (with libsvtav1 and libx264) on the PATH.
  */
@@ -61,6 +62,8 @@ export type RippleTier = {
   height: number;
   still: string;
   framerate: number;
+  /* Seconds into the film where the picture rests; the page starts the first play there. */
+  start: number;
   /* bitrate (bits per second) lets the page ask the browser whether it decodes a film in hardware. */
   sources: { file: string; type: string; bitrate: number }[];
 };
@@ -141,6 +144,10 @@ async function bakeYears(svg: string): Promise<void> {
       .toFile(fileURLToPath(new URL(`years-${i}.webp`, OUT)));
   }
 
+  // Longhands, not the animation shorthand: the shorthand would reset animation-play-state,
+  // and the pause rule in landing.css would then win or lose on stylesheet order.
+  const play = (name: string) =>
+    `animation-name: ${name}; animation-duration: ${DURATION}; animation-iteration-count: infinite; animation-fill-mode: both;`;
   // The same timeline as the picture, with each lift and the turning point given as a share of the layer.
   const [x, y, w, h] = [crop.left, crop.top, crop.width, crop.height].map((n) => n / LAYER_RES);
   const lift = (units: number) => pct((units / h) * 100);
@@ -148,7 +155,7 @@ async function bakeYears(svg: string): Promise<void> {
 .work-frame .years-window { position: absolute; max-width: none; left: ${pct((x / W) * 100)}; top: ${pct((y / H) * 100)}; width: ${pct((w / W) * 100)}; height: ${pct((h / H) * 100)}; opacity: 0; transform-origin: ${pct(((ORIGIN.x - x) / w) * 100)} ${pct(((ORIGIN.y - y) / h) * 100)}; }
 .work-frame .years-last { opacity: 1; }
 @media (prefers-reduced-motion: no-preference) {
-${YEARS.map((_, i) => `.work-frame .years-window${i} { animation: years-layer${i} ${DURATION} infinite both; }`).join('\n')}
+${YEARS.map((_, i) => `.work-frame .years-window${i} { ${play(`years-layer${i}`)} }`).join('\n')}
 ${YEARS.map((_, i) => keyframes(i, 'years-layer', lift)).join('\n')}
 }
 `;
@@ -191,6 +198,12 @@ async function codec(file: string): Promise<string> {
 
 async function bakeRipple(svg: string): Promise<RippleTier[]> {
   const rest = await rippleRest(svg);
+  // Frames fall on a grid that passes through the resting moment, so one frame is the still.
+  const frameMs = 1000 / FPS;
+  const phase = rest % frameMs;
+  // Frame i is shown from i / FPS seconds, so the still's frame begins at that time; aim a
+  // quarter of a frame in, so rounding can't land on the frame before it.
+  const start = +((Math.round((rest - phase) / frameMs) + 0.25) / FPS).toFixed(4);
   const tiers: RippleTier[] = [];
 
   for (const tier of TIERS) {
@@ -205,7 +218,7 @@ async function bakeRipple(svg: string): Promise<RippleTier[]> {
     const count = (RIPPLE_LOOP_MS / 1000) * FPS;
 
     for (let i = 0; i < count; i++) {
-      const ms = (rest + (i * 1000) / FPS) % RIPPLE_LOOP_MS;
+      const ms = phase + i * frameMs;
       await page.evaluate(
         (ms) =>
           new Promise<void>((done) => {
@@ -245,7 +258,7 @@ async function bakeRipple(svg: string): Promise<RippleTier[]> {
       const bitrate = Math.round(((await stat(path)).size * 8) / (RIPPLE_LOOP_MS / 1000));
       sources.push({ file, type: `video/mp4; codecs="${await codec(path)}"`, bitrate });
     }
-    tiers.push({ name: tier.name, media: tier.media, width: tier.width, height: tier.height, still, framerate: FPS, sources });
+    tiers.push({ name: tier.name, media: tier.media, width: tier.width, height: tier.height, still, framerate: FPS, start, sources });
     console.log(`ripple ${tier.name}: ring ${ring}px in a ${tier.width}x${tier.height} film`);
   }
 

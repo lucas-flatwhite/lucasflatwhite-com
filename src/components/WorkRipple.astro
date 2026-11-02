@@ -1,8 +1,9 @@
 ---
 /*
  * The ripple picture, filmed by scripts/work-art/motion.ts: one film per card size, since the
- * ring is always 3px wide on screen. The still underneath is the picture at rest and the
- * film's first frame, so the card looks the same before, while and after it plays.
+ * ring is always 3px wide on screen. The still underneath is the picture at rest; each film
+ * first plays from that very frame (the #t= on its source) and loops where the ring has
+ * faded out, so the card looks the same before, while and after it plays.
  * src/lib/work-motion.ts loads and plays the film only while the card is on screen; it
  * stays hidden until its first frame is up, and never plays for anyone who asked for less motion.
  * The data-* on each source describe it, so the page can skip a film the device can't decode
@@ -33,7 +34,7 @@ const widest = tiers[tiers.length - 1];
   <video muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1">
     {tiers.flatMap((tier) => tier.sources.map((source) => (
       <source
-        src={url(source.file)}
+        src={`${url(source.file)}#t=${tier.start}`}
         type={source.type}
         media={tier.media || undefined}
         data-width={tier.width}
