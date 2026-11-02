@@ -1,0 +1,55 @@
+{
+  "tiers": [
+    {
+      "name": "phone",
+      "media": "(max-width: 720px)",
+      "width": 576,
+      "height": 576,
+      "still": "ripple-phone.webp",
+      "sources": [
+        {
+          "file": "ripple-phone.av1.mp4",
+          "type": "video/mp4; codecs=\"av01.0.04M.08\""
+        },
+        {
+          "file": "ripple-phone.h264.mp4",
+          "type": "video/mp4; codecs=\"avc1.64001e\""
+        }
+      ]
+    },
+    {
+      "name": "desk",
+      "media": "(max-width: 1599px)",
+      "width": 816,
+      "height": 816,
+      "still": "ripple-desk.webp",
+      "sources": [
+        {
+          "file": "ripple-desk.av1.mp4",
+          "type": "video/mp4; codecs=\"av01.0.04M.08\""
+        },
+        {
+          "file": "ripple-desk.h264.mp4",
+          "type": "video/mp4; codecs=\"avc1.64001f\""
+        }
+      ]
+    },
+    {
+      "name": "wide",
+      "media": "",
+      "width": 1024,
+      "height": 1024,
+      "still": "ripple-wide.webp",
+      "sources": [
+        {
+          "file": "ripple-wide.av1.mp4",
+          "type": "video/mp4; codecs=\"av01.0.05M.08\""
+        },
+        {
+          "file": "ripple-wide.h264.mp4",
+          "type": "video/mp4; codecs=\"avc1.640020\""
+        }
+      ]
+    }
+  ]
+}

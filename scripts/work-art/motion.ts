@@ -42,14 +42,16 @@ const RING_PX = 3;
 type Tier = { name: string; media: string; width: number; height: number; square: boolean; cardScale: number };
 
 /*
- * cardScale is the card's CSS pixels per picture unit the film is tuned for. Measured on the
- * board: phones show a 158 to 192px square (480 units across), the ripple card runs 208 to
- * 236px tall (480 units) up to 1599px wide, and 326 to 446px tall beyond that.
+ * cardScale is the card's CSS pixels per picture unit the film is tuned for; the card shows
+ * the picture's full 480 units of height. Measured on the board: phones show a 158 to 192px
+ * square; the board's ripple card is a tall one, 357 to 454px high from 1024 to 1599px wide
+ * and 554 (1920) to 754px (2560) beyond. A tall or square card never shows more than the
+ * middle 480 units across, so every film is that square, which keeps them small.
  */
 const TIERS: Tier[] = [
   { name: 'phone', media: '(max-width: 720px)', width: 576, height: 576, square: true, cardScale: 0.36 },
-  { name: 'desk', media: '(max-width: 1599px)', width: 864, height: 576, square: false, cardScale: 0.46 },
-  { name: 'wide', media: '', width: 1152, height: 768, square: false, cardScale: 0.72 },
+  { name: 'desk', media: '(max-width: 1599px)', width: 816, height: 816, square: true, cardScale: 0.82 },
+  { name: 'wide', media: '', width: 1024, height: 1024, square: true, cardScale: 1.3 },
 ];
 
 export type RippleTier = {

@@ -97,12 +97,14 @@ describe('Work pictures', () => {
     expect(gzipSync(pictures.ripple).length).toBeLessThanOrEqual(100 * 1024);
   });
 
-  it('inlines a moving picture and uses an img when a picture does not move', () => {
+  it('bakes a moving picture for the compositor and uses an img when a picture does not move', () => {
     const card = read('src/components/ProjectCard.astro');
 
-    expect(card).toContain('set:html={svg}');
-    // Each moving picture is inlined when it carries a group named after its motion.
-    expect(card).toContain('id="${motion}"');
+    // A moving picture is never inlined: its glass would be redrawn every frame.
+    expect(card).not.toContain('set:html');
+    expect(card).toContain("motion === 'years' ? <WorkYears");
+    expect(card).toContain("motion === 'ripple' ? <WorkRipple");
+    expect(read('src/pages/index.astro')).not.toMatch(/\.svg\?raw/);
     expect(card).toContain('loading="lazy"');
     expect(card).toContain('width={art.image.width}');
     expect(card).toContain('height={art.image.height}');

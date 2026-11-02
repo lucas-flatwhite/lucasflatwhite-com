@@ -44,3 +44,41 @@ describe('years layers', () => {
     expect(read('src/pages/index.astro')).not.toContain('ai-timeline-log.svg?raw');
   });
 });
+
+describe('ripple films', () => {
+  type Tier = { name: string; media: string; still: string; sources: { file: string; type: string }[] };
+  const { tiers } = JSON.parse(read('src/assets/work/motion/ripple.json')) as { tiers: Tier[] };
+
+  it('films the ripple once per card size, the widest without a media query', () => {
+    expect(tiers.map((tier) => tier.name)).toEqual(['phone', 'desk', 'wide']);
+    expect(tiers[0].media).toBe('(max-width: 720px)');
+    expect(tiers.at(-1)!.media).toBe('');
+  });
+
+  it('offers AV1 first and H.264 after it, each typed with its codec, beside a still', () => {
+    for (const tier of tiers) {
+      expect(tier.sources.map((source) => source.type.match(/codecs="(\w+)\./)![1])).toEqual(['av01', 'avc1']);
+      for (const file of [tier.still, ...tier.sources.map((source) => source.file)]) {
+        expect(existsSync(motion(file)), file).toBe(true);
+      }
+    }
+  });
+
+  it('keeps every film light enough to fetch when its card comes on screen', () => {
+    for (const tier of tiers) {
+      for (const { file } of tier.sources) {
+        expect(readFileSync(motion(file)).length, file).toBeLessThanOrEqual(400 * 1024);
+      }
+    }
+  });
+
+  it('loads the film only on play, keeps it out of the accessibility tree, and never autoplays', () => {
+    const card = read('src/components/WorkRipple.astro');
+
+    expect(card).toContain('preload="none"');
+    expect(card).toMatch(/<video muted loop playsinline/);
+    expect(card).not.toContain('autoplay');
+    expect(card).toContain('aria-hidden="true"');
+    expect(card).toContain('role="img"');
+  });
+});

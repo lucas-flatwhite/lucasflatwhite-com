@@ -1,0 +1,36 @@
+---
+/*
+ * The ripple picture, filmed by scripts/work-art/motion.ts: one film per card size, since the
+ * ring is always 3px wide on screen. The still underneath is the picture at rest and the
+ * film's first frame, so the card looks the same before, while and after it plays.
+ * src/lib/work-motion.ts loads and plays the film only while the card is on screen; it
+ * stays hidden until its first frame is up, and never plays for anyone who asked for less motion.
+ */
+import manifest from '../assets/work/motion/ripple.json';
+
+type Props = { alt: string };
+
+const { alt } = Astro.props;
+const files = import.meta.glob<string>('../assets/work/motion/ripple-*.{mp4,webp}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+});
+const url = (name: string) => files[`../assets/work/motion/${name}`];
+const { tiers } = manifest;
+const widest = tiers[tiers.length - 1];
+---
+
+<div class="project-motion work-film" role="img" aria-label={alt}>
+  <picture>
+    {tiers.filter((tier) => tier.media).map((tier) => (
+      <source media={tier.media} srcset={url(tier.still)} width={tier.width} height={tier.height} />
+    ))}
+    <img src={url(widest.still)} width={widest.width} height={widest.height} alt="" loading="lazy" decoding="async" />
+  </picture>
+  <video muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1">
+    {tiers.flatMap((tier) => tier.sources.map((source) => (
+      <source src={url(source.file)} type={source.type} media={tier.media || undefined} />
+    )))}
+  </video>
+</div>
