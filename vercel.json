@@ -8,7 +8,9 @@
     { "source": "/arcade", "destination": "/arcade/", "permanent": true },
     { "source": "/arcade/suika", "destination": "/arcade/suika/", "permanent": true },
     { "source": "/ai-timeline-log/en", "destination": "/ai-timeline-log/", "permanent": true },
-    { "source": "/ai-timeline-log/en/:path*", "destination": "/ai-timeline-log/:path*", "permanent": true }
+    { "source": "/ai-timeline-log/en/:path*", "destination": "/ai-timeline-log/:path*", "permanent": true },
+    { "source": "/ai-timeline-log", "destination": "/ai-timeline-log/", "permanent": true },
+    { "source": "/ai-timeline-log/ko", "destination": "/ai-timeline-log/ko/", "permanent": true }
   ],
   "rewrites": [
     { "source": "/ai-timeline-log/", "destination": "https://ai-timeline-log.vercel.app/ai-timeline-log/index.html" },
