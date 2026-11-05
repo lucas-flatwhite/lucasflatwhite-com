@@ -50,6 +50,11 @@ describe('route source contract', () => {
     expect(destinationFor('/ai-timeline-log/ko/')).toBe('https://ai-timeline-log.vercel.app/ai-timeline-log/ko/index.html');
     expect(destinationFor('/ai-timeline-log/ko/feed.xml')).toBe('https://ai-timeline-log.vercel.app/ai-timeline-log/ko/feed.xml');
   });
+  it('gives the timeline pages one address each, with the trailing slash their canonical uses', () => {
+    // Without these, /ai-timeline-log and /ai-timeline-log/ko also answer 200 through the :path* rewrite
+    expect(vercel.redirects).toContainEqual({source: '/ai-timeline-log', destination: '/ai-timeline-log/', permanent: true});
+    expect(vercel.redirects).toContainEqual({source: '/ai-timeline-log/ko', destination: '/ai-timeline-log/ko/', permanent: true});
+  });
   it('draws the arcade card without model codes, as the lobby does', () => {
     expect(read('src/components/ArcadeHandheld.astro')).not.toMatch(/FA-\d/);
   });
