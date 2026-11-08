@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import ArcadeHandheld from '../components/ArcadeHandheld.astro';
 import BoardPhotos from '../components/BoardPhotos.astro';
+import BookDialog from '../components/BookDialog.astro';
 import BookStand from '../components/BookStand.astro';
 import ClaudeMark from '../components/ClaudeMark.astro';
 import CommandPalette from '../components/CommandPalette.astro';
@@ -165,10 +166,12 @@ const year = new Date().getFullYear();
       <p>&copy; {year} {siteProfile.name}</p>
     </div>
   </footer>
+  <BookDialog />
   <CommandPalette />
 </BaseLayout>
 
 <script>
+  import { bindBook } from '../lib/book';
   import { mountCopyLinks } from '../lib/copy-link';
   import { bindDailyShot } from '../lib/daily-shot';
   import { bindNameSwap } from '../lib/name-swap';
@@ -180,6 +183,7 @@ const year = new Date().getFullYear();
   const preview = document.querySelector<HTMLCanvasElement>('[data-snake-preview]');
   const deck = document.querySelector<HTMLElement>('[data-photo-deck]');
   const receipt = document.querySelector<HTMLElement>('[data-daily-shot]');
+  const bookDialog = document.querySelector<HTMLDialogElement>('[data-book-dialog]');
 
   if (name) {
     bindNameSwap(name);
@@ -195,6 +199,10 @@ const year = new Date().getFullYear();
 
   if (receipt) {
     bindDailyShot(receipt);
+  }
+
+  if (bookDialog) {
+    bindBook(bookDialog, document.querySelectorAll<HTMLElement>('[data-book-open]'));
   }
 
   bindWorkMotion(document.querySelectorAll<HTMLElement>('.project-motion'));

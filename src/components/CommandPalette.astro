@@ -328,6 +328,11 @@ const commands = await loadPaletteCommands();
       return;
     }
 
+    // Another dialog, such as the book's, closes first, so the menu never opens on top of it.
+    for (const other of document.querySelectorAll<HTMLDialogElement>('dialog[open]:not([data-palette])')) {
+      other.close();
+    }
+
     window.clearTimeout(closeTimer);
     options.forEach(clearCopied);
     input.value = '';

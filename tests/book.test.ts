@@ -81,3 +81,49 @@ describe('the book card', () => {
     }
   });
 });
+
+describe('the store list', () => {
+  const dialog = read('src/components/BookDialog.astro');
+  const landing = read('src/pages/index.astro');
+
+  it('opens from the address /#book and nothing else', async () => {
+    const { BOOK_HASH, wantsBook } = await import('../src/lib/book');
+
+    expect(BOOK_HASH).toBe('#book');
+    expect(wantsBook('#book')).toBe(true);
+    expect(wantsBook('#work')).toBe(false);
+    expect(wantsBook('')).toBe(false);
+  });
+
+  it('is one dialog on the board, bound to the card', () => {
+    expect(dialog).toMatch(/<dialog[^>]*id="book"/);
+    expect(landing).toContain('<BookDialog />');
+    expect(landing).toContain('bindBook(');
+  });
+
+  it('sends every store to a new tab without telling it where the visitor came from', () => {
+    expect(dialog).toContain('book.stores.map(');
+    expect(dialog).toMatch(/<a[^>]*href=\{store\.href\}[^>]*target="_blank"[^>]*rel="noopener noreferrer"/s);
+  });
+
+  it('says where to get the book, with no badge, no price and no redrawn shadow while it opens', () => {
+    expect(dialog).toContain('WHERE TO GET IT');
+    expect(dialog).toContain('구매처');
+    expect(dialog).toContain('링크는 새 탭에서 열려요.');
+    expect(dialog).toContain('{book.meta}');
+    expect(dialog).not.toMatch(/NEW BOOK|28,000/);
+    expect(dialog).not.toMatch(/drop-shadow|backdrop-filter/);
+  });
+
+  it('keeps the flip and slide for visitors who did not ask for less motion', () => {
+    const split = dialog.indexOf('@media (prefers-reduced-motion: no-preference)');
+
+    expect(split).toBeGreaterThan(0);
+    expect(dialog.slice(0, split)).not.toMatch(/animation:\s*book-dialog-/);
+    expect(dialog.slice(split)).toMatch(/animation:\s*book-dialog-open/);
+  });
+
+  it('closes the book before the command menu opens over it', () => {
+    expect(read('src/components/CommandPalette.astro')).toContain("dialog[open]:not([data-palette])");
+  });
+});
