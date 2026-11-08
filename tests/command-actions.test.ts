@@ -5,9 +5,10 @@ import { buildPaletteCommands, filterPaletteCommands, svgPaths, toPublicCommands
 const commands = buildPaletteCommands('/', '/arcade/', ['top', 'work']);
 
 describe('command palette commands', () => {
-  it('lists sections, the arcade and every link', () => {
+  it('lists sections, the book, the arcade and every link', () => {
     expect(commands.map((command) => command.id)).toEqual([
       'work',
+      'book',
       'arcade',
       ...siteLinks.map((link) => link.id),
     ]);
@@ -18,6 +19,22 @@ describe('command palette commands', () => {
 
     expect(base.find((command) => command.id === 'work')?.href).toBe('/lucasflatwhite-com/#work');
     expect(base.find((command) => command.id === 'arcade')?.href).toBe('/lucasflatwhite-com/arcade/');
+  });
+
+  it('opens the book on the homepage, from the address the homepage reads', () => {
+    expect(commands.find((command) => command.id === 'book')).toEqual({
+      id: 'book',
+      label: 'Claude, Made Easy',
+      hint: 'My book on working with Claude',
+      icon: 'book-open',
+      href: '/#book',
+      external: false,
+      copy: null,
+    });
+    expect(filterPaletteCommands(commands, 'book').map((command) => command.id)).toEqual(['book']);
+
+    const base = buildPaletteCommands('/lucasflatwhite-com/', '/lucasflatwhite-com/arcade/', ['top', 'work']);
+    expect(base.find((command) => command.id === 'book')?.href).toBe('/lucasflatwhite-com/#book');
   });
 
   it('opens only the outside links in a new tab', () => {
@@ -77,6 +94,7 @@ describe('project commands', () => {
   it('lists featured projects between Work and Arcade, highest order first', () => {
     expect(withProjects.map((command) => command.id)).toEqual([
       'work',
+      'book',
       'project-new',
       'project-mid',
       'project-old',
@@ -110,6 +128,7 @@ describe('published commands', () => {
   it('makes every href absolute, so a page on another deployment can follow it', () => {
     expect(published.commands.find((command) => command.id === 'work')?.href).toBe('https://lucasflatwhite.com/#work');
     expect(published.commands.find((command) => command.id === 'arcade')?.href).toBe('https://lucasflatwhite.com/arcade/');
+    expect(published.commands.find((command) => command.id === 'book')?.href).toBe('https://lucasflatwhite.com/#book');
     expect(published.commands.find((command) => command.id === 'github')?.href).toBe('https://github.com/lucas-flatwhite');
     expect(published.commands.find((command) => command.id === 'email')?.href).toBe('mailto:lucas.flatwhite@gmail.com');
   });
