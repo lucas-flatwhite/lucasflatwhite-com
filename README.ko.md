@@ -10,8 +10,9 @@
 
 - 종이 게시판에 프로젝트와 작업 관련 링크를 담았습니다. 사진 카드는 여러 사진을 차례로 보여 줍니다.
 - 영수증 모양의 Daily Shot 카드를 누르면 AI 소식을 올리는 X로 이동합니다.
+- 제가 쓴 책 「루카스의 쉽게 배우고 바로 써먹는 클로드 완벽 활용법」을 입체 책 카드로 담았습니다. 누르면 책이 펼쳐지며 살 수 있는 서점 다섯 곳이 나옵니다.
 - ChatGPT 이후 생성형 AI를 기록한 [AI Timeline Log](https://lucasflatwhite.com/ai-timeline-log/)와 작은 브라우저 게임을 모은 [Flatwhite Arcade](https://lucasflatwhite.com/arcade/)로 연결됩니다.
-- 명령 메뉴(`Cmd/Ctrl + K`)에서 프로젝트와 링크로 바로 이동할 수 있습니다.
+- 명령 메뉴(`Cmd/Ctrl + K`)에서 프로젝트와 책, 링크로 바로 이동할 수 있습니다.
 
 Astro, TypeScript, SVG로 만들었습니다. [AI Timeline Log](https://github.com/lucas-flatwhite/ai-timeline-log)와 [Flatwhite Arcade](https://github.com/lucas-flatwhite/flatwhite-arcade)는 각각 별도 저장소에서 개발하고 배포합니다. 이 사이트에서 하나의 도메인으로 연결합니다.
 

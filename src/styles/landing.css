@@ -145,6 +145,7 @@
 
 .name-links a,
 .project-title a,
+.project-title button,
 .project-source {
   color: inherit;
   text-decoration: none;
@@ -510,20 +511,29 @@
   overflow-wrap: anywhere;
 }
 
-.project-title a::after {
+.project-title :is(a, button)::after {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 1;
 }
 
-.project-title a:focus-visible {
+.project-title :is(a, button):focus-visible {
   outline: none;
 }
 
-.project-card:has(.project-title a:focus-visible) {
+.project-card:has(.project-title :is(a, button):focus-visible) {
   outline: 2px solid var(--blue);
   outline-offset: 4px;
+}
+
+.project-title button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .project-title .glyph {
@@ -667,7 +677,7 @@
     opacity: 1;
   }
 
-  .project-card:has(.project-title a:focus-visible)::after {
+  .project-card:has(.project-title :is(a, button):focus-visible)::after {
     border-width: 2px;
     border-color: var(--blue);
   }
@@ -767,7 +777,7 @@
     opacity: 1;
   }
 
-  .project-card:has(.project-title a:focus-visible) {
+  .project-card:has(.project-title :is(a, button):focus-visible) {
     outline: none;
   }
 
@@ -809,5 +819,320 @@
   .colophon-shortcut,
   .topbar .palette-trigger {
     display: none;
+  }
+}
+
+/*
+ * The book card stands a CSS book on a pale blue ground (BookStand.astro). The book is sized
+ * from the card with container units, so it keeps its place on every board width and on a
+ * phone's square. Its cover is hinged at the spine; the first page under it is set in clean type.
+ */
+.claude-mark {
+  width: 1em;
+  height: 1em;
+  flex: none;
+}
+
+.book-art {
+  position: relative;
+  background: radial-gradient(120% 90% at 50% 22%, #f5f9fd 0%, #e9f1f9 58%, #dde8f3 100%);
+}
+
+.book-stand {
+  position: absolute;
+  inset: 0;
+  container-type: size;
+}
+
+.book-scene {
+  position: absolute;
+  inset: 0;
+  --book-h: 70cqh;
+  --book-top: 11.5cqh;
+  --book-w: calc(var(--book-h) * 0.758);
+  --book-d: calc(var(--book-w) * 0.09);
+  perspective: calc(var(--book-h) * 5.6);
+  perspective-origin: 50% 0%;
+}
+
+.book-floor {
+  position: absolute;
+  top: calc(var(--book-top) + var(--book-h) - 2.4cqh);
+  left: 50%;
+  width: calc(var(--book-w) * 1.25);
+  height: calc(var(--book-h) * 0.09);
+  translate: -46% 0;
+  background: radial-gradient(closest-side, rgba(23, 35, 70, 0.28), rgba(23, 35, 70, 0));
+}
+
+.book {
+  position: absolute;
+  top: var(--book-top);
+  left: 50%;
+  width: var(--book-w);
+  height: var(--book-h);
+  margin-left: calc(var(--book-w) / -2);
+  transform: rotateX(-4deg) rotateY(28deg);
+  transform-style: preserve-3d;
+}
+
+.book-face,
+.book-cover-front,
+.book-cover-inside {
+  position: absolute;
+  backface-visibility: hidden;
+}
+
+.book-face picture,
+.book-cover-front picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.project-art .book img {
+  object-fit: fill;
+}
+
+.book-back {
+  inset: 0;
+  background: #f3f3f1;
+  transform: rotateY(180deg) translateZ(calc(var(--book-d) / 2));
+}
+
+.book-spine {
+  top: 0;
+  left: calc((var(--book-w) - var(--book-d)) / 2);
+  width: var(--book-d);
+  height: 100%;
+  background: #fff;
+  transform: rotateY(-90deg) translateZ(calc(var(--book-w) / 2));
+}
+
+/* The spine faces away from the light. */
+.book-spine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(20, 30, 60, 0.16), rgba(20, 30, 60, 0.06) 40%, rgba(20, 30, 60, 0.1));
+}
+
+.book-edge {
+  top: 0.8cqh;
+  left: calc((var(--book-w) - var(--book-d)) / 2);
+  width: var(--book-d);
+  height: calc(100% - 1.6cqh);
+  background: repeating-linear-gradient(90deg, #f6f4ee 0 1px, #e3dfd5 1px 2px);
+  transform: rotateY(90deg) translateZ(calc(var(--book-w) / 2 - 0.8cqh));
+}
+
+.book-top {
+  top: calc((var(--book-h) - var(--book-d)) / 2);
+  left: 1px;
+  width: calc(100% - 3px);
+  height: var(--book-d);
+  background: repeating-linear-gradient(0deg, #f6f4ee 0 1px, #e6e2d8 1px 2px);
+  transform: rotateX(90deg) translateZ(calc(var(--book-h) / 2 - 1px));
+}
+
+.book-page {
+  inset: 0.8cqh 0.8cqh 0.8cqh 0;
+  background: #fbfaf6;
+  container-type: inline-size;
+  transform: translateZ(calc(var(--book-d) / 2 - 1.5px));
+}
+
+/* The gutter's shadow along the spine. */
+.book-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(23, 23, 23, 0.12), rgba(23, 23, 23, 0) 18%);
+}
+
+.book-cover {
+  position: absolute;
+  inset: 0;
+  transform: translateZ(calc(var(--book-d) / 2)) rotateY(0deg);
+  transform-origin: 0 50%;
+  transform-style: preserve-3d;
+}
+
+.book-cover-front {
+  inset: 0;
+  background: #fff;
+  box-shadow: inset 0 0 0 0.5px rgba(23, 23, 23, 0.08);
+}
+
+.book-cover-front::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.18) 60%, rgba(23, 23, 23, 0.04) 100%);
+}
+
+.book-cover-inside {
+  inset: 0;
+  background: #eeece5;
+  transform: rotateY(180deg);
+}
+
+.book-title-page {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 17cqw 11cqw 0;
+  color: #232220;
+  text-align: center;
+}
+
+.book-title-page .claude-mark {
+  width: 30cqw;
+  height: 30cqw;
+}
+
+.book-title-page p {
+  margin: 0;
+}
+
+.book-line {
+  margin-top: 10cqw !important;
+  font-size: 7.4cqw;
+  font-weight: 640;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.book-rule {
+  width: 12cqw;
+  height: 0.8cqw;
+  margin-top: 6cqw;
+  background: #d97757;
+  opacity: 0.85;
+}
+
+.book-small {
+  margin-top: 5cqw !important;
+  color: #77736a;
+  font-size: 4.6cqw;
+  line-height: 1.45;
+}
+
+.book-card .project-title .claude-mark {
+  margin-right: 0.35em;
+  vertical-align: -0.12em;
+}
+
+.book-name-end {
+  white-space: nowrap;
+}
+
+@media (min-width: 721px) and (hover: hover) {
+  /* The board's cards lay their picture over the whole card; .book-art comes after that rule. */
+  .book-art {
+    position: absolute;
+  }
+
+  .book-scene {
+    --book-h: 61cqh;
+  }
+
+  .book-card .project-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    padding-left: 10px;
+  }
+
+  /* The veil stops lower here, so the open book stays in sight above it. */
+  .book-card .project-text {
+    background: linear-gradient(
+      to top,
+      rgba(14, 26, 94, 0.95) 0%,
+      rgba(14, 26, 94, 0.86) 20%,
+      rgba(14, 26, 94, 0) 46%
+    );
+  }
+
+  /* The book has its own hover, so the card's picture does not grow under it. */
+  .book-card:is(:hover, :has(:focus-visible)) .project-art > .book-stand {
+    transform: none;
+  }
+
+  .book-card:is(:hover, :has(:focus-visible)) .book {
+    animation: none;
+    transform: translateX(13%) translateY(-1.5cqh) rotateX(-3deg) rotateY(-6deg) scale(0.86);
+  }
+
+  .book-card:is(:hover, :has(:focus-visible)) .book-cover {
+    animation: none;
+    transform: translateZ(calc(var(--book-d) / 2)) rotateY(-128deg);
+  }
+
+  .book-card:is(:hover, :has(:focus-visible)) .book-floor {
+    animation: none;
+    opacity: 0.75;
+    transform: scaleX(1.1);
+  }
+}
+
+/*
+ * At rest the book sways and its cover peeks open now and then. Only transforms move, and
+ * src/lib/work-motion.ts holds them while the card is off screen or the tab is hidden.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .book {
+    animation: book-sway 7s ease-in-out infinite alternate;
+  }
+
+  .book-cover {
+    animation: book-peek 6s var(--ease-out) infinite;
+  }
+
+  .book-floor {
+    animation: book-floor 7s ease-in-out infinite alternate;
+  }
+
+  .book,
+  .book-cover,
+  .book-floor {
+    transition:
+      transform 800ms var(--ease-out),
+      opacity 800ms var(--ease-out);
+  }
+}
+
+@keyframes book-sway {
+  from {
+    transform: rotateX(-4deg) rotateY(34deg);
+  }
+
+  to {
+    transform: rotateX(-4deg) rotateY(22deg);
+  }
+}
+
+@keyframes book-peek {
+  0%,
+  52%,
+  100% {
+    transform: translateZ(calc(var(--book-d) / 2)) rotateY(0deg);
+  }
+
+  66%,
+  84% {
+    transform: translateZ(calc(var(--book-d) / 2)) rotateY(-36deg);
+  }
+}
+
+@keyframes book-floor {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0.92);
   }
 }
