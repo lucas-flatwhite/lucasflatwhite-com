@@ -313,22 +313,9 @@ import Glyph from './Glyph.astro';
       width: 100%;
       max-height: 88dvh;
       overflow-y: auto;
-      padding: 26px 18px max(24px, env(safe-area-inset-bottom));
+      padding: 22px 18px max(24px, env(safe-area-inset-bottom));
       border-radius: var(--radius-card) var(--radius-card) 0 0;
       background: #fbfaf6;
-    }
-
-    /* The grab handle. */
-    .book-spread::before {
-      content: '';
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      width: 40px;
-      height: 4px;
-      margin-left: -20px;
-      border-radius: var(--radius-pill);
-      background: #d4d4d4;
     }
 
     .book-close {

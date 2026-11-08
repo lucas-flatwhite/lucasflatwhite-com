@@ -6,9 +6,11 @@ import { book } from '../src/data/book';
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8');
 
 describe('the book', () => {
-  it('goes by its English name on the board, with one line about it', () => {
+  it('goes by its English name on the board, with one line about it and no release date', () => {
     expect(book.name).toBe('Claude, Made Easy');
-    expect(book.summary).toBe('I wrote a book on working with Claude. Out November 10.');
+    expect(book.summary).toBe('I wrote a book on working with Claude.');
+    const words = [book.name, book.summary, book.title, book.tagline, book.meta].join(' ');
+    expect(words).not.toMatch(/November|2026|11\.10|출간/);
   });
 
   it('keeps the Korean title, tagline and details for the store list, with no price', () => {
@@ -95,6 +97,29 @@ describe('the store list', () => {
     expect(wantsBook('')).toBe(false);
   });
 
+  it('follows the address: #book opens it, leaving #book closes it', async () => {
+    const { addressAction } = await import('../src/lib/book');
+
+    expect(addressAction('#book', false)).toBe('open');
+    expect(addressAction('#book', true)).toBe('none');
+    // Back from /#book leaves the book open on a bare address unless it closes too.
+    expect(addressAction('', true)).toBe('close');
+    expect(addressAction('#work', true)).toBe('close');
+    expect(addressAction('', false)).toBe('none');
+  });
+
+  it('steps back over the #book entry it was opened with, instead of stacking the homepage twice', async () => {
+    const { leaveAddress } = await import('../src/lib/book');
+
+    // Opened by navigating to /#book (the command menu): that entry is ours to step back over.
+    expect(leaveAddress('#book', true)).toBe('back');
+    // Opened by a shared link: there is nothing of ours behind it, so only the hash goes.
+    expect(leaveAddress('#book', false)).toBe('replace');
+    // Already off #book (the back button closed it): the address is left alone.
+    expect(leaveAddress('', true)).toBe('none');
+    expect(leaveAddress('', false)).toBe('none');
+  });
+
   it('is one dialog on the board, bound to the card', () => {
     expect(dialog).toMatch(/<dialog[^>]*id="book"/);
     expect(landing).toContain('<BookDialog />');
@@ -104,6 +129,10 @@ describe('the store list', () => {
   it('sends every store to a new tab without telling it where the visitor came from', () => {
     expect(dialog).toContain('book.stores.map(');
     expect(dialog).toMatch(/<a[^>]*href=\{store\.href\}[^>]*target="_blank"[^>]*rel="noopener noreferrer"/s);
+  });
+
+  it('has no drag handle, since the sheet closes with its button, Esc or a tap outside', () => {
+    expect(dialog).not.toMatch(/grab handle|\.book-spread::before/);
   });
 
   it('says where to get the book, with no badge, no price and no redrawn shadow while it opens', () => {

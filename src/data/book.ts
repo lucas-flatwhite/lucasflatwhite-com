@@ -13,7 +13,7 @@ export type BookStore = {
 
 export const book = {
   name: 'Claude, Made Easy',
-  summary: 'I wrote a book on working with Claude. Out November 10.',
+  summary: 'I wrote a book on working with Claude.',
   title: '루카스의 쉽게 배우고 바로 써먹는 클로드 완벽 활용법',
   tagline: '업무와 일상에서 AI를 제대로 쓰고 싶은 이들을 위한 클로드 실전 입문 가이드',
   meta: '배성율 지음 · 위키북스 · 452쪽',
