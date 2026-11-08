@@ -15,8 +15,7 @@ import { featuredLinks } from '../data/links';
 import { siteProfile } from '../data/site';
 import { deckOrder } from '../lib/photos';
 import {
-  boardGaps,
-  gapNote,
+  arrangeBoard,
   NAME_ROWS,
   PHOTO_ROWS,
   placeProjects,
@@ -27,10 +26,10 @@ import '../styles/landing.css';
 
 const placed = placeProjects(await getCollection('projects'));
 const photos = deckOrder(await getCollection('photos'));
-// Every pictured project, then Daily Shot, then the arcade, then the numbered gaps.
-const dailySlot = placed.board.length;
-const filled = placed.board.length + 2;
-const count = filled + boardGaps(filled);
+// The book, every pictured project, Daily Shot and the arcade, with pinned projects in their
+// numbered slots and gaps after them (src/lib/projects.ts).
+const slots = arrangeBoard(placed.board);
+const count = slots.length;
 const photoRows = photos.length > 0 ? PHOTO_ROWS : 0;
 // The board runs three columns on a mid screen and four on a wide one; the spans match.
 const three = stackBoard(count, 3, NAME_ROWS, photoRows);
@@ -41,7 +40,6 @@ const place = (index: number) =>
     `--c4: ${four[index].column}; --r4: ${four[index].row}`,
     `--span: ${four[index].span}`,
   ].join('; ');
-const gaps = Array.from({ length: count - filled }, (_, index) => filled + index);
 const arcadeHref = withBase('arcade/');
 const year = new Date().getFullYear();
 ---
@@ -88,50 +86,58 @@ const year = new Date().getFullYear();
         </div>
         {photoRows > 0 && <BoardPhotos photos={photos} rows={photoRows} />}
         <ol class="board-cards" id="work">
-          {placed.board.map((entry, index) => (
-            <ProjectCard
-              title={entry.data.title}
-              summary={entry.data.summary}
-              href={entry.data.href}
-              repo={entry.data.repo}
-              art={entry.data.art!}
-              motion={entry.data.motion}
-              place={place(index)}
-            />
-          ))}
-          <li class="project-card receipt-card" style={place(dailySlot)} data-daily-shot>
-            <div class="project-art receipt-art">
-              <DailyShotReceipt />
-            </div>
-            <span class="project-label" aria-hidden="true">{dailyShot.title}</span>
-            <div class="project-text">
-              <h3 class="project-title">
-                <a href={dailyShot.href} target="_blank" rel="noreferrer me">
-                  {dailyShot.title}
-                  <Glyph icon="arrow-up-right" class="project-out" />
-                </a>
-              </h3>
-              <p class="project-summary">{dailyShot.summary}</p>
-            </div>
-          </li>
-          <li class="project-card arcade-card" style={place(filled - 1)}>
-            <div class="project-art arcade-art">
-              <ArcadeHandheld />
-            </div>
-            <span class="project-label" aria-hidden="true">Flatwhite Arcade</span>
-            <div class="project-text">
-              <h3 class="project-title">
-                <a href={arcadeHref}>Flatwhite Arcade</a>
-              </h3>
-              <p class="project-summary">Small games, one cartridge at a time.</p>
-            </div>
-          </li>
-          {gaps.map((index, order) => (
-            <li class="board-gap" style={place(index)} aria-hidden="true">
-              <span class="gap-number">{String(index + 1).padStart(2, '0')}</span>
-              <span class="gap-note">{gapNote(order)}</span>
-            </li>
-          ))}
+          {slots.map((slot, index) =>
+            slot.kind === 'book' ? (
+              <li class="board-gap" style={place(index)} aria-hidden="true">
+                <span class="gap-number">{String(index + 1).padStart(2, '0')}</span>
+                <span class="gap-note">A book on the way</span>
+              </li>
+            ) : slot.kind === 'project' ? (
+              <ProjectCard
+                title={slot.entry.data.title}
+                summary={slot.entry.data.summary}
+                href={slot.entry.data.href}
+                repo={slot.entry.data.repo}
+                art={slot.entry.data.art!}
+                motion={slot.entry.data.motion}
+                place={place(index)}
+              />
+            ) : slot.kind === 'daily' ? (
+              <li class="project-card receipt-card" style={place(index)} data-daily-shot>
+                <div class="project-art receipt-art">
+                  <DailyShotReceipt />
+                </div>
+                <span class="project-label" aria-hidden="true">{dailyShot.title}</span>
+                <div class="project-text">
+                  <h3 class="project-title">
+                    <a href={dailyShot.href} target="_blank" rel="noreferrer me">
+                      {dailyShot.title}
+                      <Glyph icon="arrow-up-right" class="project-out" />
+                    </a>
+                  </h3>
+                  <p class="project-summary">{dailyShot.summary}</p>
+                </div>
+              </li>
+            ) : slot.kind === 'arcade' ? (
+              <li class="project-card arcade-card" style={place(index)}>
+                <div class="project-art arcade-art">
+                  <ArcadeHandheld />
+                </div>
+                <span class="project-label" aria-hidden="true">Flatwhite Arcade</span>
+                <div class="project-text">
+                  <h3 class="project-title">
+                    <a href={arcadeHref}>Flatwhite Arcade</a>
+                  </h3>
+                  <p class="project-summary">Small games, one cartridge at a time.</p>
+                </div>
+              </li>
+            ) : (
+              <li class="board-gap" style={place(index)} aria-hidden="true">
+                <span class="gap-number">{String(index + 1).padStart(2, '0')}</span>
+                <span class="gap-note">{slot.note}</span>
+              </li>
+            ),
+          )}
         </ol>
       </div>
     </section>

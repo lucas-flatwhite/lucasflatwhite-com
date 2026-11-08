@@ -29,9 +29,9 @@ describe('the Daily Shot card', () => {
     expect(read('src/lib/daily-shot.ts')).not.toMatch(/window\.open|preventDefault/);
   });
 
-  it('takes the slot after the projects and pushes the arcade one down', () => {
-    expect(landing).toContain('const dailySlot = placed.board.length;');
-    expect(landing).toContain('const filled = placed.board.length + 2;');
+  it('takes the slot after the projects and comes before the arcade', () => {
+    expect(landing).toContain('const slots = arrangeBoard(placed.board);');
+    expect(landing).toContain("slot.kind === 'daily'");
     expect(landing.indexOf('<DailyShotReceipt />')).toBeLessThan(landing.indexOf('<ArcadeHandheld />'));
   });
 

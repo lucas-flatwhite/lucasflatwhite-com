@@ -43,10 +43,6 @@ export function placeProjects<T extends Orderable>(entries: T[]): {
  */
 export const BOARD_SLOTS = 12;
 
-export function boardGaps(filled: number): number {
-  return Math.max(0, BOARD_SLOTS - filled);
-}
-
 /** What a gap says while its project is still on the way, taken in turn. */
 export const GAP_NOTES = [
   'Grinding the beans',
@@ -63,6 +59,68 @@ export const GAP_NOTES = [
 
 export function gapNote(index: number): string {
   return GAP_NOTES[index % GAP_NOTES.length];
+}
+
+/** One board slot: the book, a pictured project, Daily Shot, the arcade, or a numbered gap. */
+export type BoardSlot<T> =
+  | { kind: 'book' }
+  | { kind: 'project'; entry: T }
+  | { kind: 'daily' }
+  | { kind: 'arcade' }
+  | { kind: 'gap'; note: string };
+
+/**
+ * Lays the board out in reading order. The book leads, then every project without a pinned
+ * `slot`, then Daily Shot and the arcade; a project with a `slot` sits at that number and the
+ * rest flow around it. Gaps pad the board to `slots`, and each keeps the note it had before a
+ * pinned card took a gap, so the numbers and their notes stay together.
+ */
+export function arrangeBoard<T extends { data: { slot?: number } }>(
+  projects: T[],
+  slots = BOARD_SLOTS,
+): BoardSlot<T>[] {
+  const pinned = new Map<number, T>();
+
+  for (const entry of projects) {
+    const { slot } = entry.data;
+
+    if (slot === undefined) {
+      continue;
+    }
+
+    if (pinned.has(slot - 1)) {
+      throw new Error(`Two projects are pinned to board slot ${slot}`);
+    }
+
+    pinned.set(slot - 1, entry);
+  }
+
+  const flow: BoardSlot<T>[] = [
+    { kind: 'book' },
+    ...projects.filter((entry) => entry.data.slot === undefined).map((entry) => ({ kind: 'project' as const, entry })),
+    { kind: 'daily' },
+    { kind: 'arcade' },
+  ];
+  const board: (BoardSlot<T> | null)[] = [];
+  let index = 0;
+
+  for (const item of flow) {
+    while (pinned.has(index)) {
+      index += 1;
+    }
+
+    board[index] = item;
+    index += 1;
+  }
+
+  for (const [at, entry] of pinned) {
+    board[at] = { kind: 'project', entry };
+  }
+
+  const length = Math.max(slots, board.length);
+  const firstGap = Array.from({ length }, (_, at) => at).find((at) => !board[at]) ?? length;
+
+  return Array.from({ length }, (_, at) => board[at] ?? { kind: 'gap', note: gapNote(at - firstGap) });
 }
 
 /** The name heads the first column and takes this many rows before any card lands under it. */

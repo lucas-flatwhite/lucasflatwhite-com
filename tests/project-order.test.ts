@@ -4,11 +4,12 @@ import {
   GAP_NOTES,
   NAME_ROWS,
   PHOTO_ROWS,
-  boardGaps,
+  arrangeBoard,
   gapNote,
   placeProjects,
   sortFeaturedProjects,
   stackBoard,
+  type BoardSlot,
 } from '../src/lib/projects';
 
 const project = (
@@ -64,11 +65,48 @@ describe('placeProjects', () => {
   });
 });
 
-describe('boardGaps', () => {
-  it('pads the board up to its slot count and never below zero', () => {
-    expect(boardGaps(3)).toBe(BOARD_SLOTS - 3);
-    expect(boardGaps(BOARD_SLOTS)).toBe(0);
-    expect(boardGaps(BOARD_SLOTS + 4)).toBe(0);
+describe('arrangeBoard', () => {
+  const card = (title: string, slot?: number) => ({ data: { title, slot } });
+  const kinds = (slots: BoardSlot<ReturnType<typeof card>>[]) =>
+    slots.map((slot) => (slot.kind === 'project' ? slot.entry.data.title : slot.kind));
+
+  it('leads with the book, then the projects, Daily Shot and the arcade, and pins a project to its slot', () => {
+    const slots = arrangeBoard([card('Timeline'), card('Site', 7)]);
+
+    expect(kinds(slots)).toEqual([
+      'book', 'Timeline', 'daily', 'arcade', 'gap', 'gap', 'Site', 'gap', 'gap', 'gap', 'gap', 'gap',
+    ]);
+  });
+
+  it('keeps each gap note on its number when a pinned card takes a gap', () => {
+    const notes = arrangeBoard([card('Timeline'), card('Site', 7)]).flatMap((slot) =>
+      slot.kind === 'gap' ? [slot.note] : [],
+    );
+
+    expect(notes).toEqual([
+      'Grinding the beans',
+      'Warming up',
+      'Still brewing',
+      'Stretching first',
+      'Pulling a shot',
+      'Letting it bloom',
+      'Sketched on a napkin',
+    ]);
+  });
+
+  it('flows around a pin that lands among the first cards', () => {
+    expect(kinds(arrangeBoard([card('A'), card('B', 2)], 5))).toEqual(['book', 'B', 'A', 'daily', 'arcade']);
+  });
+
+  it('grows past the slot count to fit a late pin', () => {
+    const slots = arrangeBoard([card('Far', 15)]);
+
+    expect(slots).toHaveLength(15);
+    expect(kinds(slots)[14]).toBe('Far');
+  });
+
+  it('refuses two projects pinned to one slot', () => {
+    expect(() => arrangeBoard([card('A', 7), card('B', 7)])).toThrow(/slot 7/);
   });
 });
 

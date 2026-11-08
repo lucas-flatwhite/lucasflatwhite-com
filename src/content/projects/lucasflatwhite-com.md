@@ -10,6 +10,7 @@ repo: https://github.com/lucas-flatwhite/lucasflatwhite-com
 order: 2
 featured: true
 motion: ripple
+slot: 7
 art:
   image: ../../assets/work/lucasflatwhite-com.svg
   alt: "Three frosted glass panes, shaped like the cards on this board, float over fine grey ripples while a crema ring spreads out beneath them."
