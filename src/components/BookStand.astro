@@ -1,0 +1,47 @@
+---
+/*
+ * The book card's picture: the book standing on a pale blue ground, built as a CSS box. The
+ * front cover is hinged at the spine; under it, the first page carries a large Claude mark.
+ * It sways and the cover peeks open now and then (src/styles/landing.css), and only while
+ * the card is on screen (src/lib/work-motion.ts). On hover the book turns to face the
+ * visitor and opens. The spine strip is cut from the cover spread.
+ */
+import { Picture } from 'astro:assets';
+import cover from '../assets/book/cover.jpg';
+import spine from '../assets/book/spine.jpg';
+import ClaudeMark from './ClaudeMark.astro';
+
+type Props = { alt: string };
+
+const { alt } = Astro.props;
+// The cover is about a fifth of the board's width on a wide screen and a quarter on a phone.
+const sizes = '(min-width: 1100px) 16vw, (min-width: 721px) 21vw, 26vw';
+---
+
+<div class="project-motion book-stand" role="img" aria-label={alt}>
+  <div class="book-scene">
+  <div class="book-floor"></div>
+  <div class="book">
+    <div class="book-face book-back"></div>
+    <div class="book-face book-spine">
+      <Picture src={spine} widths={[40, 80]} sizes="4vw" formats={['avif', 'webp']} alt="" loading="eager" decoding="async" />
+    </div>
+    <div class="book-face book-edge"></div>
+    <div class="book-face book-top"></div>
+    <div class="book-face book-page">
+      <div class="book-title-page">
+        <ClaudeMark />
+        <p class="book-line">Understand Claude,<br />then put it to work.</p>
+        <span class="book-rule"></span>
+        <p class="book-small">A friendly first book<br />on working with Claude.</p>
+      </div>
+    </div>
+    <div class="book-cover">
+      <div class="book-cover-front">
+        <Picture src={cover} widths={[320, 640]} sizes={sizes} formats={['avif', 'webp']} alt="" loading="eager" decoding="async" />
+      </div>
+      <div class="book-cover-inside"></div>
+    </div>
+  </div>
+  </div>
+</div>

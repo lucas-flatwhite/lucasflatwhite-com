@@ -4,6 +4,8 @@ import arrowDownBold from '@phosphor-icons/core/bold/arrow-down-bold.svg?raw';
 import arrowDownRegular from '@phosphor-icons/core/regular/arrow-down.svg?raw';
 import arrowUpRightBold from '@phosphor-icons/core/bold/arrow-up-right-bold.svg?raw';
 import arrowUpRightRegular from '@phosphor-icons/core/regular/arrow-up-right.svg?raw';
+import bookOpenBold from '@phosphor-icons/core/bold/book-open-bold.svg?raw';
+import bookOpenRegular from '@phosphor-icons/core/regular/book-open.svg?raw';
 import checkBold from '@phosphor-icons/core/bold/check-bold.svg?raw';
 import checkRegular from '@phosphor-icons/core/regular/check.svg?raw';
 import commandBold from '@phosphor-icons/core/bold/command-bold.svg?raw';
@@ -22,6 +24,7 @@ import xLogoRegular from '@phosphor-icons/core/regular/x-logo.svg?raw';
 export const icons = {
   'arrow-down': { regular: arrowDownRegular, bold: arrowDownBold },
   'arrow-up-right': { regular: arrowUpRightRegular, bold: arrowUpRightBold },
+  'book-open': { regular: bookOpenRegular, bold: bookOpenBold },
   check: { regular: checkRegular, bold: checkBold },
   command: { regular: commandRegular, bold: commandBold },
   envelope: { regular: envelopeRegular, bold: envelopeBold },

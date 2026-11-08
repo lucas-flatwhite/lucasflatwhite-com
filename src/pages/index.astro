@@ -2,6 +2,8 @@
 import { getCollection } from 'astro:content';
 import ArcadeHandheld from '../components/ArcadeHandheld.astro';
 import BoardPhotos from '../components/BoardPhotos.astro';
+import BookStand from '../components/BookStand.astro';
+import ClaudeMark from '../components/ClaudeMark.astro';
 import CommandPalette from '../components/CommandPalette.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import SiteHeader from '../components/SiteHeader.astro';
@@ -10,6 +12,7 @@ import CopyRoll from '../components/CopyRoll.astro';
 import DailyShotReceipt from '../components/DailyShotReceipt.astro';
 import Glyph from '../components/Glyph.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { book } from '../data/book';
 import { dailyShot } from '../data/daily-shot';
 import { featuredLinks } from '../data/links';
 import { siteProfile } from '../data/site';
@@ -41,6 +44,9 @@ const place = (index: number) =>
     `--span: ${four[index].span}`,
   ].join('; ');
 const arcadeHref = withBase('arcade/');
+// The book icon stays with the last word of the name, so it never wraps onto a line alone.
+const bookWords = book.name.split(' ');
+const bookLastWord = bookWords.pop();
 const year = new Date().getFullYear();
 ---
 
@@ -88,9 +94,19 @@ const year = new Date().getFullYear();
         <ol class="board-cards" id="work">
           {slots.map((slot, index) =>
             slot.kind === 'book' ? (
-              <li class="board-gap" style={place(index)} aria-hidden="true">
-                <span class="gap-number">{String(index + 1).padStart(2, '0')}</span>
-                <span class="gap-note">A book on the way</span>
+              <li class="project-card book-card" style={place(index)}>
+                <div class="project-art book-art">
+                  <BookStand alt={`My book, ${book.name}, standing on a pale blue ground. Now and then its cover opens a little onto a first page with a large Claude mark.`} />
+                </div>
+                <span class="project-label" aria-hidden="true"><ClaudeMark />{book.name}</span>
+                <div class="project-text">
+                  <h3 class="project-title">
+                    <button type="button" data-book-open aria-haspopup="dialog" aria-controls="book">
+                      <ClaudeMark />{bookWords.join(' ')} <span class="book-name-end">{bookLastWord}<Glyph icon="book-open" class="project-out" /></span>
+                    </button>
+                  </h3>
+                  <p class="project-summary">{book.summary}</p>
+                </div>
               </li>
             ) : slot.kind === 'project' ? (
               <ProjectCard
