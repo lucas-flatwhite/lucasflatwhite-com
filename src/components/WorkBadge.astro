@@ -1,0 +1,42 @@
+---
+/*
+ * The work card's picture: my Kakao Pay Insurance badge on its cord, on the company's yellow.
+ * Like the real one it is a black holder with the wordmark printed in white, but its window
+ * shows what I do instead of a photo: src/lib/work-badge.ts types each question, streams the
+ * answer and prints a dot picture under it. The cord sways while the card is on screen.
+ */
+import KakaoPayInsuranceMark from './KakaoPayInsuranceMark.astro';
+
+type Props = { alt: string; steps: number };
+
+const { alt, steps } = Astro.props;
+---
+
+<div class="project-motion work-stand" role="img" aria-label={alt}>
+  <span class="work-now" aria-hidden="true"><i></i>Now</span>
+  <div class="work-hang">
+    <svg class="work-cord" viewBox="0 0 100 64" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M30 61 C 28 40, 22 18, 8 -40" />
+      <path d="M70 61 C 72 40, 78 18, 92 -40" />
+      <path class="work-cord-shine" d="M30 61 C 28 40, 22 18, 8 -40" />
+      <path class="work-cord-shine" d="M70 61 C 72 40, 78 18, 92 -40" />
+    </svg>
+    <div class="work-press">
+      <div class="work-badge">
+        <div class="work-shadow"></div>
+        <div class="work-cap"></div>
+        <div class="work-shell"></div>
+        <KakaoPayInsuranceMark class="work-mark" />
+        <div class="work-window">
+          <div class="work-ai" aria-hidden="true">
+            <span class="work-q" data-work-question><span class="work-tail" data-work-question-tail><span class="work-q-caret"></span></span></span>
+            <span class="work-think"><span></span><span></span><span></span></span>
+            <span class="work-a" data-work-answer><span class="work-tail" data-work-answer-tail><span class="work-a-caret"></span></span></span>
+            <canvas class="work-dots"></canvas>
+            <span class="work-steps">{Array.from({ length: steps }, () => <span class="work-step"></span>)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
