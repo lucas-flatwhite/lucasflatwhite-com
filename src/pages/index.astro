@@ -234,7 +234,7 @@ const year = new Date().getFullYear();
   }
 
   if (workCard && workLetter) {
-    bindWorkBadge(workCard, work.scenes, work.visitor, bindWorkLetter(workLetter, work.letter.turns));
+    bindWorkBadge(workCard, work.scenes, work.visitor, bindWorkLetter(workLetter, work.letter.turns, workCard.querySelector<HTMLElement>('[data-work-open]')));
   }
 
   bindWorkMotion(document.querySelectorAll<HTMLElement>('.project-motion'));
