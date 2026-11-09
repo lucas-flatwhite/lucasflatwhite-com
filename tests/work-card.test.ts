@@ -68,3 +68,46 @@ describe('the work badge', () => {
     expect(read('src/styles/landing.css')).toMatch(/\.work-window \{[^}]*contain: strict/s);
   });
 });
+
+describe('the letter on how I see insurance', () => {
+  const letter = () => read('src/components/WorkLetter.astro');
+
+  it('keeps my words, with the doubts the visitor might have', () => {
+    expect(work.letter.title).toBe('보험에 대한 새로운 시각');
+    expect(work.letter.turns).toEqual([
+      ['보험, 어렵지 않나요?', '보험은 어렵지 않아요.'],
+      ['막상 필요할 땐 오래 걸리잖아요?', '당신이 필요할 때 더 빨리 다가갈게요.'],
+      ['막상 일이 생기면요?', '그 순간에 가장 가까이 있어야 해요.'],
+    ]);
+    expect(work.letter.really).toBe('정말이요.');
+    expect(work.letter.pledge.map(([text]) => text).join('')).toBe('보험은 쉽고, 친근하고, 정확하고, 적기에 당신을 만나야 하고, 빨라야 해요.');
+    expect(work.letter.pledge.filter(([, marked]) => marked).map(([text]) => text)).toEqual(['쉽고', '친근하고', '정확하고', '적기에', '빨라야']);
+    expect(work.letter.waiting).toBe('그리고 다시 만날 수 있도록 기다려져야 해요');
+  });
+
+  it('is one dialog the badge opens, signed with the wordmark and my name only', () => {
+    const source = letter();
+
+    expect(source).toMatch(/<dialog[^>]*id="work-letter"/);
+    expect(source).toContain('<KakaoPayInsuranceMark');
+    expect(source).toMatch(/\{(work\.)?letter\.signature\}/);
+    expect(source).not.toMatch(/Backend Engineering|·/);
+    expect(read('src/pages/index.astro')).toContain('<WorkLetter />');
+  });
+
+  it('gives screen readers the whole letter at once, while the eye sees it unfold', () => {
+    const source = letter();
+
+    expect(source).toMatch(/class="sr-only"[^>]*>[\s\S]*letter\.turns\.map/);
+    expect(source).toMatch(/data-work-thread[^>]*aria-hidden="true"|aria-hidden="true"[^>]*data-work-thread/);
+  });
+
+  it('unfolds only for visitors who did not ask for less motion', () => {
+    const source = letter();
+    const split = source.indexOf('@media (prefers-reduced-motion: no-preference)');
+
+    expect(split).toBeGreaterThan(0);
+    expect(source.slice(0, split)).not.toMatch(/animation:\s*work-letter-/);
+    expect(read('src/lib/work-letter.ts')).toMatch(/prefers-reduced-motion: reduce/);
+  });
+});

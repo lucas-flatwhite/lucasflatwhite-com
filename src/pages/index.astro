@@ -9,6 +9,7 @@ import CommandPalette from '../components/CommandPalette.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import WorkBadge from '../components/WorkBadge.astro';
+import WorkLetter from '../components/WorkLetter.astro';
 import CopyMark from '../components/CopyMark.astro';
 import CopyRoll from '../components/CopyRoll.astro';
 import DailyShotReceipt from '../components/DailyShotReceipt.astro';
@@ -188,6 +189,7 @@ const year = new Date().getFullYear();
     </div>
   </footer>
   <BookDialog />
+  <WorkLetter />
   <CommandPalette />
 </BaseLayout>
 
@@ -200,6 +202,7 @@ const year = new Date().getFullYear();
   import { mountSnakePreview } from '../lib/snake-preview';
   import { work } from '../data/work';
   import { bindWorkBadge } from '../lib/work-badge';
+  import { bindWorkLetter } from '../lib/work-letter';
   import { bindWorkMotion } from '../lib/work-motion';
 
   const name = document.querySelector<HTMLElement>('[data-name]');
@@ -208,6 +211,7 @@ const year = new Date().getFullYear();
   const receipt = document.querySelector<HTMLElement>('[data-daily-shot]');
   const bookDialog = document.querySelector<HTMLDialogElement>('[data-book-dialog]');
   const workCard = document.querySelector<HTMLElement>('[data-work-card]');
+  const workLetter = document.querySelector<HTMLDialogElement>('[data-work-letter]');
 
   if (name) {
     bindNameSwap(name);
@@ -229,8 +233,8 @@ const year = new Date().getFullYear();
     bindBook(bookDialog, document.querySelectorAll<HTMLElement>('[data-book-open]'));
   }
 
-  if (workCard) {
-    bindWorkBadge(workCard, work.scenes, work.visitor, () => {});
+  if (workCard && workLetter) {
+    bindWorkBadge(workCard, work.scenes, work.visitor, bindWorkLetter(workLetter, work.letter.turns));
   }
 
   bindWorkMotion(document.querySelectorAll<HTMLElement>('.project-motion'));
