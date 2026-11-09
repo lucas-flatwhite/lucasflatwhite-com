@@ -76,13 +76,15 @@ describe('the letter on how I see insurance', () => {
     expect(work.letter.title).toBe('보험에 대한 새로운 시각');
     expect(work.letter.turns).toEqual([
       ['보험, 어렵지 않나요?', '보험은 어렵지 않아요.'],
-      ['막상 필요할 땐 오래 걸리잖아요?', '당신이 필요할 때 더 빨리 다가갈게요.'],
+      ['필요할 땐 오래 걸리잖아요?', '당신이 필요할 때 더 빨리 다가갈게요.'],
       ['막상 일이 생기면요?', '그 순간에 가장 가까이 있어야 해요.'],
     ]);
     expect(work.letter.really).toBe('정말이요.');
-    expect(work.letter.pledge.map(([text]) => text).join('')).toBe('보험은 쉽고, 친근하고, 정확하고, 적기에 당신을 만나야 하고, 빨라야 해요.');
-    expect(work.letter.pledge.filter(([, marked]) => marked).map(([text]) => text)).toEqual(['쉽고', '친근하고', '정확하고', '적기에', '빨라야']);
-    expect(work.letter.waiting).toBe('그리고 다시 만날 수 있도록 기다려져야 해요');
+    expect(work.letter.pledge.map(([text]) => text).join('')).toBe('보험은 쉽고, 친근하고, 정확하고, 꼭 필요한 때 당신을 찾아가야 하고, 빨라야 해요.');
+    expect(work.letter.pledge.filter(([, marked]) => marked).map(([text]) => text)).toEqual(['쉽고', '친근하고', '정확하고', '꼭 필요한 때', '빨라야']);
+    expect(work.letter.waiting).toBe('그리고 다시 만나고 싶어져야 해요');
+    // "막상" opens one doubt only.
+    expect(work.letter.turns.filter(([question]) => question.includes('막상'))).toHaveLength(1);
   });
 
   it('is one dialog the badge opens, signed with the wordmark and my name only', () => {

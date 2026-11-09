@@ -727,7 +727,11 @@
     opacity: 0;
   }
 
-  .project-text > * {
+  /*
+   * Only the summary slides up with the veil. A transform on the title would make it the box
+   * its stretched link fills, and a click on the picture would miss while the veil rises.
+   */
+  .project-summary {
     transform: translateY(10px);
   }
 
@@ -762,8 +766,8 @@
     opacity: 1;
   }
 
-  .project-card:hover .project-text > *,
-  .project-card:has(:focus-visible) .project-text > * {
+  .project-card:hover .project-summary,
+  .project-card:has(:focus-visible) .project-summary {
     transform: none;
   }
 
@@ -804,7 +808,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .project-text,
-  .project-text > *,
+  .project-summary,
   .project-label,
   .project-source,
   .project-card::after,

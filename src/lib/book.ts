@@ -105,6 +105,13 @@ export function bindBook(dialog: HTMLDialogElement, triggers: Iterable<HTMLEleme
   // address leaves #book too.
   let navigatedHere = false;
 
+  // Focus goes back to the book card, wherever the book was opened from: a browser that does
+  // not focus a pressed button (Safari) would otherwise send it to the top of the page.
+  const card = [...triggers][0];
+  dialog.addEventListener('close', () => {
+    card?.focus({ preventScroll: true });
+  });
+
   dialog.addEventListener('close', () => {
     const step = leaveAddress(window.location.hash, navigatedHere);
     navigatedHere = false;

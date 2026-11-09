@@ -10,7 +10,11 @@ type Run = { stop: boolean; timers: number[] };
 
 const FADE_MS = 170;
 
-export function bindWorkLetter(dialog: HTMLDialogElement, turns: readonly (readonly [string, string])[]): () => void {
+export function bindWorkLetter(
+  dialog: HTMLDialogElement,
+  turns: readonly (readonly [string, string])[],
+  returnTo?: HTMLElement | null,
+): () => void {
   const sheet = dialog.querySelector<HTMLElement>('[data-work-letter-sheet]');
   const turnRows = [...dialog.querySelectorAll<HTMLElement>('.work-letter-turn')];
   const steps = [...dialog.querySelectorAll<HTMLElement>('[data-work-letter-step]')];
@@ -184,10 +188,14 @@ export function bindWorkLetter(dialog: HTMLDialogElement, turns: readonly (reado
   dialog.addEventListener('close', () => {
     halt();
     dialog.classList.remove('is-playing');
+    // Back to the card's button, even when the click landed on the picture and focused nothing.
+    returnTo?.focus({ preventScroll: true });
   });
 
   return () => {
-    if (dialog.open) {
+    // The letter rises a moment after the click; if the command menu or another dialog opened
+    // in that moment, it stays shut rather than landing on top.
+    if (dialog.open || document.querySelector('dialog[open]')) {
       return;
     }
     dialog.showModal();
