@@ -61,19 +61,26 @@ export function gapNote(index: number): string {
   return GAP_NOTES[index % GAP_NOTES.length];
 }
 
-/** One board slot: the book, a pictured project, Daily Shot, the arcade, or a numbered gap. */
+/** One board slot: the book, a pictured project, Daily Shot, the arcade, the work badge, or a numbered gap. */
 export type BoardSlot<T> =
   | { kind: 'book' }
   | { kind: 'project'; entry: T }
   | { kind: 'daily' }
   | { kind: 'arcade' }
+  | { kind: 'work' }
   | { kind: 'gap'; note: string };
 
 /**
+ * The gap notes were first handed out from slot 05 on, and each number keeps its note
+ * however many cards land before it.
+ */
+const FIRST_NOTE_INDEX = 4;
+
+/**
  * Lays the board out in reading order. The book leads, then every project without a pinned
- * `slot`, then Daily Shot and the arcade; a project with a `slot` sits at that number and the
- * rest flow around it. Gaps pad the board to `slots`, and each keeps the note it had before a
- * pinned card took a gap, so the numbers and their notes stay together.
+ * `slot`, then Daily Shot, the arcade and the work badge; a project with a `slot` sits at that
+ * number and the rest flow around it. Gaps pad the board to `slots`, and each number keeps its
+ * own note, so a card taking a gap never shifts the notes after it.
  */
 export function arrangeBoard<T extends { data: { slot?: number } }>(
   projects: T[],
@@ -100,6 +107,7 @@ export function arrangeBoard<T extends { data: { slot?: number } }>(
     ...projects.filter((entry) => entry.data.slot === undefined).map((entry) => ({ kind: 'project' as const, entry })),
     { kind: 'daily' },
     { kind: 'arcade' },
+    { kind: 'work' },
   ];
   const board: (BoardSlot<T> | null)[] = [];
   let index = 0;
@@ -118,9 +126,8 @@ export function arrangeBoard<T extends { data: { slot?: number } }>(
   }
 
   const length = Math.max(slots, board.length);
-  const firstGap = Array.from({ length }, (_, at) => at).find((at) => !board[at]) ?? length;
 
-  return Array.from({ length }, (_, at) => board[at] ?? { kind: 'gap', note: gapNote(at - firstGap) });
+  return Array.from({ length }, (_, at) => board[at] ?? { kind: 'gap', note: gapNote(Math.max(0, at - FIRST_NOTE_INDEX)) });
 }
 
 /** The name heads the first column and takes this many rows before any card lands under it. */

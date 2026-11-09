@@ -70,11 +70,11 @@ describe('arrangeBoard', () => {
   const kinds = (slots: BoardSlot<ReturnType<typeof card>>[]) =>
     slots.map((slot) => (slot.kind === 'project' ? slot.entry.data.title : slot.kind));
 
-  it('leads with the book, then the projects, Daily Shot and the arcade, and pins a project to its slot', () => {
+  it('leads with the book, then the projects, Daily Shot, the arcade and the work badge, and pins a project to its slot', () => {
     const slots = arrangeBoard([card('Timeline'), card('Site', 7)]);
 
     expect(kinds(slots)).toEqual([
-      'book', 'Timeline', 'daily', 'arcade', 'gap', 'gap', 'Site', 'gap', 'gap', 'gap', 'gap', 'gap',
+      'book', 'Timeline', 'daily', 'arcade', 'work', 'gap', 'Site', 'gap', 'gap', 'gap', 'gap', 'gap',
     ]);
   });
 
@@ -84,7 +84,6 @@ describe('arrangeBoard', () => {
     );
 
     expect(notes).toEqual([
-      'Grinding the beans',
       'Warming up',
       'Still brewing',
       'Stretching first',
@@ -95,7 +94,7 @@ describe('arrangeBoard', () => {
   });
 
   it('flows around a pin that lands among the first cards', () => {
-    expect(kinds(arrangeBoard([card('A'), card('B', 2)], 5))).toEqual(['book', 'B', 'A', 'daily', 'arcade']);
+    expect(kinds(arrangeBoard([card('A'), card('B', 2)], 6))).toEqual(['book', 'B', 'A', 'daily', 'arcade', 'work']);
   });
 
   it('grows past the slot count to fit a late pin', () => {

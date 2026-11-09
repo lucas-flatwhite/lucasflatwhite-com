@@ -135,6 +135,11 @@ const year = new Date().getFullYear();
                   <p class="project-summary">{dailyShot.summary}</p>
                 </div>
               </li>
+            ) : slot.kind === 'work' ? (
+              <li class="board-gap" style={place(index)} aria-hidden="true">
+                <span class="gap-number">{String(index + 1).padStart(2, '0')}</span>
+                <span class="gap-note">Badge on the way</span>
+              </li>
             ) : slot.kind === 'arcade' ? (
               <li class="project-card arcade-card" style={place(index)}>
                 <div class="project-art arcade-art">
