@@ -8,6 +8,8 @@ import ClaudeMark from '../components/ClaudeMark.astro';
 import CommandPalette from '../components/CommandPalette.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import SiteHeader from '../components/SiteHeader.astro';
+import WorkBadge from '../components/WorkBadge.astro';
+import WorkLetter from '../components/WorkLetter.astro';
 import CopyMark from '../components/CopyMark.astro';
 import CopyRoll from '../components/CopyRoll.astro';
 import DailyShotReceipt from '../components/DailyShotReceipt.astro';
@@ -17,6 +19,7 @@ import { book } from '../data/book';
 import { dailyShot } from '../data/daily-shot';
 import { featuredLinks } from '../data/links';
 import { siteProfile } from '../data/site';
+import { work } from '../data/work';
 import { deckOrder } from '../lib/photos';
 import {
   arrangeBoard,
@@ -135,6 +138,25 @@ const year = new Date().getFullYear();
                   <p class="project-summary">{dailyShot.summary}</p>
                 </div>
               </li>
+            ) : slot.kind === 'work' ? (
+              <li class="project-card work-card" style={place(index)} data-work-card>
+                <div class="project-art work-art">
+                  <WorkBadge
+                    alt={`My badge at ${work.company}, hanging on its cord. Its small screen answers what I do: backend engineering, full-stack development and tech strategy.`}
+                    steps={work.scenes.length}
+                  />
+                </div>
+                <span class="project-label" aria-hidden="true">{work.company}</span>
+                <div class="project-text">
+                  <h3 class="project-title">
+                    <button type="button" data-work-open aria-haspopup="dialog" aria-controls="work-letter">
+                      {work.company}
+                      <Glyph icon="umbrella-simple" class="project-out" />
+                    </button>
+                  </h3>
+                  <p class="project-summary">{work.summary}</p>
+                </div>
+              </li>
             ) : slot.kind === 'arcade' ? (
               <li class="project-card arcade-card" style={place(index)}>
                 <div class="project-art arcade-art">
@@ -167,6 +189,7 @@ const year = new Date().getFullYear();
     </div>
   </footer>
   <BookDialog />
+  <WorkLetter />
   <CommandPalette />
 </BaseLayout>
 
@@ -177,6 +200,9 @@ const year = new Date().getFullYear();
   import { bindNameSwap } from '../lib/name-swap';
   import { bindPhotoDeck } from '../lib/photo-deck';
   import { mountSnakePreview } from '../lib/snake-preview';
+  import { work } from '../data/work';
+  import { bindWorkBadge } from '../lib/work-badge';
+  import { bindWorkLetter } from '../lib/work-letter';
   import { bindWorkMotion } from '../lib/work-motion';
 
   const name = document.querySelector<HTMLElement>('[data-name]');
@@ -184,6 +210,8 @@ const year = new Date().getFullYear();
   const deck = document.querySelector<HTMLElement>('[data-photo-deck]');
   const receipt = document.querySelector<HTMLElement>('[data-daily-shot]');
   const bookDialog = document.querySelector<HTMLDialogElement>('[data-book-dialog]');
+  const workCard = document.querySelector<HTMLElement>('[data-work-card]');
+  const workLetter = document.querySelector<HTMLDialogElement>('[data-work-letter]');
 
   if (name) {
     bindNameSwap(name);
@@ -203,6 +231,10 @@ const year = new Date().getFullYear();
 
   if (bookDialog) {
     bindBook(bookDialog, document.querySelectorAll<HTMLElement>('[data-book-open]'));
+  }
+
+  if (workCard && workLetter) {
+    bindWorkBadge(workCard, work.scenes, work.visitor, bindWorkLetter(workLetter, work.letter.turns));
   }
 
   bindWorkMotion(document.querySelectorAll<HTMLElement>('.project-motion'));
