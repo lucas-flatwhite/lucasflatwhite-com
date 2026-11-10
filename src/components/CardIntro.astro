@@ -61,8 +61,10 @@ import Glyph from './Glyph.astro';
 </div>
 
 <style>
+  /* The gutter stays, so the board does not shift when the scrollbar comes back. */
   :global(html.has-intro) {
     overflow: hidden;
+    scrollbar-gutter: stable;
   }
 
   :global(html:not(.has-intro)) .card-intro {
@@ -150,11 +152,50 @@ import Glyph from './Glyph.astro';
     aspect-ratio: 5 / 9;
     transform-style: preserve-3d;
     rotate: -2deg;
-    transition: transform 0.8s var(--ease-out);
+    transition:
+      transform 0.8s var(--ease-out),
+      rotate 0.6s var(--ease-out);
   }
 
   .card-intro:not([data-state='front']) .intro-flip {
     transform: rotateY(180deg);
+  }
+
+  /* The unfold (src/lib/card-unfold.ts): face up and straight, then the parts the board
+     does not carry step back, then the intro goes behind the board. */
+  .card-intro[data-state='unfolding'] .intro-flip {
+    transform: none;
+    rotate: 0deg;
+    transition-duration: 0.6s;
+  }
+
+  .card-intro.is-unfolding :is(.intro-skip, .intro-handed, .intro-hint) {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    animation: none;
+  }
+
+  .card-intro.is-retreating :global(:is([data-card-part='qr'], [data-card-part='url'], [data-card-part='role'], [data-card-part='dot'])) {
+    opacity: 0;
+    translate: 0 8px;
+    transition:
+      opacity 0.22s ease,
+      translate 0.3s ease;
+  }
+
+  .card-intro.is-behind {
+    z-index: -1;
+    background: transparent;
+  }
+
+  .card-intro.is-behind .intro-stage {
+    visibility: hidden;
+  }
+
+  .card-intro :global(.intro-sheet) {
+    position: absolute;
+    box-shadow: 0 24px 40px -24px rgb(23 23 23 / 0.35);
   }
 
   .intro-face {
@@ -430,7 +471,8 @@ import Glyph from './Glyph.astro';
 </style>
 
 <script>
-  import { introStep, REDUCED_FADE, type IntroEvent, type IntroState } from '../lib/card-intro';
+  import { introStep, type IntroEvent, type IntroState } from '../lib/card-intro';
+  import { unfoldInto } from '../lib/card-unfold';
 
   const root = document.querySelector<HTMLElement>('[data-card-intro]');
   const board = document.querySelector<HTMLElement>('[data-home-board]');
@@ -446,18 +488,14 @@ import Glyph from './Glyph.astro';
     let state: IntroState = 'front';
 
     board.inert = true;
+    // The board unfolds from its top, so a reload lands there too.
+    history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
 
-    const finish = () => {
-      root.remove();
-      board.inert = false;
-      document.documentElement.classList.remove('has-intro');
-      state = introStep(state, 'unfolded');
-      window.dispatchEvent(new Event('card-intro:done'));
-    };
-
-    // Replaced by the unfold onto the board.
     const unfold = () => {
-      root.animate([{ opacity: 1 }, { opacity: 0 }], { duration: REDUCED_FADE, easing: 'ease-out' }).finished.then(finish);
+      void unfoldInto(root, board).then(() => {
+        state = introStep(state, 'unfolded');
+      });
     };
 
     const send = (event: IntroEvent) => {

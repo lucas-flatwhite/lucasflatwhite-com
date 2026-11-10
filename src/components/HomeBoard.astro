@@ -215,10 +215,6 @@ const year = new Date().getFullYear();
   const workCard = document.querySelector<HTMLElement>('[data-work-card]');
   const workLetter = document.querySelector<HTMLDialogElement>('[data-work-letter]');
 
-  if (name) {
-    bindNameSwap(name);
-  }
-
   if (preview) {
     mountSnakePreview(preview);
   }
@@ -245,7 +241,19 @@ const year = new Date().getFullYear();
     bindWorkBadge(workCard, work.scenes, work.visitor, bindWorkLetter(workLetter, work.letter.turns, workCard.querySelector<HTMLElement>('[data-work-open]')));
   }
 
-  bindWorkMotion(document.querySelectorAll<HTMLElement>('.project-motion'));
+  // On /hi/ my card covers the board and unfolds into it (CardIntro.astro). The name swap and
+  // the moving pictures wait for it, so no letter turns into a drawing while it travels.
+  const ready = document.querySelector('[data-card-intro]')
+    ? new Promise<void>((resolve) => window.addEventListener('card-intro:done', () => resolve(), { once: true }))
+    : Promise.resolve();
+
+  ready.then(() => {
+    if (name) {
+      bindNameSwap(name);
+    }
+
+    bindWorkMotion(document.querySelectorAll<HTMLElement>('.project-motion'));
+  });
 
   mountCopyLinks();
 </script>

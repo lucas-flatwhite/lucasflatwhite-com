@@ -100,3 +100,34 @@ describe('the intro overlay', () => {
     expect(read('src/lib/card.ts')).toContain("classList.contains('has-intro')");
   });
 });
+
+describe('the unfold onto the board', () => {
+  const read = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8');
+  const board = read('src/components/HomeBoard.astro');
+  const unfold = read('src/lib/card-unfold.ts');
+
+  it('starts the name swap and the moving pictures only once the card has unfolded', () => {
+    expect(board).toContain("'card-intro:done'");
+    const ready = board.indexOf('ready.then(');
+    expect(ready).toBeGreaterThan(0);
+    expect(board.slice(ready)).toContain('bindNameSwap(name)');
+    expect(board.slice(ready)).toContain('bindWorkMotion(');
+    expect(board.slice(0, ready)).not.toMatch(/bindNameSwap\(name\)|bindWorkMotion\(/);
+  });
+
+  it('leaves the visitor on the homepage address, focused on my name', () => {
+    expect(unfold).toContain("history.replaceState(null, '', withBase())");
+    expect(unfold).toContain("'#name'");
+    expect(unfold).toContain("new Event('card-intro:done')");
+  });
+
+  it('moves the real board pieces with FLIP, not view transitions', () => {
+    expect(unfold).toContain('flipFrom(');
+    for (const part of ['handle', 'name', 'ko']) {
+      expect(unfold).toContain(`'${part}'`);
+    }
+    for (const source of [unfold, read('src/components/CardIntro.astro'), board]) {
+      expect(source).not.toContain('view-transition-name');
+    }
+  });
+});
