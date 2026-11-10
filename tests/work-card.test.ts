@@ -8,7 +8,7 @@ const read = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8'
 
 describe('the work badge', () => {
   it('names the company and says what I do, in my words', () => {
-    expect(work.company).toBe('Kakao Pay Insurance');
+    expect(work.company).toBe('KakaoPay Insurance');
     expect(work.summary).toBe('From backend engineering to full-stack development and tech strategy');
     expect(work.scenes.map((scene) => [scene.question, scene.answer])).toEqual([
       ['What do you do here?', 'Backend engineering.'],
@@ -97,11 +97,12 @@ describe('the letter on how I see insurance', () => {
     expect(read('src/components/HomeBoard.astro')).toContain('<WorkLetter />');
   });
 
-  it('gives screen readers the whole letter at once, while the eye sees it unfold', () => {
+  it('renders complete readable text in each language without a typing-only copy', () => {
     const source = letter();
-
-    expect(source).toMatch(/class="sr-only"[^>]*>[\s\S]*letter\.turns\.map/);
-    expect(source).toMatch(/data-work-thread[^>]*aria-hidden="true"|aria-hidden="true"[^>]*data-work-thread/);
+    expect(source).toContain('data-work-language-panel={language} hidden={language !== \'en\'}');
+    expect(source).toContain('<p class="work-letter-q">{question}</p>');
+    expect(source).toContain('<p class="work-letter-a">{answer}</p>');
+    expect(source).not.toContain('aria-hidden="true" data-work-thread');
   });
 
   it('unfolds only for visitors who did not ask for less motion', () => {

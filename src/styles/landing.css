@@ -1142,7 +1142,7 @@
 }
 
 /*
- * The work card hangs my Kakao Pay Insurance badge on the company's yellow (WorkBadge.astro).
+ * The work card hangs my KakaoPay Insurance badge on the company's yellow (WorkBadge.astro).
  * Sizes come from the card (container units), so the badge keeps its place on every board
  * width and on a phone's square. The window is contained: its words change without making
  * the page lay out again. The shadow is a still layer behind the badge, never a filter.
