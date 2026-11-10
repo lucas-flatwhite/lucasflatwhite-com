@@ -8,6 +8,7 @@ import ArcadeHandheld from './ArcadeHandheld.astro';
 import BoardPhotos from './BoardPhotos.astro';
 import BookDialog from './BookDialog.astro';
 import BookStand from './BookStand.astro';
+import CardDialog from './CardDialog.astro';
 import ClaudeMark from './ClaudeMark.astro';
 import CommandPalette from './CommandPalette.astro';
 import ProjectCard from './ProjectCard.astro';
@@ -187,6 +188,7 @@ const year = new Date().getFullYear();
     </div>
   </footer>
   <BookDialog />
+  <CardDialog />
   <WorkLetter />
   <CommandPalette />
 </div>
@@ -194,6 +196,7 @@ const year = new Date().getFullYear();
 
 <script>
   import { bindBook } from '../lib/book';
+  import { bindCard } from '../lib/card';
   import { mountCopyLinks } from '../lib/copy-link';
   import { bindDailyShot } from '../lib/daily-shot';
   import { bindNameSwap } from '../lib/name-swap';
@@ -230,6 +233,12 @@ const year = new Date().getFullYear();
 
   if (bookDialog) {
     bindBook(bookDialog, document.querySelectorAll<HTMLElement>('[data-book-open]'));
+  }
+
+  const cardDialog = document.querySelector<HTMLDialogElement>('[data-card-dialog]');
+
+  if (cardDialog) {
+    bindCard(cardDialog, document.querySelectorAll<HTMLElement>('[data-card-open]'));
   }
 
   if (workCard && workLetter) {

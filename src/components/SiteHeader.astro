@@ -1,6 +1,7 @@
 ---
 import { siteProfile } from '../data/site';
 import { withBase } from '../lib/paths';
+import Glyph from './Glyph.astro';
 
 type Props = {
   href: string;
@@ -14,17 +15,23 @@ const { href } = Astro.props;
     <img class="topbar-avatar" src={withBase('avatar.png')} alt="" width="32" height="32" />
     {siteProfile.handle}
   </a>
-  <button
-    class="palette-trigger"
-    type="button"
-    data-palette-open
-    aria-haspopup="dialog"
-    aria-keyshortcuts="Meta+K Control+K"
-    hidden
-  >
-    <span class="sr-only">Open command menu</span>
-    <kbd aria-hidden="true" data-palette-key>Ctrl K</kbd>
-  </button>
+  <div class="topbar-actions">
+    <!-- My card, with its QR (CardDialog.astro). Phones hide the menu button, so this is their way in. -->
+    <button class="card-trigger glyph-host" type="button" data-card-open aria-haspopup="dialog" aria-controls="card">
+      <Glyph icon="identification-card" />Card
+    </button>
+    <button
+      class="palette-trigger"
+      type="button"
+      data-palette-open
+      aria-haspopup="dialog"
+      aria-keyshortcuts="Meta+K Control+K"
+      hidden
+    >
+      <span class="sr-only">Open command menu</span>
+      <kbd aria-hidden="true" data-palette-key>Ctrl K</kbd>
+    </button>
+  </div>
 </header>
 
 <style is:global>
@@ -44,6 +51,41 @@ const { href } = Astro.props;
     color: inherit;
     font-weight: 560;
     text-decoration: none;
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Matches the menu button beside it (CommandPalette.astro). */
+  .card-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    min-height: 40px;
+    padding: 0 0.8em;
+    border: 1px solid var(--line, #ebebeb);
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color var(--dur-short) var(--ease-out);
+  }
+
+  .card-trigger .glyph {
+    font-size: 1.25rem;
+  }
+
+  .card-trigger:hover {
+    background: #ebebeb;
+  }
+
+  .card-trigger:active {
+    transform: translateY(1px);
   }
 
   .topbar-avatar {

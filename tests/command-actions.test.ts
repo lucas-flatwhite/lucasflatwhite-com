@@ -5,10 +5,11 @@ import { buildPaletteCommands, filterPaletteCommands, svgPaths, toPublicCommands
 const commands = buildPaletteCommands('/', '/arcade/', ['top', 'work']);
 
 describe('command palette commands', () => {
-  it('lists sections, the book, the arcade and every link', () => {
+  it('lists sections, the book, my card, the arcade and every link', () => {
     expect(commands.map((command) => command.id)).toEqual([
       'work',
       'book',
+      'card',
       'arcade',
       ...siteLinks.map((link) => link.id),
     ]);
@@ -35,6 +36,21 @@ describe('command palette commands', () => {
 
     const base = buildPaletteCommands('/lucasflatwhite-com/', '/lucasflatwhite-com/arcade/', ['top', 'work']);
     expect(base.find((command) => command.id === 'book')?.href).toBe('/lucasflatwhite-com/#book');
+  });
+
+  it('opens my card on the homepage, from the address the homepage reads', () => {
+    expect(commands.find((command) => command.id === 'card')).toEqual({
+      id: 'card',
+      label: 'Card',
+      hint: 'My card, with a QR code to this site',
+      icon: 'identification-card',
+      href: '/#card',
+      external: false,
+      copy: null,
+    });
+
+    const base = buildPaletteCommands('/lucasflatwhite-com/', '/lucasflatwhite-com/arcade/', ['top', 'work']);
+    expect(base.find((command) => command.id === 'card')?.href).toBe('/lucasflatwhite-com/#card');
   });
 
   it('opens only the outside links in a new tab', () => {
@@ -95,6 +111,7 @@ describe('project commands', () => {
     expect(withProjects.map((command) => command.id)).toEqual([
       'work',
       'book',
+      'card',
       'project-new',
       'project-mid',
       'project-old',

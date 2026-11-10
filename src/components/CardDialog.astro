@@ -1,0 +1,249 @@
+---
+/*
+ * My card, held up to be scanned (src/lib/card.ts opens and closes it). On a phone it fills
+ * the screen on the board's paper; on a wider screen it floats as a paper panel. Under the
+ * card: Share (only where the browser can share the image file; on an iPhone that is the way
+ * into Photos), then Save image, a plain download that always works.
+ *
+ * The card takes the room the screen has, but never so little that the QR drops under 170px
+ * (280px of card): on a very short screen the sheet scrolls to its buttons instead.
+ */
+import { CARD_FILE_NAME, CARD_IMAGE } from '../lib/card';
+import { withBase } from '../lib/paths';
+import BusinessCard from './BusinessCard.astro';
+import Glyph from './Glyph.astro';
+---
+
+<dialog id="card" class="card-dialog" aria-label="My card" data-card-dialog>
+  <div class="card-dialog-body">
+    <div class="card-dialog-top">
+      <button class="card-dialog-close" type="button" data-card-close aria-label="Close" autofocus>
+        <Glyph icon="x" />
+      </button>
+    </div>
+    <BusinessCard />
+    <div class="card-dialog-actions">
+      <button class="card-dialog-action is-primary glyph-host" type="button" data-card-share hidden>
+        <Glyph icon="export" />Share
+      </button>
+      <a class="card-dialog-action glyph-host" href={withBase(CARD_IMAGE)} download={CARD_FILE_NAME}>
+        <Glyph icon="download-simple" motion="commit" />Save image
+      </a>
+    </div>
+  </div>
+</dialog>
+
+<style>
+  .card-dialog {
+    /* Close row, buttons, the gaps between and the sheet's padding. */
+    --card-chrome: calc(140px + env(safe-area-inset-top) + env(safe-area-inset-bottom));
+    --card-width: min(330px, calc(100vw - 32px), max(280px, calc((100dvh - var(--card-chrome)) * 5 / 9)));
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: #fafafa;
+    color: #171717;
+    overscroll-behavior: contain;
+  }
+
+  /* Focus lands on the close button; the sheet itself needs no ring. */
+  .card-dialog:focus {
+    outline: none;
+  }
+
+  .card-dialog::backdrop {
+    background: rgb(23 23 23 / 0.45);
+  }
+
+  .card-dialog-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    box-sizing: border-box;
+    min-height: 100%;
+    padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+  }
+
+  .card-dialog-top,
+  .card-dialog-actions {
+    display: flex;
+    width: var(--card-width);
+    gap: 8px;
+  }
+
+  .card-dialog-top {
+    justify-content: flex-end;
+  }
+
+  .card-dialog-close {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid #ebebeb;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  .card-dialog-action {
+    display: inline-flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    min-height: 44px;
+    border: 1px solid #ebebeb;
+    border-radius: 6px;
+    background: #fff;
+    color: inherit;
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 560;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .card-dialog-action[hidden] {
+    display: none;
+  }
+
+  .card-dialog-action.is-primary {
+    border-color: #171717;
+    background: #171717;
+    color: #fafafa;
+  }
+
+  .card-dialog-action :global(.glyph) {
+    font-size: 1.15em;
+  }
+
+  .card-dialog-close:hover,
+  .card-dialog-action:not(.is-primary):hover {
+    background: #ebebeb;
+  }
+
+  .card-dialog-close:active,
+  .card-dialog-action:active {
+    transform: translateY(1px);
+  }
+
+  /* A wider screen: a paper panel floating over the board. */
+  @media (min-width: 721px) {
+    .card-dialog {
+      --card-chrome: 172px;
+      /* A dialog in the top layer is fixed to the whole screen; auto would stretch it. */
+      width: fit-content;
+      height: fit-content;
+      max-height: calc(100dvh - 32px);
+      margin: auto;
+      border-radius: var(--radius-card);
+      box-shadow: 0 0 0 1px #ebebeb;
+    }
+
+    .card-dialog-body {
+      padding: 16px 24px 24px;
+    }
+  }
+
+  /* A phone on its side: the buttons go beside the card, and the card fits the height. */
+  @media (orientation: landscape) and (max-height: 560px) {
+    .card-dialog {
+      --card-width: calc((100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 5 / 9);
+      width: 100vw;
+      height: 100dvh;
+      max-height: none;
+      margin: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .card-dialog-body {
+      padding: calc(16px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+      display: grid;
+      grid-template-columns: auto auto;
+      grid-template-areas: 'card top' 'card actions';
+      align-content: center;
+      justify-content: center;
+      column-gap: 16px;
+    }
+
+    .card-dialog-body :global(.business-card) {
+      grid-area: card;
+    }
+
+    .card-dialog-top {
+      grid-area: top;
+      align-self: start;
+      width: 180px;
+    }
+
+    .card-dialog-actions {
+      grid-area: actions;
+      flex-direction: column;
+      align-self: end;
+      width: 180px;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .card-dialog[open] :global(.business-card) {
+      animation: card-dialog-in 360ms var(--ease-out);
+    }
+
+    .card-dialog[open]::backdrop {
+      animation: card-dialog-fade 240ms var(--ease-out);
+    }
+  }
+
+  @keyframes card-dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.98);
+    }
+  }
+
+  @keyframes card-dialog-fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /* npm run card: nothing around the card, at whatever width the bake sets. */
+  :global([data-card-print]) .card-dialog {
+    width: fit-content;
+    height: fit-content;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  :global([data-card-print]) .card-dialog::backdrop {
+    background: transparent;
+  }
+
+  :global([data-card-print]) .card-dialog-body {
+    padding: 0;
+  }
+
+  :global([data-card-print]) .card-dialog-top,
+  :global([data-card-print]) .card-dialog-actions {
+    display: none;
+  }
+
+  :global([data-card-print]) .card-dialog :global(.business-card) {
+    animation: none;
+  }
+</style>
