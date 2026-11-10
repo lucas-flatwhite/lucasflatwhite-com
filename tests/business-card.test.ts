@@ -11,11 +11,10 @@ describe('my business card', () => {
   it('keeps the line about me from the mockup', () => {
     expect(card.role).toBe('Software engineer. Spots problems, then solves them.');
     expect(card.url).toBe('lucasflatwhite.com');
-    expect(card.scan).toBe('Scan');
   });
 
   it('marks every part the intro moves or sets aside', () => {
-    for (const part of ['avatar', 'handle', 'name', 'ko', 'role', 'dot', 'qr', 'url']) {
+    for (const part of ['name', 'ko', 'role', 'dot', 'qr', 'url']) {
       expect(source).toContain(`data-card-part="${part}"`);
     }
   });

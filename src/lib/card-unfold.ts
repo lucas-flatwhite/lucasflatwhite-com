@@ -6,9 +6,10 @@
  * 2. What the board does not carry over (the QR, the address, the line about me, the yellow
  *    dot) steps back.
  * 3. The intro drops behind the board. A sheet of paper grows from the card to the whole
- *    screen while the board's own handle, name and Korean name travel from where they sat
- *    on the card to their places (FLIP).
- * 4. The rest of the board in view rises in, one piece after another.
+ *    screen while the board's own name and Korean name travel from where they sat on the
+ *    card to their places (FLIP).
+ * 4. The rest of the board in view rises in, one piece after another, starting with my mark
+ *    at the top (the card carries my face only in its QR, so the mark has nothing to fly from).
  *
  * Then the address becomes the homepage's, focus goes to my name, and the board's motion
  * starts (HomeBoard.astro waits for card-intro:done).
@@ -23,13 +24,12 @@ const RISE_AFTER = 420;
 
 /** Card parts and the board elements they become. */
 const TRAVELLERS = [
-  ['handle', '.topbar-mark'],
   ['name', '#name'],
   ['ko', '.name-ko'],
 ] as const;
 
 /** The board pieces that rise in once the paper is down, in reading order. */
-const RISERS = '.topbar-actions, .intro, .name-links > li, .board-photos, .board-cards > li';
+const RISERS = '.topbar-mark, .topbar-actions, .intro, .name-links > li, .board-photos, .board-cards > li';
 
 const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
@@ -104,8 +104,7 @@ export async function unfoldInto(root: HTMLElement, board: HTMLElement): Promise
       return [];
     }
 
-    // The handle travels with the face beside it, as the board's mark does.
-    const first = contentBox(part === 'handle' ? from.parentElement! : from);
+    const first = contentBox(from);
     return [{ to, first, last: contentBox(to), box: to.getBoundingClientRect() }];
   });
   const risers = [...document.querySelectorAll<HTMLElement>(RISERS)].filter((element) => {

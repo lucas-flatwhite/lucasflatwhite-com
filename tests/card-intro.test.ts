@@ -141,7 +141,7 @@ describe('the unfold onto the board', () => {
 
   it('moves the real board pieces with FLIP, not view transitions', () => {
     expect(unfold).toContain('flipFrom(');
-    for (const part of ['handle', 'name', 'ko']) {
+    for (const part of ['name', 'ko']) {
       expect(unfold).toContain(`'${part}'`);
     }
     for (const source of [unfold, read('src/components/CardIntro.astro'), board]) {
