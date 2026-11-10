@@ -97,12 +97,13 @@ describe('the letter on how I see insurance', () => {
     expect(read('src/components/HomeBoard.astro')).toContain('<WorkLetter />');
   });
 
-  it('renders complete readable text in each language without a typing-only copy', () => {
+  it('reserves message dimensions and keeps the complete conversation accessible', () => {
     const source = letter();
     expect(source).toContain('data-work-language-panel={language} hidden={language !== \'en\'}');
-    expect(source).toContain('<p class="work-letter-q">{question}</p>');
-    expect(source).toContain('<p class="work-letter-a">{answer}</p>');
-    expect(source).not.toContain('aria-hidden="true" data-work-thread');
+    expect(source).toContain('class="work-letter-reserve">{question}</span>');
+    expect(source).toContain('class="work-letter-reserve">{answer}</span>');
+    expect(source).toContain('class="sr-only"');
+    expect(source).toContain('class="work-letter-thread" aria-hidden="true"');
   });
 
   it('unfolds only for visitors who did not ask for less motion', () => {

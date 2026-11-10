@@ -1,8 +1,21 @@
-/** A readable letter with a stable frame. Only its highlights animate. */
+/** Plays a conversation inside a fixed frame, with space reserved for each message. */
 import { workLetters, type WorkLanguage } from '../data/work';
 
 export function workLetterLanguage(language: string): WorkLanguage {
   return language.toLowerCase().split('-')[0] === 'ko' ? 'ko' : 'en';
+}
+
+/** Aborting resolves pending waits too, so a closed or replaced conversation can finish. */
+function wait(ms: number, signal: AbortSignal): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (signal.aborted) { resolve(false); return; }
+    const cancel = () => { window.clearTimeout(timer); resolve(false); };
+    const timer = window.setTimeout(() => {
+      signal.removeEventListener('abort', cancel);
+      resolve(true);
+    }, ms);
+    signal.addEventListener('abort', cancel, { once: true });
+  });
 }
 
 export function bindWorkLetter(
@@ -12,25 +25,95 @@ export function bindWorkLetter(
   const sheet = dialog.querySelector<HTMLElement>('[data-work-letter-sheet]');
   const panels = [...dialog.querySelectorAll<HTMLElement>('[data-work-language-panel]')];
   const buttons = [...dialog.querySelectorAll<HTMLButtonElement>('[data-work-language]')];
+  const skip = dialog.querySelector<HTMLButtonElement>('[data-work-letter-skip]');
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   let language = workLetterLanguage(navigator.language);
+  let controller = new AbortController();
   let animations: Animation[] = [];
   let closeTimer: number | undefined;
+  let following = true;
+  const panel = () => panels.find((panel) => !panel.hidden)!;
 
   const stop = () => {
+    controller.abort();
     animations.forEach((animation) => animation.cancel());
     animations = [];
   };
-  const highlight = () => {
+  const finish = () => {
+    dialog.classList.remove('is-playing');
+    if (document.activeElement === skip) {
+      buttons.find((button) => button.dataset.workLanguage === language)?.focus({ preventScroll: true });
+    }
+    if (skip) skip.hidden = true;
+  };
+  const showAll = () => {
     stop();
-    if (reduced.matches) return;
-    const panel = panels.find((panel) => !panel.hidden);
-    panel?.querySelectorAll<HTMLElement>('.work-letter-mark-ink').forEach((mark, i) => {
-      animations.push(mark.animate(
-        [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }],
-        { duration: 650, delay: 200 + i * 140, easing: 'ease-out', fill: 'backwards' },
-      ));
+    panel().querySelectorAll<HTMLElement>('[hidden]').forEach((element) => { element.hidden = false; });
+    panel().querySelectorAll('.is-thinking').forEach((row) => row.classList.remove('is-thinking'));
+    panel().querySelectorAll<HTMLElement>('[data-work-text]').forEach((element) => {
+      element.textContent = element.dataset.workText!;
     });
+    finish();
+  };
+  // Follow a new message once, rather than scrolling on every typed character.
+  // A manual scroll keeps the reader in control until the conversation is replayed.
+  const follow = (element: HTMLElement) => {
+    if (!sheet || !following) return;
+    const bottom = element.getBoundingClientRect().bottom;
+    const edge = sheet.getBoundingClientRect().bottom;
+    if (bottom > edge - 24) sheet.scrollBy({ top: bottom - edge + 24, behavior: 'smooth' });
+  };
+  sheet?.addEventListener('wheel', () => { following = false; }, { passive: true });
+  sheet?.addEventListener('touchstart', () => { following = false; }, { passive: true });
+  dialog.addEventListener('keydown', (event) => {
+    if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(event.key)) following = false;
+  });
+
+  const type = async (element: HTMLElement, signal: AbortSignal, interval: number) => {
+    for (const character of Array.from(element.dataset.workText!)) {
+      if (!await wait(interval, signal)) return false;
+      element.textContent += character;
+    }
+    return true;
+  };
+  const play = async () => {
+    stop();
+    if (reduced.matches) { showAll(); return; }
+    controller = new AbortController();
+    const { signal } = controller;
+    const active = panel();
+    const rows = [...active.querySelectorAll<HTMLElement>('.work-letter-turn')];
+    const steps = [...active.querySelectorAll<HTMLElement>('[data-work-letter-step]')];
+    rows.forEach((row) => { row.hidden = true; row.classList.remove('is-thinking'); });
+    steps.forEach((step) => { step.hidden = true; });
+    active.querySelectorAll<HTMLElement>('[data-work-text]').forEach((element) => { element.textContent = ''; });
+    following = true;
+    if (sheet) sheet.scrollTop = 0;
+    dialog.classList.add('is-playing');
+    if (skip) skip.hidden = false;
+    if (!await wait(350, signal)) return;
+    for (const row of rows) {
+      row.hidden = false;
+      follow(row);
+      if (!await type(row.querySelector<HTMLElement>('.work-letter-q [data-work-text]')!, signal, 40)) return;
+      row.classList.add('is-thinking');
+      if (!await wait(450, signal)) return;
+      row.classList.remove('is-thinking');
+      if (!await type(row.querySelector<HTMLElement>('.work-letter-a [data-work-text]')!, signal, 30)) return;
+      if (!await wait(650, signal)) return;
+    }
+    for (const step of steps) {
+      step.hidden = false;
+      follow(step);
+      step.querySelectorAll<HTMLElement>('.work-letter-mark-ink').forEach((mark, i) => {
+        animations.push(mark.animate(
+          [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }],
+          { duration: 650, delay: i * 140, easing: 'ease-out', fill: 'backwards' },
+        ));
+      });
+      if (!await wait(step.classList.contains('work-letter-pledge') ? 1400 : 650, signal)) return;
+    }
+    finish();
   };
   const setLanguage = (next: WorkLanguage) => {
     stop();
@@ -43,7 +126,7 @@ export function bindWorkLetter(
     });
     dialog.querySelector('[data-work-letter-close]')?.setAttribute('aria-label', workLetters[language].close);
     dialog.querySelector('[data-work-language-group]')?.setAttribute('aria-label', workLetters[language].languageLabel);
-    // Keep language changes predictable; never move the reader down the letter.
+    if (skip) skip.textContent = workLetters[language].skip;
     if (sheet) sheet.scrollTop = 0;
   };
   setLanguage(language);
@@ -51,14 +134,10 @@ export function bindWorkLetter(
   const close = () => {
     if (!dialog.open || dialog.classList.contains('is-closing')) return;
     stop();
-    if (reduced.matches) {
-      dialog.close();
-      return;
-    }
+    if (reduced.matches) { dialog.close(); return; }
     dialog.classList.add('is-closing');
     closeTimer = window.setTimeout(() => dialog.close(), 170);
   };
-
   dialog.addEventListener('click', (event) => {
     const target = event.target as Element;
     const toggle = target.closest<HTMLElement>('[data-work-language]');
@@ -66,27 +145,30 @@ export function bindWorkLetter(
       close();
     } else if (toggle) {
       const next = toggle.dataset.workLanguage;
-      if (next === 'en' || next === 'ko') setLanguage(next);
+      if ((next === 'en' || next === 'ko') && next !== language) {
+        setLanguage(next);
+        void play();
+      }
     } else if (target.closest('[data-work-letter-replay]')) {
-      highlight();
+      void play();
+      if (!reduced.matches) skip?.focus({ preventScroll: true });
+    } else if (target.closest('[data-work-letter-skip]')) {
+      showAll();
     }
   });
-  dialog.addEventListener('cancel', (event) => {
-    event.preventDefault();
-    close();
-  });
+  dialog.addEventListener('cancel', (event) => { event.preventDefault(); close(); });
   dialog.addEventListener('close', () => {
     stop();
     window.clearTimeout(closeTimer);
     dialog.classList.remove('is-closing');
+    finish();
     returnTo?.focus({ preventScroll: true });
   });
-  reduced.addEventListener('change', () => { if (reduced.matches) stop(); });
+  reduced.addEventListener('change', () => { if (reduced.matches && dialog.open) showAll(); });
 
   return () => {
     if (dialog.open || document.querySelector('dialog[open]')) return;
-    if (sheet) sheet.scrollTop = 0;
     dialog.showModal();
-    highlight();
+    void play();
   };
 }

@@ -26,10 +26,31 @@ try {
         const visiblePanel = dialog.locator('[data-work-language-panel]:not([hidden])');
         assert.equal(await visiblePanel.count(), 1);
         assert.equal(await visiblePanel.locator('.work-letter-a').count(), 3);
+        if (reducedMotion === 'no-preference') {
+          assert.equal(await dialog.evaluate((el) => el.classList.contains('is-playing')), true,
+            'the letter must open as a conversation, not a complete static page');
+          assert.ok(await visiblePanel.locator('.work-letter-turn:not([hidden])').count() < 3);
+        }
         const bounds = await dialog.boundingBox();
         await page.waitForTimeout(1400);
-        assert.deepEqual(await dialog.boundingBox(), bounds, 'highlighting must not resize or move the dialog');
+        assert.deepEqual(await dialog.boundingBox(), bounds, 'typing must not resize or move the dialog');
         assert.equal(await dialog.locator('[data-work-letter-sheet]').evaluate((el) => el.scrollTop), 0);
+        if (reducedMotion === 'no-preference') {
+          const row = visiblePanel.locator('.work-letter-turn').first();
+          const rowBounds = await row.boundingBox();
+          await page.waitForTimeout(500);
+          assert.deepEqual(await row.boundingBox(), rowBounds, 'typing must not change the current message size');
+          const typed = row.locator('.work-letter-q [data-work-text]');
+          assert.ok((await typed.textContent()).length > 0);
+          assert.equal(await visiblePanel.locator('.work-letter-turn').nth(2).isVisible(), false);
+          if (locale === 'ko-KR' && !mobile) {
+            await visiblePanel.locator('.work-letter-turn').nth(1).waitFor({ state: 'visible' });
+            const answer = row.locator('.work-letter-a [data-work-text]');
+            assert.equal(await answer.textContent(), await answer.getAttribute('data-work-text'),
+              'the next question waits for the previous answer');
+            assert.deepEqual(await dialog.boundingBox(), bounds);
+          }
+        }
         for (const language of ['ko', 'en', 'ko']) {
           await dialog.locator(`[data-work-language="${language}"]`).click();
           assert.equal(await dialog.getAttribute('lang'), language);
@@ -40,12 +61,24 @@ try {
           assert.equal(await close.getAttribute('aria-label'), language === 'ko' ? '닫기' : 'Close');
           assert.equal(await visiblePanel.evaluate((el) => el.scrollWidth > el.clientWidth), false);
         }
+        if (reducedMotion === 'no-preference') {
+          await dialog.locator('[data-work-letter-skip]').click();
+        }
+        assert.equal(await visiblePanel.locator('.work-letter-turn:not([hidden])').count(), 3);
+        for (const text of await visiblePanel.locator('[data-work-text]').all()) {
+          assert.equal(await text.textContent(), await text.getAttribute('data-work-text'));
+        }
         const sheet = dialog.locator('[data-work-letter-sheet]');
         await sheet.evaluate((el) => { el.scrollTop = el.scrollHeight; });
         if (locale === 'ko-KR' && reducedMotion === 'no-preference') {
           await page.screenshot({ path: `/tmp/work-letter-${mobile ? 'mobile' : 'desktop'}.png` });
         }
         await visiblePanel.locator('[data-work-letter-replay]').click();
+        if (reducedMotion === 'no-preference') {
+          assert.equal(await dialog.evaluate((el) => el.classList.contains('is-playing')), true);
+          assert.equal(await visiblePanel.locator('.work-letter-turn:not([hidden])').count(), 0);
+          assert.deepEqual(await dialog.boundingBox(), bounds, 'replay must keep the frame stable');
+        }
         if (reducedMotion === 'reduce') {
           assert.equal(await dialog.evaluate((el) => el.getAnimations({ subtree: true }).length), 0);
         }
@@ -65,7 +98,7 @@ try {
       }
     }
   }
-  console.log(`${cases} browser scenarios passed: locale, viewport, motion, stable layout, toggles, replay, and focus.`);
+  console.log(`${cases} browser scenarios passed: locale, viewport, motion, sequential conversation, reserved message size, stable frame, toggles, skip, replay, and focus.`);
 } finally {
   await browser.close();
 }
