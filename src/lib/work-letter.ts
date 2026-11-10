@@ -85,16 +85,16 @@ export function bindWorkLetter(
     following = true;
     if (sheet) sheet.scrollTop = 0;
     dialog.classList.add('is-playing');
-    if (!await wait(350, signal)) return;
+    if (!await wait(200, signal)) return;
     for (const row of rows) {
       row.hidden = false;
       follow(row);
-      if (!await type(row.querySelector<HTMLElement>('.work-letter-q [data-work-text]')!, signal, 40)) return;
+      if (!await type(row.querySelector<HTMLElement>('.work-letter-q [data-work-text]')!, signal, 28)) return;
       row.classList.add('is-thinking');
-      if (!await wait(450, signal)) return;
+      if (!await wait(300, signal)) return;
       row.classList.remove('is-thinking');
-      if (!await type(row.querySelector<HTMLElement>('.work-letter-a [data-work-text]')!, signal, 30)) return;
-      if (!await wait(650, signal)) return;
+      if (!await type(row.querySelector<HTMLElement>('.work-letter-a [data-work-text]')!, signal, 20)) return;
+      if (!await wait(400, signal)) return;
     }
     for (const step of steps) {
       step.hidden = false;
@@ -102,10 +102,10 @@ export function bindWorkLetter(
       step.querySelectorAll<HTMLElement>('.work-letter-mark-ink').forEach((mark, i) => {
         animations.push(mark.animate(
           [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }],
-          { duration: 650, delay: i * 140, easing: 'ease-out', fill: 'backwards' },
+          { duration: 500, delay: i * 100, easing: 'ease-out', fill: 'backwards' },
         ));
       });
-      if (!await wait(step.classList.contains('work-letter-pledge') ? 1400 : 650, signal)) return;
+      if (!await wait(step.classList.contains('work-letter-pledge') ? 1000 : 400, signal)) return;
     }
     finish();
   };
