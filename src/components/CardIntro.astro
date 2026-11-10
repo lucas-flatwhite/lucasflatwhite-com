@@ -1,0 +1,519 @@
+---
+/*
+ * The intro for people who scanned my card (/hi/). My card drops onto the screen, a tap
+ * flips it, the back says hello and can wave back at me, and "Open the board" (or Skip, at
+ * any point) unfolds the card into the real homepage underneath. The rules live in
+ * src/lib/card-intro.ts.
+ *
+ * It sits before the board in the page, so its inline script marks <html> before the board
+ * is even parsed: the board never flashes first. Without scripts the class never lands and
+ * only the board shows.
+ */
+import { Image } from 'astro:assets';
+import avatar from '../assets/card/avatar.png';
+import { introCopy } from '../data/card-intro';
+import { siteProfile } from '../data/site';
+import { handWavingSolid } from '../lib/icons';
+import BusinessCard from './BusinessCard.astro';
+import Glyph from './Glyph.astro';
+---
+
+<script is:inline>document.documentElement.classList.add('has-intro');</script>
+<div class="card-intro" data-card-intro data-state="front">
+  <button class="intro-skip" type="button" data-intro-skip>{introCopy.skip}</button>
+  <p class="intro-handed">{introCopy.handed}</p>
+  <div class="intro-stage">
+    <div class="intro-flip" data-intro-card>
+      <div class="intro-face intro-front" data-intro-front>
+        <BusinessCard />
+        <button class="intro-flip-button" type="button" data-intro-flip aria-label={introCopy.flip}></button>
+      </div>
+      <div class="intro-face intro-back" data-intro-back inert>
+        <div class="intro-back-sheet">
+          <div class="intro-back-top">
+            <span class="intro-back-handle">
+              <Image class="card-avatar" src={avatar} alt="" width={96} densities={[1, 2, 3]} />
+              {siteProfile.handle}
+            </span>
+            <span class="intro-back-dot"></span>
+            <button class="intro-flip-back" type="button" data-intro-flip-back>{introCopy.flipBack}</button>
+          </div>
+          <h2 class="intro-hello">{introCopy.greeting}</h2>
+          <p class="intro-rest">{introCopy.rest}</p>
+          <div class="intro-actions">
+            <button class="intro-action glyph-host" type="button" data-intro-wave>
+              <Glyph icon="hand-waving" />{introCopy.wave}
+            </button>
+            <button class="intro-action is-primary" type="button" data-intro-open>{introCopy.open}<span aria-hidden="true">&rarr;</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="intro-hint" aria-hidden="true">{introCopy.hint}</p>
+  <div class="intro-wave" data-intro-wave-screen hidden>
+    <button class="intro-wave-back" type="button" data-intro-wave-back>
+      <span class="intro-hand" set:html={handWavingSolid} />
+      <span class="intro-hi">{introCopy.hi}</span>
+      <span class="intro-turn">{introCopy.turn}</span>
+    </button>
+  </div>
+</div>
+
+<style>
+  :global(html.has-intro) {
+    overflow: hidden;
+  }
+
+  :global(html:not(.has-intro)) .card-intro {
+    display: none;
+  }
+
+  .card-intro {
+    --spring: cubic-bezier(0.2, 1.4, 0.4, 1);
+    --card-width: min(300px, calc(100vw - 64px), calc((100dvh - 200px) * 5 / 9));
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: #ededed;
+    color: #171717;
+    font-family: var(--font-display);
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .intro-skip {
+    position: absolute;
+    top: calc(12px + env(safe-area-inset-top));
+    right: calc(12px + env(safe-area-inset-right));
+    /* Above the wave screen too: Skip is always there. */
+    z-index: 5;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #6b6b6b;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 560;
+    cursor: pointer;
+  }
+
+  .intro-skip:hover {
+    color: #171717;
+  }
+
+  .intro-handed,
+  .intro-hint {
+    position: absolute;
+    left: 50%;
+    margin: 0;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    translate: -50% 0;
+    opacity: 0;
+    transition: opacity 0.4s var(--ease-out);
+  }
+
+  .intro-handed {
+    top: calc(50% - var(--card-width) * 0.9 - 44px);
+    color: #6b6b6b;
+  }
+
+  .intro-hint {
+    bottom: calc(50% - var(--card-width) * 0.9 - 56px);
+    padding: 8px 14px;
+    border-radius: var(--radius-pill);
+    background: #fff;
+    color: #4d4d4d;
+    font-weight: 560;
+    box-shadow: 0 6px 16px -8px rgb(23 23 23 / 0.3);
+  }
+
+  .card-intro.is-resting .intro-handed,
+  .card-intro.is-resting[data-state='front'] .intro-hint {
+    opacity: 1;
+  }
+
+  .intro-stage {
+    perspective: 1400px;
+  }
+
+  .intro-flip {
+    position: relative;
+    width: var(--card-width);
+    aspect-ratio: 5 / 9;
+    transform-style: preserve-3d;
+    rotate: -2deg;
+    transition: transform 0.8s var(--ease-out);
+  }
+
+  .card-intro:not([data-state='front']) .intro-flip {
+    transform: rotateY(180deg);
+  }
+
+  .intro-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .intro-back {
+    transform: rotateY(180deg);
+  }
+
+  .intro-flip-button {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    border-radius: var(--radius-card);
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .intro-flip-button:focus-visible,
+  .intro-action:focus-visible,
+  .intro-skip:focus-visible,
+  .intro-flip-back:focus-visible {
+    outline: 3px solid #f0bb26;
+    outline-offset: 3px;
+  }
+
+  /* The back is the same paper, measured the same way as the card (BusinessCard.astro). */
+  .intro-back {
+    container-type: inline-size;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: #fff;
+    box-shadow:
+      0 0 0 1px rgb(23 23 23 / 0.05),
+      0 24px 40px -24px rgb(23 23 23 / 0.35);
+  }
+
+  .intro-back-sheet {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    height: 100%;
+    padding: 7.88cqw 8.48cqw 8.48cqw;
+  }
+
+  .intro-back-top {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 4.24cqw;
+    font-weight: 560;
+  }
+
+  .intro-back-handle {
+    display: inline-flex;
+    align-items: center;
+    gap: 2.73cqw;
+  }
+
+  /* My X picture, round as on X, as on the front (BusinessCard.astro). */
+  .card-avatar {
+    width: 7.88cqw;
+    height: 7.88cqw;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .intro-back-dot {
+    width: 2.73cqw;
+    height: 2.73cqw;
+    border-radius: var(--radius-pill);
+    background: #f0bb26;
+  }
+
+  /* Pointers flip back by tapping the paper; this is the keyboard's way, shown on focus. */
+  .intro-flip-back {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    translate: 0 -50%;
+    padding: 1cqw 2cqw;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #6b6b6b;
+    font: inherit;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .intro-flip-back:focus-visible {
+    background: #fff;
+    opacity: 1;
+  }
+
+  .intro-hello {
+    margin: 10.3cqw 0 0;
+    font-size: 17.58cqw;
+    font-weight: 450;
+    letter-spacing: -0.055em;
+    line-height: 0.88;
+  }
+
+  .intro-rest {
+    max-width: 24ch;
+    margin: 5.45cqw 0 0;
+    color: #4d4d4d;
+    font-size: 4.55cqw;
+    line-height: 1.5;
+  }
+
+  .intro-actions {
+    display: grid;
+    gap: 3.03cqw;
+    margin-top: auto;
+  }
+
+  .intro-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3.03cqw;
+    min-height: 44px;
+    height: 15.76cqw;
+    border: 1px solid #171717;
+    border-radius: var(--radius-pill);
+    background: #fff;
+    color: #171717;
+    font: inherit;
+    font-size: 4.85cqw;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .intro-action.is-primary {
+    background: #171717;
+    color: #fff;
+  }
+
+  .intro-action :global(.glyph) {
+    font-size: 1.3em;
+  }
+
+  /* After a wave, the way on glows. */
+  .card-intro.has-waved .intro-action.is-primary {
+    animation: intro-glow 1.4s ease-in-out infinite;
+  }
+
+  .intro-wave {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    background: #f0bb26;
+  }
+
+  .intro-wave[hidden] {
+    display: none;
+  }
+
+  .intro-wave-back {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    color: #171717;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .intro-hand {
+    display: block;
+    width: 132px;
+    height: 132px;
+    transform-origin: 70% 80%;
+  }
+
+  .intro-hand :global(svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+  }
+
+  .intro-hi {
+    max-width: 5ch;
+    font-size: clamp(64px, 20vw, 96px);
+    font-weight: 500;
+    letter-spacing: -0.055em;
+    line-height: 0.9;
+    text-align: center;
+  }
+
+  .intro-turn {
+    position: absolute;
+    bottom: calc(48px + env(safe-area-inset-bottom));
+    font-size: 0.85rem;
+    font-weight: 560;
+    opacity: 0.7;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .card-intro.is-dropping .intro-flip {
+      animation: intro-drop 0.9s var(--spring) both;
+    }
+
+    .card-intro.is-resting[data-state='front'] .intro-hint {
+      animation: intro-bob 1.6s ease-in-out infinite;
+    }
+
+    .intro-hand {
+      animation: intro-wave 1s ease-in-out infinite;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .intro-flip {
+      transition: none;
+    }
+  }
+
+  @keyframes intro-drop {
+    from {
+      translate: 0 -110vh;
+      rotate: -10deg;
+    }
+
+    to {
+      translate: 0 0;
+      rotate: -2deg;
+    }
+  }
+
+  @keyframes intro-bob {
+    50% {
+      translate: -50% -4px;
+    }
+  }
+
+  @keyframes intro-wave {
+    0%,
+    100% {
+      rotate: 0deg;
+    }
+
+    25% {
+      rotate: 18deg;
+    }
+
+    50% {
+      rotate: -6deg;
+    }
+
+    75% {
+      rotate: 14deg;
+    }
+  }
+
+  @keyframes intro-glow {
+    50% {
+      box-shadow: 0 0 0 6px rgb(240 187 38 / 0.45);
+    }
+  }
+</style>
+
+<script>
+  import { introStep, REDUCED_FADE, type IntroEvent, type IntroState } from '../lib/card-intro';
+
+  const root = document.querySelector<HTMLElement>('[data-card-intro]');
+  const board = document.querySelector<HTMLElement>('[data-home-board]');
+
+  if (root && board) {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const front = root.querySelector<HTMLElement>('[data-intro-front]')!;
+    const back = root.querySelector<HTMLElement>('[data-intro-back]')!;
+    const waveScreen = root.querySelector<HTMLElement>('[data-intro-wave-screen]')!;
+    const flipButton = root.querySelector<HTMLButtonElement>('[data-intro-flip]')!;
+    const waveButton = root.querySelector<HTMLButtonElement>('[data-intro-wave]')!;
+    const waveBack = root.querySelector<HTMLButtonElement>('[data-intro-wave-back]')!;
+    let state: IntroState = 'front';
+
+    board.inert = true;
+
+    const finish = () => {
+      root.remove();
+      board.inert = false;
+      document.documentElement.classList.remove('has-intro');
+      state = introStep(state, 'unfolded');
+      window.dispatchEvent(new Event('card-intro:done'));
+    };
+
+    // Replaced by the unfold onto the board.
+    const unfold = () => {
+      root.animate([{ opacity: 1 }, { opacity: 0 }], { duration: REDUCED_FADE, easing: 'ease-out' }).finished.then(finish);
+    };
+
+    const send = (event: IntroEvent) => {
+      const next = introStep(state, event);
+
+      if (next === state) {
+        return;
+      }
+
+      state = next;
+      root.dataset.state = state;
+      front.inert = state !== 'front';
+      back.inert = state !== 'back';
+      waveScreen.hidden = state !== 'wave';
+
+      if (event === 'flip' || event === 'wave-back') {
+        waveButton.focus({ preventScroll: true });
+      } else if (event === 'flip-back') {
+        flipButton.focus({ preventScroll: true });
+      } else if (event === 'wave') {
+        root.classList.add('has-waved');
+        waveBack.focus({ preventScroll: true });
+      } else if (state === 'unfolding') {
+        unfold();
+      }
+    };
+
+    flipButton.addEventListener('click', () => send('flip'));
+    root.querySelector('[data-intro-flip-back]')!.addEventListener('click', () => send('flip-back'));
+    waveButton.addEventListener('click', () => send('wave'));
+    waveBack.addEventListener('click', () => send('wave-back'));
+    root.querySelector('[data-intro-open]')!.addEventListener('click', () => send('open'));
+    root.querySelector('[data-intro-skip]')!.addEventListener('click', () => send('skip'));
+
+    // Tapping the paper of the back turns the card over again (keyboards use Flip back).
+    back.addEventListener('click', (event) => {
+      if (event.detail > 0 && !(event.target as Element).closest('button')) {
+        send('flip-back');
+      }
+    });
+
+    // The card lands once the type has loaded, so it never lands in a fallback face.
+    document.fonts.ready.then(() => {
+      if (reduced) {
+        root.classList.add('is-resting');
+        return;
+      }
+
+      root.classList.add('is-dropping');
+      root.querySelector('[data-intro-card]')!.addEventListener(
+        'animationend',
+        () => {
+          root.classList.replace('is-dropping', 'is-resting');
+        },
+        { once: true },
+      );
+    });
+  }
+</script>

@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { introCopy } from '../src/data/card-intro';
 import { flipFrom, introStep, REDUCED_FADE, UNFOLD, type IntroEvent, type IntroState } from '../src/lib/card-intro';
@@ -59,5 +61,42 @@ describe('the intro on /hi/', () => {
   it('keeps the mockup timing, about two seconds end to end', () => {
     expect(UNFOLD).toEqual({ flip: 600, retreat: 240, unfold: 720, rise: 560, stagger: 90 });
     expect(REDUCED_FADE).toBe(200);
+  });
+});
+
+describe('the intro overlay', () => {
+  const read = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8');
+  const intro = read('src/components/CardIntro.astro');
+  const hi = read('src/pages/hi/index.astro');
+
+  it('covers /hi/ before the board is even parsed, and only when scripts run', () => {
+    expect(hi.indexOf('<CardIntro />')).toBeGreaterThan(0);
+    expect(hi.indexOf('<CardIntro />')).toBeLessThan(hi.indexOf('<HomeBoard />'));
+    expect(intro).toMatch(/<script is:inline>[^<]*classList\.add\('has-intro'\)/);
+    expect(intro).toMatch(/:global\(html:not\(\.has-intro\)\) \.card-intro\s*\{\s*display: none;/);
+  });
+
+  it('puts Skip first, so it is the first thing a keyboard reaches', () => {
+    const firstButton = intro.slice(intro.indexOf('<button'), intro.indexOf('>', intro.indexOf('<button')));
+    expect(firstButton).toContain('data-intro-skip');
+  });
+
+  it('flips with a button over the front, and keeps the back buttons side by side', () => {
+    expect(intro).toMatch(/<button[^>]*data-intro-flip[^>]*aria-label=\{introCopy\.flip\}/s);
+    for (const hook of ['data-intro-wave', 'data-intro-open', 'data-intro-flip-back', 'data-intro-wave-back']) {
+      expect(intro).toMatch(new RegExp(`<button[^>]*${hook}`, 's'));
+    }
+    expect(intro).toContain('<BusinessCard');
+  });
+
+  it('takes every word from the intro copy', () => {
+    for (const key of Object.keys(introCopy)) {
+      expect(intro).toContain(`introCopy.${key}`);
+    }
+  });
+
+  it('keeps the command menu and the card dialog shut while the intro is up', () => {
+    expect(read('src/components/CommandPalette.astro')).toContain("classList.contains('has-intro')");
+    expect(read('src/lib/card.ts')).toContain("classList.contains('has-intro')");
   });
 });

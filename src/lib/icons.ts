@@ -20,6 +20,9 @@ import gameControllerBold from '@phosphor-icons/core/bold/game-controller-bold.s
 import gameControllerRegular from '@phosphor-icons/core/regular/game-controller.svg?raw';
 import githubLogoBold from '@phosphor-icons/core/bold/github-logo-bold.svg?raw';
 import githubLogoRegular from '@phosphor-icons/core/regular/github-logo.svg?raw';
+import handWavingBold from '@phosphor-icons/core/bold/hand-waving-bold.svg?raw';
+import handWavingFill from '@phosphor-icons/core/fill/hand-waving-fill.svg?raw';
+import handWavingRegular from '@phosphor-icons/core/regular/hand-waving.svg?raw';
 import hammerBold from '@phosphor-icons/core/bold/hammer-bold.svg?raw';
 import hammerRegular from '@phosphor-icons/core/regular/hammer.svg?raw';
 import identificationCardBold from '@phosphor-icons/core/bold/identification-card-bold.svg?raw';
@@ -42,6 +45,7 @@ export const icons = {
   export: { regular: exportRegular, bold: exportBold },
   'game-controller': { regular: gameControllerRegular, bold: gameControllerBold },
   'github-logo': { regular: githubLogoRegular, bold: githubLogoBold },
+  'hand-waving': { regular: handWavingRegular, bold: handWavingBold },
   hammer: { regular: hammerRegular, bold: hammerBold },
   'identification-card': { regular: identificationCardRegular, bold: identificationCardBold },
   'umbrella-simple': { regular: umbrellaSimpleRegular, bold: umbrellaSimpleBold },
@@ -50,3 +54,6 @@ export const icons = {
 } as const;
 
 export type IconName = keyof typeof icons;
+
+/** The one filled glyph: the big waving hand on the /hi/ intro's yellow screen. */
+export const handWavingSolid = handWavingFill;
