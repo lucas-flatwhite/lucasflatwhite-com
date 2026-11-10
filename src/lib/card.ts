@@ -141,6 +141,11 @@ export function bindCard(dialog: HTMLDialogElement, triggers: Iterable<HTMLEleme
   });
 
   const followAddress = (navigated: boolean) => {
+    // The /hi/ intro covers the board until it unfolds (CardIntro.astro); the card waits.
+    if (document.documentElement.classList.contains('has-intro')) {
+      return;
+    }
+
     const action = addressActionFor(CARD_HASH, window.location.hash, dialog.open);
 
     if (action === 'open') {

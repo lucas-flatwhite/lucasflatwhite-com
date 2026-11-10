@@ -1,9 +1,14 @@
 ---
 /*
  * Where the QR on my card lands (HTTPS://LUCASFLATWHITE.COM/HI, sent here by vercel.json).
- * It is the homepage board itself, so whoever scans ends up on the real thing. Only a QR
+ * It is the homepage board itself, under a short intro (CardIntro.astro) that unfolds my card
+ * into it, so whoever scans ends up on the real thing. The intro comes first in the page so
+ * it covers the board before the board is parsed; the moment the board is parsed, the next
+ * inline script puts it out of reach (inert), so a slow intro script never leaves the hidden
+ * board's links in the Tab order. The unfold lifts it (src/lib/card-unfold.ts). Only a QR
  * leads here, so search keeps to the homepage.
  */
+import CardIntro from '../../components/CardIntro.astro';
 import HomeBoard from '../../components/HomeBoard.astro';
 import { siteProfile } from '../../data/site';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -18,5 +23,7 @@ import { withBase } from '../../lib/paths';
   canonicalPath={withBase()}
   noindex
 >
+  <CardIntro />
   <HomeBoard />
+  <script is:inline>if (document.documentElement.classList.contains('has-intro')) document.querySelector('[data-home-board]').inert = true;</script>
 </BaseLayout>

@@ -113,6 +113,11 @@ export function bindBook(dialog: HTMLDialogElement, triggers: Iterable<HTMLEleme
   });
 
   const followAddress = (navigated: boolean) => {
+    // The /hi/ intro covers the board until it unfolds (CardIntro.astro); /hi/#book waits.
+    if (document.documentElement.classList.contains('has-intro')) {
+      return;
+    }
+
     const action = addressAction(window.location.hash, dialog.open);
 
     if (action === 'open') {
