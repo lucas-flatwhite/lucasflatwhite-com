@@ -65,6 +65,8 @@ function finish(root: HTMLElement, board: HTMLElement): void {
   board.inert = false;
   document.documentElement.classList.remove('has-intro');
   history.replaceState(null, '', withBase());
+  // The intro held the scroll at the top (CardIntro.astro); the homepage remembers it again.
+  history.scrollRestoration = 'auto';
 
   const name = document.querySelector<HTMLElement>('#name');
 
@@ -111,20 +113,25 @@ export async function unfoldInto(root: HTMLElement, board: HTMLElement): Promise
     return bottom > 0 && top < window.innerHeight;
   });
 
+  // The paper: a full-screen sheet, clipped to the card and opened out to the screen. Its
+  // white face fades into the board's paper as it opens.
   const sheet = document.createElement('div');
+  const face = document.createElement('div');
   sheet.className = 'intro-sheet';
+  face.className = 'intro-sheet-face';
+  sheet.append(face);
   root.append(sheet);
   // The intro sits behind the board now; the body's own paper would hide it.
   document.body.style.background = 'transparent';
   root.classList.add('is-behind');
 
-  sheet.animate(
-    [
-      { left: `${card.left}px`, top: `${card.top}px`, width: `${card.width}px`, height: `${card.height}px`, borderRadius: radius, backgroundColor: '#ffffff' },
-      { left: '0px', top: '0px', width: `${window.innerWidth}px`, height: `${window.innerHeight}px`, borderRadius: '0px', backgroundColor: '#fafafa' },
-    ],
-    { duration: UNFOLD.unfold, easing: TRAVEL, fill: 'forwards' },
-  );
+  const inset = `${card.top}px ${window.innerWidth - card.right}px ${window.innerHeight - card.bottom}px ${card.left}px`;
+  sheet.animate([{ clipPath: `inset(${inset} round ${radius})` }, { clipPath: 'inset(0px 0px 0px 0px round 0px)' }], {
+    duration: UNFOLD.unfold,
+    easing: TRAVEL,
+    fill: 'forwards',
+  });
+  face.animate([{ opacity: 1 }, { opacity: 0 }], { duration: UNFOLD.unfold, easing: TRAVEL, fill: 'forwards' });
 
   for (const { to, first, last, box } of moves) {
     const { x, y, scale } = flipFrom(first, last);

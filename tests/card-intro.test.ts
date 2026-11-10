@@ -76,9 +76,13 @@ describe('the intro overlay', () => {
     expect(intro).toMatch(/:global\(html:not\(\.has-intro\)\) \.card-intro\s*\{\s*display: none;/);
   });
 
-  it('puts Skip first, so it is the first thing a keyboard reaches', () => {
-    const firstButton = intro.slice(intro.indexOf('<button'), intro.indexOf('>', intro.indexOf('<button')));
-    expect(firstButton).toContain('data-intro-skip');
+  it('puts Skip first, as a link home that works before the intro script has loaded', () => {
+    const markup = intro.slice(intro.indexOf('<div class="card-intro"'));
+    const first = markup.search(/<(button|a)\b/);
+    const tag = markup.slice(first, markup.indexOf('>', first));
+    expect(tag).toMatch(/^<a\b/);
+    expect(tag).toContain('data-intro-skip');
+    expect(tag).toContain('href={withBase()}');
   });
 
   it('flips with a button over the front, and keeps the back buttons side by side', () => {
@@ -119,6 +123,13 @@ describe('the unfold onto the board', () => {
     expect(unfold).toContain("history.replaceState(null, '', withBase())");
     expect(unfold).toContain("'#name'");
     expect(unfold).toContain("new Event('card-intro:done')");
+    // The intro pins the scroll to the top; the homepage entry must remember scroll again.
+    expect(unfold.indexOf("history.scrollRestoration = 'auto'")).toBeGreaterThan(unfold.indexOf('history.replaceState'));
+  });
+
+  it('grows the paper by clipping it, so the unfold only animates what the compositor can', () => {
+    expect(unfold).toContain('clipPath:');
+    expect(unfold).not.toMatch(/\b(left|top|width|height|borderRadius|backgroundColor|boxShadow): `/);
   });
 
   it('moves the real board pieces with FLIP, not view transitions', () => {

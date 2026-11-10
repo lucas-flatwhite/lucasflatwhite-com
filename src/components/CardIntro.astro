@@ -14,13 +14,15 @@ import avatar from '../assets/card/avatar.png';
 import { introCopy } from '../data/card-intro';
 import { siteProfile } from '../data/site';
 import { handWavingSolid } from '../lib/icons';
+import { withBase } from '../lib/paths';
 import BusinessCard from './BusinessCard.astro';
 import Glyph from './Glyph.astro';
 ---
 
 <script is:inline>document.documentElement.classList.add('has-intro');</script>
 <div class="card-intro" data-card-intro data-state="front">
-  <button class="intro-skip" type="button" data-intro-skip>{introCopy.skip}</button>
+  <!-- A real link, so Skip leads home even if the intro's script never arrives. -->
+  <a class="intro-skip" href={withBase()} data-intro-skip>{introCopy.skip}</a>
   <p class="intro-handed">{introCopy.handed}</p>
   <div class="intro-stage">
     <div class="intro-flip" data-intro-card>
@@ -67,6 +69,12 @@ import Glyph from './Glyph.astro';
     scrollbar-gutter: stable;
   }
 
+  /* While the name travels it is scaled past the screen's edge; a phone would widen the page
+     and zoom out to show it. */
+  :global(html.has-intro [data-home-board]) {
+    overflow: clip;
+  }
+
   :global(html:not(.has-intro)) .card-intro {
     display: none;
   }
@@ -88,6 +96,11 @@ import Glyph from './Glyph.astro';
   }
 
   .intro-skip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    text-decoration: none;
     position: absolute;
     top: calc(12px + env(safe-area-inset-top));
     right: calc(12px + env(safe-area-inset-right));
@@ -195,7 +208,20 @@ import Glyph from './Glyph.astro';
 
   .card-intro :global(.intro-sheet) {
     position: absolute;
-    box-shadow: 0 24px 40px -24px rgb(23 23 23 / 0.35);
+    inset: 0;
+    background: #fafafa;
+  }
+
+  .card-intro :global(.intro-sheet-face) {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+  }
+
+  /* A clipped sheet casts no shadow, so the card's shadow goes while its parts step back. */
+  .card-intro.is-retreating :global(.business-card) {
+    box-shadow: 0 0 0 1px rgb(23 23 23 / 0.05);
+    transition: box-shadow 0.24s ease;
   }
 
   .intro-face {
@@ -528,7 +554,11 @@ import Glyph from './Glyph.astro';
     waveButton.addEventListener('click', () => send('wave'));
     waveBack.addEventListener('click', () => send('wave-back'));
     root.querySelector('[data-intro-open]')!.addEventListener('click', () => send('open'));
-    root.querySelector('[data-intro-skip]')!.addEventListener('click', () => send('skip'));
+    root.querySelector('[data-intro-skip]')!.addEventListener('click', (event) => {
+      // The link goes home without the script; with it, the card unfolds there instead.
+      event.preventDefault();
+      send('skip');
+    });
 
     // Tapping the paper of the back turns the card over again (keyboards use Flip back).
     back.addEventListener('click', (event) => {
