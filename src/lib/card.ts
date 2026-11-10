@@ -6,6 +6,10 @@
  * While it is open the screen stays awake, so the QR does not dim while someone lines up a
  * camera. The image is fetched as soon as the dialog opens: Safari only shares a file from a
  * tap if the share starts inside that tap, so the click must not wait for a download.
+ *
+ * Focus starts on Share, the thing the sheet is for. Share only shows once the image is in
+ * hand, so on a first open focus waits on Save image and steps over when Share appears,
+ * unless someone has already moved it.
  */
 import { addressActionFor, leaveAddressFor } from './hash-address';
 import { withBase } from './paths';
@@ -24,6 +28,7 @@ export function shareMode(file: File | null, canShare: CanShare | undefined): 's
 
 export function bindCard(dialog: HTMLDialogElement, triggers: Iterable<HTMLElement>): void {
   const share = dialog.querySelector<HTMLButtonElement>('[data-card-share]');
+  const save = dialog.querySelector<HTMLAnchorElement>('[data-card-save]');
   const opener = [...triggers][0];
   let navigatedHere = false;
   let file: File | null = null;
@@ -50,7 +55,12 @@ export function bindCard(dialog: HTMLDialogElement, triggers: Iterable<HTMLEleme
     }
 
     if (share && shareMode(file, navigator.canShare?.bind(navigator)) === 'share') {
+      const waiting = dialog.open && (document.activeElement === save || document.activeElement === dialog);
       share.hidden = false;
+
+      if (waiting) {
+        share.focus();
+      }
     }
   };
 
@@ -85,6 +95,7 @@ export function bindCard(dialog: HTMLDialogElement, triggers: Iterable<HTMLEleme
     }
 
     dialog.showModal();
+    (share && !share.hidden ? share : save)?.focus();
     void prefetch();
     void holdScreen();
   };

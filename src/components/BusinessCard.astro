@@ -1,7 +1,8 @@
 ---
 /*
  * The front of my business card: the board's paper and ink, my name in the board's type,
- * and a QR to /HI with my face in the middle. The card dialog, the baked image
+ * and a QR to /HI with my face in the middle. The face is only in the QR, so the card does
+ * not show it twice, and the address sits level under the QR, centred on it. The card dialog, the baked image
  * (public/card.png, npm run card) and the /hi/ intro all draw this one card.
  *
  * Every length is a share of the card's width (cqw), so the card is the same at any size:
@@ -24,17 +25,13 @@ const qr = qrSvg(CARD_QR_TEXT);
 
 <article class:list={['business-card', className]} aria-label={`${siteProfile.name}'s card`}>
   <div class="card-sheet">
-    <div class="card-top">
-      <span class="card-handle">
-        <Image class="card-avatar card-face" src={avatar} alt="" width={96} densities={[1, 2, 3]} data-card-part="avatar" />
-        <span data-card-part="handle">{siteProfile.handle}</span>
-      </span>
+    <div class="card-head">
+      <p class="card-name" data-card-part="name">
+        <span class="card-name-line">Lucas</span>
+        <span class="card-name-line">Flatwhite</span>
+      </p>
       <span class="card-dot" data-card-part="dot"></span>
     </div>
-    <p class="card-name" data-card-part="name">
-      <span class="card-name-line">Lucas</span>
-      <span class="card-name-line">Flatwhite</span>
-    </p>
     <p class="card-name-ko" lang="ko" data-card-part="ko">{siteProfile.nameKo}</p>
     <p class="card-role" data-card-part="role">{card.role}</p>
     <div class="card-foot">
@@ -42,7 +39,7 @@ const qr = qrSvg(CARD_QR_TEXT);
         <Fragment set:html={qr.svg} />
         <Image class="card-avatar card-qr-face" src={avatar} alt="" width={128} densities={[1, 2, 3]} />
       </div>
-      <span class="card-url" data-card-part="url">{card.url}<small>{card.scan}</small></span>
+      <span class="card-url" data-card-part="url">{card.url}</span>
     </div>
   </div>
 </article>
@@ -83,42 +80,32 @@ const qr = qrSvg(CARD_QR_TEXT);
     flex-direction: column;
     box-sizing: border-box;
     height: 100%;
-    padding: 7.88cqw 8.48cqw 8.48cqw;
+    padding: 15.15cqw 8.48cqw 7.27cqw;
   }
 
-  .card-top {
+  /* My name leads the card; the yellow dot keeps its corner, level with the first line. */
+  .card-head {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-  }
-
-  .card-handle {
-    display: inline-flex;
-    align-items: center;
-    gap: 2.73cqw;
-    font-size: 4.24cqw;
-    font-weight: 560;
+    gap: 3.64cqw;
   }
 
   .card-avatar {
     border-radius: 50%;
   }
 
-  .card-face {
-    width: 7.88cqw;
-    height: 7.88cqw;
-    object-fit: cover;
-  }
-
   .card-dot {
+    flex: none;
     width: 2.73cqw;
     height: 2.73cqw;
+    margin-top: 2.12cqw;
     border-radius: var(--radius-pill);
     background: #f0bb26;
   }
 
   .card-name {
-    margin: 9.09cqw 0 0;
+    margin: 0;
     font-size: 18.79cqw;
     font-weight: 450;
     letter-spacing: -0.055em;
@@ -145,20 +132,22 @@ const qr = qrSvg(CARD_QR_TEXT);
     line-height: 1.45;
   }
 
+  /*
+   * The QR and the address share one column, so the address centres on the code. The SVG's
+   * own 3-module margin makes the quiet zone; the column steps left into the card's padding
+   * by part of it, so the dots line up with the type above.
+   */
   .card-foot {
     display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 3.64cqw;
-    margin-top: auto;
+    flex-direction: column;
+    align-items: center;
+    width: 60.61cqw;
+    margin: auto 0 0 -2.73cqw;
   }
 
-  /* The SVG's own 3-module margin plus the card's padding make the quiet zone. */
   .card-qr {
     position: relative;
-    flex: none;
-    width: 60.61cqw;
-    margin: 0 0 -2.73cqw -2.73cqw;
+    width: 100%;
     line-height: 0;
   }
 
@@ -180,21 +169,10 @@ const qr = qrSvg(CARD_QR_TEXT);
   }
 
   .card-url {
-    padding-bottom: 0.61cqw;
     font-size: 4.55cqw;
     font-weight: 560;
     letter-spacing: 0.01em;
-    writing-mode: vertical-rl;
-    rotate: 180deg;
-  }
-
-  .card-url small {
-    margin-top: 3.03cqw;
-    color: #8a8a8a;
-    font-size: 3.64cqw;
-    font-weight: 400;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    line-height: 1.2;
   }
 
   :global([data-card-print]) .business-card {

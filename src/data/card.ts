@@ -10,5 +10,4 @@ export const CARD_QR_TEXT = 'HTTPS://LUCASFLATWHITE.COM/HI';
 export const card = {
   role: 'Software engineer. Spots problems, then solves them.',
   url: 'lucasflatwhite.com',
-  scan: 'Scan',
 } as const;

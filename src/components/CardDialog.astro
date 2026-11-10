@@ -3,7 +3,8 @@
  * My card, held up to be scanned (src/lib/card.ts opens and closes it). On a phone it fills
  * the screen on the board's paper; on a wider screen it floats as a paper panel. Under the
  * card: Share (only where the browser can share the image file; on an iPhone that is the way
- * into Photos), then Save image, a plain download that always works.
+ * into Photos), then Save image, a plain download that always works. Focus starts on Share,
+ * or on Save image where there is no Share (src/lib/card.ts), never on Close.
  *
  * The card takes the room the screen has, but never so little that the QR drops under 170px
  * (280px of card): on a very short screen the sheet scrolls to its buttons instead.
@@ -17,7 +18,7 @@ import Glyph from './Glyph.astro';
 <dialog id="card" class="card-dialog" aria-label="My card" data-card-dialog>
   <div class="card-dialog-body">
     <div class="card-dialog-top">
-      <button class="card-dialog-close" type="button" data-card-close aria-label="Close" autofocus>
+      <button class="card-dialog-close" type="button" data-card-close aria-label="Close">
         <Glyph icon="x" />
       </button>
     </div>
@@ -26,7 +27,7 @@ import Glyph from './Glyph.astro';
       <button class="card-dialog-action is-primary glyph-host" type="button" data-card-share hidden>
         <Glyph icon="export" />Share
       </button>
-      <a class="card-dialog-action glyph-host" href={withBase(CARD_IMAGE)} download={CARD_FILE_NAME}>
+      <a class="card-dialog-action glyph-host" href={withBase(CARD_IMAGE)} download={CARD_FILE_NAME} data-card-save>
         <Glyph icon="download-simple" motion="commit" />Save image
       </a>
     </div>
@@ -50,7 +51,7 @@ import Glyph from './Glyph.astro';
     overscroll-behavior: contain;
   }
 
-  /* Focus lands on the close button; the sheet itself needs no ring. */
+  /* Focus lands on Share or Save image; the sheet itself needs no ring. */
   .card-dialog:focus {
     outline: none;
   }
