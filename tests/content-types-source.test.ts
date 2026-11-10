@@ -11,7 +11,7 @@ describe('generated content types', () => {
   });
 
   it('calls placeProjects without a CollectionEntry type argument', () => {
-    for (const path of ['src/pages/index.astro', 'src/lib/palette-commands.ts']) {
+    for (const path of ['src/components/HomeBoard.astro', 'src/lib/palette-commands.ts']) {
       const source = read(path);
       expect(source).toContain('placeProjects(');
       expect(source).not.toContain('placeProjects<');

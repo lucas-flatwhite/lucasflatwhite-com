@@ -41,7 +41,7 @@ describe('the book', () => {
 });
 
 describe('the book card', () => {
-  const landing = read('src/pages/index.astro');
+  const landing = read('src/components/HomeBoard.astro');
   const stand = read('src/components/BookStand.astro');
   const styles = read('src/styles/landing.css');
 
@@ -86,7 +86,7 @@ describe('the book card', () => {
 
 describe('the store list', () => {
   const dialog = read('src/components/BookDialog.astro');
-  const landing = read('src/pages/index.astro');
+  const landing = read('src/components/HomeBoard.astro');
 
   it('opens from the address /#book and nothing else', async () => {
     const { BOOK_HASH, wantsBook } = await import('../src/lib/book');

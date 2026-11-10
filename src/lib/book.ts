@@ -6,33 +6,22 @@
  * back from #book closes it, and closing it leaves #book, so a reload does not reopen it.
  */
 
+import { addressActionFor, leaveAddressFor } from './hash-address';
+
 export const BOOK_HASH = '#book';
 
 export function wantsBook(hash: string): boolean {
   return hash === BOOK_HASH;
 }
 
-/** What the book does when the address changes, given whether it is open. */
+/** What the book does when the address changes, given whether it is open (hash-address.ts). */
 export function addressAction(hash: string, open: boolean): 'open' | 'close' | 'none' {
-  if (wantsBook(hash)) {
-    return open ? 'none' : 'open';
-  }
-
-  return open ? 'close' : 'none';
+  return addressActionFor(BOOK_HASH, hash, open);
 }
 
-/**
- * How the address leaves #book once the book has closed. If the visitor navigated to #book
- * (the command menu does), that history entry is ours: stepping back over it keeps the
- * homepage from appearing twice in a row. A shared link has nothing of ours behind it, so
- * only the hash is replaced.
- */
+/** How the address leaves #book once the book has closed (hash-address.ts). */
 export function leaveAddress(hash: string, navigatedHere: boolean): 'back' | 'replace' | 'none' {
-  if (!wantsBook(hash)) {
-    return 'none';
-  }
-
-  return navigatedHere ? 'back' : 'replace';
+  return leaveAddressFor(BOOK_HASH, hash, navigatedHere);
 }
 
 /** How long the cover takes to shut, then how long the book takes to fade (BookDialog.astro). */

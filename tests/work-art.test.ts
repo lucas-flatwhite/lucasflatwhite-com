@@ -104,11 +104,11 @@ describe('Work pictures', () => {
     expect(card).not.toContain('set:html');
     expect(card).toContain("motion === 'years' ? <WorkYears");
     expect(card).toContain("motion === 'ripple' ? <WorkRipple");
-    expect(read('src/pages/index.astro')).not.toMatch(/\.svg\?raw/);
+    expect(read('src/components/HomeBoard.astro')).not.toMatch(/\.svg\?raw/);
     expect(card).toContain('loading="lazy"');
     expect(card).toContain('width={art.image.width}');
     expect(card).toContain('height={art.image.height}');
-    expect(read('src/pages/index.astro')).not.toContain('excerpt');
+    expect(read('src/components/HomeBoard.astro')).not.toContain('excerpt');
     expect(read('src/styles/landing.css')).not.toContain('excerpt');
   });
 });

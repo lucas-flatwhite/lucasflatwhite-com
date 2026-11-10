@@ -43,7 +43,7 @@ describe('years layers', () => {
     expect(card).toContain('role="img"');
     expect(card).toContain('alt=""');
     expect(read('src/components/ProjectCard.astro')).toContain("motion === 'years' ? <WorkYears");
-    expect(read('src/pages/index.astro')).not.toContain('ai-timeline-log.svg?raw');
+    expect(read('src/components/HomeBoard.astro')).not.toContain('ai-timeline-log.svg?raw');
   });
 });
 

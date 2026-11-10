@@ -1,6 +1,7 @@
 import { book } from '../data/book';
 import { siteLinks } from '../data/links';
 import { BOOK_HASH } from './book';
+import { CARD_HASH } from './card';
 import type { SectionId } from '../data/site';
 import type { IconName } from './icons';
 import { compareByOrder } from './projects';
@@ -38,8 +39,9 @@ const sectionCommands: readonly SectionCommand[] = [
 ];
 
 /**
- * Builds the command menu: sections, the book, featured projects, the arcade, then every link.
- * The book opens on the homepage from its address, so the arcade lobby's menu opens it too.
+ * Builds the command menu: sections, the book, my card, featured projects, the arcade, then
+ * every link. The book and the card open on the homepage from their addresses, so the arcade
+ * lobby's menu opens them too.
  * `home` is the landing page URL (base-aware), so section jumps carry the deploy base.
  */
 export function buildPaletteCommands(
@@ -85,6 +87,15 @@ export function buildPaletteCommands(
       hint: 'My book on working with Claude',
       icon: 'book-open',
       href: `${home}${BOOK_HASH}`,
+      external: false,
+      copy: null,
+    },
+    {
+      id: 'card',
+      label: 'Card',
+      hint: 'My card, with a QR code to this site',
+      icon: 'identification-card',
+      href: `${home}${CARD_HASH}`,
       external: false,
       copy: null,
     },

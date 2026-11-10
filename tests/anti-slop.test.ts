@@ -36,7 +36,7 @@ describe('anti-slop contract', () => {
   });
 
   it('keeps gradient text and decorative glass off the landing', () => {
-    const landing = files.filter((file) => /landing\.css|global\.css|index\.astro|Glyph|CommandPalette/.test(file.path));
+    const landing = files.filter((file) => /landing\.css|global\.css|index\.astro|Glyph|CommandPalette|HomeBoard|BusinessCard|CardDialog|CardIntro/.test(file.path));
 
     for (const file of landing) {
       expect(file.source).not.toMatch(/background-clip:\s*text/);
@@ -46,14 +46,15 @@ describe('anti-slop contract', () => {
   });
 
   it('keeps the landing corners on its corner tokens', () => {
-    const landing = files.filter((file) => /landing\.css|global\.css|Glyph|CommandPalette/.test(file.path));
+    const landing = files.filter((file) => /landing\.css|global\.css|Glyph|CommandPalette|BusinessCard|CardDialog|CardIntro/.test(file.path));
     // Controls stay at 6px; cards, pills, the hover ring and boxes set inside a card read the
     // tokens set in global.css.
     const allowed = /^(?:0(?:px)?|6px|var\(--radius-(?:card|pill)\)|calc\(var\(--radius-card\) [+-] \d+px\))$/;
 
     for (const file of landing) {
-      // The X profile picture in the top bar is the one round shape, as it is on X.
-      const source = file.source.replace(/\.topbar-avatar \{[^}]*\}/g, '');
+      // The X profile picture is the one round shape, as it is on X: in the top bar, and on
+      // my card (BusinessCard.astro), where it sits beside my handle and in the QR.
+      const source = file.source.replace(/\.(?:topbar|card)-avatar \{[^}]*\}/g, '');
       const values = [...source.matchAll(/border-radius:\s*([^;]+);/g)].map((match) => match[1].trim());
 
       expect(values.filter((value) => !allowed.test(value))).toEqual([]);

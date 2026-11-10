@@ -44,7 +44,7 @@ describe('the work badge', () => {
   });
 
   it('sits in the work slot and opens the letter from a button over the whole card', () => {
-    const landing = read('src/pages/index.astro');
+    const landing = read('src/components/HomeBoard.astro');
 
     expect(landing).toContain("slot.kind === 'work'");
     expect(landing).toContain('<WorkBadge');
@@ -94,7 +94,7 @@ describe('the letter on how I see insurance', () => {
     expect(source).toContain('<KakaoPayInsuranceMark');
     expect(source).toMatch(/\{(work\.)?letter\.signature\}/);
     expect(source).not.toMatch(/Backend Engineering|·/);
-    expect(read('src/pages/index.astro')).toContain('<WorkLetter />');
+    expect(read('src/components/HomeBoard.astro')).toContain('<WorkLetter />');
   });
 
   it('gives screen readers the whole letter at once, while the eye sees it unfold', () => {
