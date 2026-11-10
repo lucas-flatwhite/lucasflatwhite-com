@@ -25,7 +25,6 @@ export function bindWorkLetter(
   const sheet = dialog.querySelector<HTMLElement>('[data-work-letter-sheet]');
   const panels = [...dialog.querySelectorAll<HTMLElement>('[data-work-language-panel]')];
   const buttons = [...dialog.querySelectorAll<HTMLButtonElement>('[data-work-language]')];
-  const skip = dialog.querySelector<HTMLButtonElement>('[data-work-letter-skip]');
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   let language = workLetterLanguage(navigator.language);
   let controller = new AbortController();
@@ -41,10 +40,6 @@ export function bindWorkLetter(
   };
   const finish = () => {
     dialog.classList.remove('is-playing');
-    if (document.activeElement === skip) {
-      buttons.find((button) => button.dataset.workLanguage === language)?.focus({ preventScroll: true });
-    }
-    if (skip) skip.hidden = true;
   };
   const showAll = () => {
     stop();
@@ -90,7 +85,6 @@ export function bindWorkLetter(
     following = true;
     if (sheet) sheet.scrollTop = 0;
     dialog.classList.add('is-playing');
-    if (skip) skip.hidden = false;
     if (!await wait(350, signal)) return;
     for (const row of rows) {
       row.hidden = false;
@@ -126,7 +120,6 @@ export function bindWorkLetter(
     });
     dialog.querySelector('[data-work-letter-close]')?.setAttribute('aria-label', workLetters[language].close);
     dialog.querySelector('[data-work-language-group]')?.setAttribute('aria-label', workLetters[language].languageLabel);
-    if (skip) skip.textContent = workLetters[language].skip;
     if (sheet) sheet.scrollTop = 0;
   };
   setLanguage(language);
@@ -151,9 +144,9 @@ export function bindWorkLetter(
       }
     } else if (target.closest('[data-work-letter-replay]')) {
       void play();
-      if (!reduced.matches) skip?.focus({ preventScroll: true });
-    } else if (target.closest('[data-work-letter-skip]')) {
-      showAll();
+      if (!reduced.matches) {
+        buttons.find((button) => button.dataset.workLanguage === language)?.focus({ preventScroll: true });
+      }
     }
   });
   dialog.addEventListener('cancel', (event) => { event.preventDefault(); close(); });

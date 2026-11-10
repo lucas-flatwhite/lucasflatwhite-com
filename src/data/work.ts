@@ -122,13 +122,12 @@ export const work = {
     ] as const,
     waiting: '그리고 다시 만나고 싶어져야 해요',
     replay: '다시 만나기',
-    signature: 'Lucas',
   },
 } as const;
 
 export type WorkLanguage = 'en' | 'ko';
 export const workLetters = {
-  ko: { ...work.letter, eyebrow: '보험을 바라보는 시각', close: '닫기', languageLabel: '언어', replay: '다시 만나기', skip: '전체 보기' },
+  ko: { ...work.letter, eyebrow: '보험을 바라보는 시각', close: '닫기', languageLabel: '언어', replay: '다시 만나기' },
   en: {
     eyebrow: 'HOW I SEE INSURANCE',
     title: 'A fresh perspective on insurance',
@@ -146,8 +145,6 @@ export const workLetters = {
     ],
     waiting: 'And leave you wanting to meet again.',
     replay: 'Meet again',
-    skip: 'Show all',
-    signature: 'Lucas',
     close: 'Close',
     languageLabel: 'Language',
   },

@@ -87,12 +87,14 @@ describe('the letter on how I see insurance', () => {
     expect(work.letter.turns.filter(([question]) => question.includes('막상'))).toHaveLength(1);
   });
 
-  it('is one dialog the badge opens, signed with the wordmark and my name only', () => {
+  it('opens one dialog with a company website link instead of a signature', () => {
     const source = letter();
 
     expect(source).toMatch(/<dialog[^>]*id="work-letter"/);
-    expect(source).toContain('<KakaoPayInsuranceMark');
-    expect(source).toMatch(/\{(work\.)?letter\.signature\}/);
+    expect(source).not.toContain('<KakaoPayInsuranceMark');
+    expect(source).not.toContain('letter.signature');
+    expect(source).not.toContain('data-work-letter-skip');
+    expect(source).toMatch(/<a[^>]*href="https:\/\/kakaopayinscorp\.co\.kr\/"[^>]*target="_blank"[^>]*rel="noopener noreferrer"[^>]*>kakaopayinscorp\.co\.kr<\/a>/);
     expect(source).not.toMatch(/Backend Engineering|·/);
     expect(read('src/components/HomeBoard.astro')).toContain('<WorkLetter />');
   });

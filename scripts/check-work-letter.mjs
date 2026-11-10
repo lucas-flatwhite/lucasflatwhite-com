@@ -61,9 +61,14 @@ try {
           assert.equal(await close.getAttribute('aria-label'), language === 'ko' ? '닫기' : 'Close');
           assert.equal(await visiblePanel.evaluate((el) => el.scrollWidth > el.clientWidth), false);
         }
-        if (reducedMotion === 'no-preference') {
-          await dialog.locator('[data-work-letter-skip]').click();
-        }
+        assert.equal(await dialog.locator('[data-work-letter-skip]').count(), 0);
+        await visiblePanel.locator('[data-work-letter-replay]').waitFor({ state: 'visible', timeout: 30000 });
+        await page.waitForFunction(() => !document.querySelector('[data-work-letter]').classList.contains('is-playing'));
+        const company = visiblePanel.locator('.work-letter-company');
+        assert.equal(await company.textContent(), 'kakaopayinscorp.co.kr');
+        assert.equal(await company.getAttribute('href'), 'https://kakaopayinscorp.co.kr/');
+        assert.equal(await company.getAttribute('target'), '_blank');
+        assert.equal(await visiblePanel.locator('.work-letter-sign, .work-letter-mark-logo').count(), 0);
         assert.equal(await visiblePanel.locator('.work-letter-turn:not([hidden])').count(), 3);
         for (const text of await visiblePanel.locator('[data-work-text]').all()) {
           assert.equal(await text.textContent(), await text.getAttribute('data-work-text'));
@@ -98,7 +103,7 @@ try {
       }
     }
   }
-  console.log(`${cases} browser scenarios passed: locale, viewport, motion, sequential conversation, reserved message size, stable frame, toggles, skip, replay, and focus.`);
+  console.log(`${cases} browser scenarios passed: locale, viewport, motion, sequential conversation, reserved message size, stable frame, toggles, company link, replay, and focus.`);
 } finally {
   await browser.close();
 }

@@ -1,13 +1,11 @@
 ---
 // The conversation reserves each message's final size while its words are typed.
 import { workLetters } from '../data/work';
-import KakaoPayInsuranceMark from './KakaoPayInsuranceMark.astro';
 import Glyph from './Glyph.astro';
 ---
 
 <dialog id="work-letter" class="work-letter" lang="en" aria-labelledby="work-letter-title-en" data-work-letter>
   <div class="work-letter-toolbar">
-    <button class="work-letter-skip" type="button" data-work-letter-skip hidden>Show all</button>
     <div class="work-letter-languages" role="group" aria-label="Language" data-work-language-group>
       <button type="button" lang="en" aria-label="English" aria-pressed="true" data-work-language="en">EN</button>
       <button type="button" lang="ko" aria-label="한국어" aria-pressed="false" data-work-language="ko">KO</button>
@@ -46,7 +44,7 @@ import Glyph from './Glyph.astro';
         </p>
         <p class="work-letter-waiting" data-work-letter-step aria-hidden="true">{letter.waiting}</p>
         <div class="work-letter-foot" data-work-letter-step>
-          <span class="work-letter-sign"><KakaoPayInsuranceMark class="work-letter-mark-logo" /><b>{letter.signature}</b></span>
+          <a class="work-letter-company" href="https://kakaopayinscorp.co.kr/" target="_blank" rel="noopener noreferrer">kakaopayinscorp.co.kr</a>
           <button class="work-letter-replay" type="button" data-work-letter-replay>{letter.replay} <span aria-hidden="true">↺</span></button>
         </div>
       </section>
@@ -80,16 +78,6 @@ import Glyph from './Glyph.astro';
     gap: 12px;
     padding: 0 12px;
     border-bottom: 1px solid #e8e5dc;
-  }
-  .work-letter-skip {
-    margin-right: auto;
-    border: 0;
-    padding: 8px;
-    background: transparent;
-    color: #59564f;
-    font: inherit;
-    font-size: 13px;
-    cursor: pointer;
   }
   .work-letter [hidden] { display: none !important; }
   .work-letter-languages { display: flex; gap: 2px; }
@@ -155,10 +143,9 @@ import Glyph from './Glyph.astro';
   .work-letter-mark-ink { position: absolute; inset: auto 0 0.2em; z-index: -1; height: 0.48em; background: #ffeb00; transform-origin: left center; }
   .work-letter-waiting { font-size: 18px; font-weight: 700; line-height: 1.5; }
   .work-letter-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-top: 26px; }
-  .work-letter-sign { display: inline-flex; align-items: center; gap: 10px; color: #3a3833; font-size: 13px; }
-  .work-letter-sign b { font-weight: 600; }
-  .work-letter-mark-logo { width: 112px; color: #231815; line-height: 0; }
-  .work-letter-mark-logo svg { display: block; width: 100%; height: auto; }
+  .work-letter-company { color: #3a3833; font-size: 13px; text-underline-offset: 3px; }
+  .work-letter-company:hover { color: var(--blue); }
+  .work-letter-company:focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; }
   .work-letter-replay { padding: 8px 14px; border: 1px solid #d8d4ca; border-radius: var(--radius-pill); background: #fff; color: inherit; font: inherit; font-size: 13px; cursor: pointer; }
   @media (max-width: 720px), (max-height: 560px) {
     .work-letter { width: min(100%, 600px); height: 90dvh; margin: auto auto 0; border-radius: var(--radius-card) var(--radius-card) 0 0; }
