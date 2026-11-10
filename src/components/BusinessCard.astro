@@ -1,0 +1,204 @@
+---
+/*
+ * The front of my business card: the board's paper and ink, my name in the board's type,
+ * and a QR to /HI with my face in the middle. The card dialog, the baked image
+ * (public/card.png, npm run card) and the /hi/ intro all draw this one card.
+ *
+ * Every length is a share of the card's width (cqw), so the card is the same at any size:
+ * set --card-width and the rest follows. data-card-part names the pieces the /hi/ intro moves
+ * onto the board or sets aside when the card unfolds.
+ */
+import { Image } from 'astro:assets';
+import avatar from '../assets/card/avatar.png';
+import { card, CARD_QR_TEXT } from '../data/card';
+import { siteProfile } from '../data/site';
+import { qrSvg } from '../lib/qr';
+
+type Props = {
+  class?: string;
+};
+
+const { class: className } = Astro.props;
+const qr = qrSvg(CARD_QR_TEXT);
+---
+
+<article class:list={['business-card', className]} aria-label={`${siteProfile.name}'s card`}>
+  <div class="card-sheet">
+    <div class="card-top">
+      <span class="card-handle">
+        <Image class="card-avatar card-face" src={avatar} alt="" width={96} densities={[1, 2, 3]} data-card-part="avatar" />
+        <span data-card-part="handle">{siteProfile.handle}</span>
+      </span>
+      <span class="card-dot" data-card-part="dot"></span>
+    </div>
+    <p class="card-name" data-card-part="name">
+      <span class="card-name-line">Lucas</span>
+      <span class="card-name-line">Flatwhite</span>
+    </p>
+    <p class="card-name-ko" lang="ko" data-card-part="ko">{siteProfile.nameKo}</p>
+    <p class="card-role" data-card-part="role">{card.role}</p>
+    <div class="card-foot">
+      <div class="card-qr" data-card-part="qr">
+        <Fragment set:html={qr.svg} />
+        <Image class="card-avatar card-qr-face" src={avatar} alt="" width={128} densities={[1, 2, 3]} />
+      </div>
+      <span class="card-url" data-card-part="url">{card.url}<small>{card.scan}</small></span>
+    </div>
+  </div>
+</article>
+
+<style>
+  /* The card is the container its lengths are measured against, so the padding sits inside. */
+  .business-card {
+    container-type: inline-size;
+    position: relative;
+    box-sizing: border-box;
+    width: var(--card-width, 330px);
+    aspect-ratio: 5 / 9;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: #fff;
+    color: #171717;
+    font-family: var(--font-display);
+    box-shadow:
+      0 0 0 1px rgb(23 23 23 / 0.05),
+      0 2px 2px rgb(23 23 23 / 0.03),
+      0 24px 40px -24px rgb(23 23 23 / 0.28);
+  }
+
+  /* A little paper grain, as on the mockup. */
+  .business-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 48.48cqw;
+    opacity: 0.06;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+  }
+
+  .card-sheet {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    height: 100%;
+    padding: 7.88cqw 8.48cqw 8.48cqw;
+  }
+
+  .card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-handle {
+    display: inline-flex;
+    align-items: center;
+    gap: 2.73cqw;
+    font-size: 4.24cqw;
+    font-weight: 560;
+  }
+
+  .card-avatar {
+    border-radius: 50%;
+  }
+
+  .card-face {
+    width: 7.88cqw;
+    height: 7.88cqw;
+    object-fit: cover;
+  }
+
+  .card-dot {
+    width: 2.73cqw;
+    height: 2.73cqw;
+    border-radius: var(--radius-pill);
+    background: #f0bb26;
+  }
+
+  .card-name {
+    margin: 9.09cqw 0 0;
+    font-size: 18.79cqw;
+    font-weight: 450;
+    letter-spacing: -0.055em;
+    line-height: 0.86;
+  }
+
+  .card-name-line {
+    display: block;
+  }
+
+  .card-name-ko {
+    margin: 3.64cqw 0 0;
+    color: #4d4d4d;
+    font-family: var(--font-ko);
+    font-size: 3.94cqw;
+    letter-spacing: 0.02em;
+  }
+
+  .card-role {
+    max-width: 22ch;
+    margin: 4.24cqw 0 0;
+    color: #4d4d4d;
+    font-size: 4.39cqw;
+    line-height: 1.45;
+  }
+
+  .card-foot {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 3.64cqw;
+    margin-top: auto;
+  }
+
+  /* The SVG's own 3-module margin plus the card's padding make the quiet zone. */
+  .card-qr {
+    position: relative;
+    flex: none;
+    width: 60.61cqw;
+    margin: 0 0 -2.73cqw -2.73cqw;
+    line-height: 0;
+  }
+
+  .card-qr :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .card-qr-face {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10.91cqw;
+    height: 10.91cqw;
+    object-fit: cover;
+    translate: -50% -50%;
+    box-shadow: 0 0 0 0.91cqw #fff;
+  }
+
+  .card-url {
+    padding-bottom: 0.61cqw;
+    font-size: 4.55cqw;
+    font-weight: 560;
+    letter-spacing: 0.01em;
+    writing-mode: vertical-rl;
+    rotate: 180deg;
+  }
+
+  .card-url small {
+    margin-top: 3.03cqw;
+    color: #8a8a8a;
+    font-size: 3.64cqw;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  :global([data-card-print]) .business-card {
+    border-radius: 0;
+    box-shadow: none;
+  }
+</style>

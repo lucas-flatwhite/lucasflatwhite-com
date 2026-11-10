@@ -5,3 +5,10 @@
  * vercel.json sends /HI and /hi to /hi/.
  */
 export const CARD_QR_TEXT = 'HTTPS://LUCASFLATWHITE.COM/HI';
+
+/** The words on the card. The name, the Korean name and the handle come from siteProfile. */
+export const card = {
+  role: 'Software engineer. Spots problems, then solves them.',
+  url: 'lucasflatwhite.com',
+  scan: 'Scan',
+} as const;
