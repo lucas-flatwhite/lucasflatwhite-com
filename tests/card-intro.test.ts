@@ -99,9 +99,16 @@ describe('the intro overlay', () => {
     }
   });
 
-  it('keeps the command menu and the card dialog shut while the intro is up', () => {
+  it('keeps the command menu, the card and the book shut while the intro is up', () => {
+    // /hi/#book or /hi/#card must not open a dialog over the intro.
     expect(read('src/components/CommandPalette.astro')).toContain("classList.contains('has-intro')");
     expect(read('src/lib/card.ts')).toContain("classList.contains('has-intro')");
+    expect(read('src/lib/book.ts')).toContain("classList.contains('has-intro')");
+  });
+
+  it('puts the hidden board out of reach as soon as it is parsed, not when the intro script arrives', () => {
+    // A slow script would otherwise leave the board's links in the Tab order behind the intro.
+    expect(hi).toMatch(/<HomeBoard \/>\s*<script is:inline>[^<]*has-intro[^<]*\.inert = true/);
   });
 });
 
