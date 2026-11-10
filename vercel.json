@@ -10,7 +10,9 @@
     { "source": "/ai-timeline-log/en", "destination": "/ai-timeline-log/", "permanent": true },
     { "source": "/ai-timeline-log/en/:path*", "destination": "/ai-timeline-log/:path*", "permanent": true },
     { "source": "/ai-timeline-log", "destination": "/ai-timeline-log/", "permanent": true },
-    { "source": "/ai-timeline-log/ko", "destination": "/ai-timeline-log/ko/", "permanent": true }
+    { "source": "/ai-timeline-log/ko", "destination": "/ai-timeline-log/ko/", "permanent": true },
+    { "source": "/HI", "destination": "/hi/", "permanent": true },
+    { "source": "/hi", "destination": "/hi/", "permanent": true }
   ],
   "rewrites": [
     { "source": "/ai-timeline-log/", "destination": "https://ai-timeline-log.vercel.app/ai-timeline-log/index.html" },

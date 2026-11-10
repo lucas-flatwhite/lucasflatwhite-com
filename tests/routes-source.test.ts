@@ -96,4 +96,22 @@ describe('route source contract', () => {
     expect(landing).toContain('lang="ko"');
     expect(landing).toContain('data-name-letter');
   });
+
+  it('sends the QR on my card, /HI, and the bare /hi to the /hi/ page', () => {
+    expect(vercel.redirects).toContainEqual({ source: '/HI', destination: '/hi/', permanent: true });
+    expect(vercel.redirects).toContainEqual({ source: '/hi', destination: '/hi/', permanent: true });
+    // A permanent redirect away from /hi/ would be remembered, and the intro never seen.
+    expect(vercel.redirects.filter((redirect: { source: string }) => redirect.source === '/hi/')).toEqual([]);
+  });
+
+  it('draws the board at /hi/, kept out of search, with the homepage as its canonical', () => {
+    const hi = read('src/pages/hi/index.astro');
+    const layout = read('src/layouts/BaseLayout.astro');
+
+    expect(hi).toContain('<HomeBoard />');
+    expect(hi).toContain('noindex');
+    expect(hi).toContain('canonicalPath={withBase()}');
+    expect(layout).toContain('<meta name="robots" content="noindex" />');
+    expect(layout).toMatch(/new URL\(canonicalPath, Astro\.site\)/);
+  });
 });

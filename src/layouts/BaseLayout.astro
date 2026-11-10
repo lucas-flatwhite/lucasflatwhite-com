@@ -9,10 +9,14 @@ type Props = {
   description: string;
   bodyClass?: string;
   themeColor?: string;
+  /** The address search engines and shares should use, when it is not this page's own. */
+  canonicalPath?: string;
+  /** Keeps the page out of search (/hi/, which only a QR leads to). */
+  noindex?: boolean;
 };
 
-const { title, description, bodyClass, themeColor = '#171717' } = Astro.props;
-const canonical = new URL(Astro.url.pathname, Astro.site);
+const { title, description, bodyClass, themeColor = '#171717', canonicalPath = Astro.url.pathname, noindex = false } = Astro.props;
+const canonical = new URL(canonicalPath, Astro.site);
 // The X profile picture, so a shared link carries the same face as the account.
 const shareImage = new URL(withBase('og-image.png'), Astro.site);
 ---
@@ -24,6 +28,7 @@ const shareImage = new URL(withBase('og-image.png'), Astro.site);
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="theme-color" content={themeColor} />
+    {noindex && <meta name="robots" content="noindex" />}
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/png" href={withBase('favicon.png')} />
     <link rel="apple-touch-icon" href={withBase('apple-touch-icon.png')} />

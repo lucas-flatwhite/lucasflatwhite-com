@@ -1,0 +1,22 @@
+---
+/*
+ * Where the QR on my card lands (HTTPS://LUCASFLATWHITE.COM/HI, sent here by vercel.json).
+ * It is the homepage board itself, so whoever scans ends up on the real thing. Only a QR
+ * leads here, so search keeps to the homepage.
+ */
+import HomeBoard from '../../components/HomeBoard.astro';
+import { siteProfile } from '../../data/site';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { withBase } from '../../lib/paths';
+---
+
+<BaseLayout
+  title={siteProfile.name}
+  description={siteProfile.description}
+  bodyClass="landing"
+  themeColor="#fafafa"
+  canonicalPath={withBase()}
+  noindex
+>
+  <HomeBoard />
+</BaseLayout>
