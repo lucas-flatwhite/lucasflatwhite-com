@@ -31,7 +31,7 @@ describe('copyText', () => {
 
 describe('copy link source contract', () => {
   it('copies from the landing hero instead of opening a new tab', () => {
-    const landing = read('src/pages/index.astro');
+    const landing = read('src/components/HomeBoard.astro');
 
     expect(landing).toContain('mountCopyLinks()');
     expect(landing.match(/data-copy=\{link\.copy\}/g)).toHaveLength(1);

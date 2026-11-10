@@ -7,7 +7,7 @@ import { nextIndex } from '../src/lib/photo-deck';
 import { deckOrder } from '../src/lib/photos';
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8');
-const landing = read('src/pages/index.astro');
+const landing = read('src/components/HomeBoard.astro');
 const photos = read('src/components/BoardPhotos.astro');
 const landingStyles = read('src/styles/landing.css');
 // Finder drops a .DS_Store into any folder it opens; git ignores it and so do these checks.

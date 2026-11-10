@@ -3,7 +3,8 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8');
-const landing = read('src/pages/index.astro');
+const landing = read('src/components/HomeBoard.astro');
+const page = read('src/pages/index.astro');
 const vercel = JSON.parse(read('vercel.json'));
 
 // Resolve this config's literal and :path* rules in declaration order.
@@ -83,9 +84,11 @@ describe('route source contract', () => {
     expect(landing).toContain('class="colophon"');
     expect(landing).toContain('<SiteHeader');
     expect(landing).toContain('<CommandPalette />');
-    expect(landing).toContain('themeColor="#fafafa"');
+    expect(page).toContain('themeColor="#fafafa"');
+    expect(page).toContain('<HomeBoard />');
     expect(landing).toContain('<ArcadeHandheld />');
     expect(landing).not.toContain('view-transition-name');
+    expect(page).not.toContain('view-transition-name');
   });
 
   it('keeps the name as real text', () => {

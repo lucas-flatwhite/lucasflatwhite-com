@@ -21,7 +21,7 @@ describe('untilNextMinute', () => {
 });
 
 describe('the Daily Shot card', () => {
-  const landing = read('src/pages/index.astro');
+  const landing = read('src/components/HomeBoard.astro');
 
   it('opens the X profile in a new tab, as the project cards do, and never in a popup', () => {
     expect(dailyShot.href).toBe('https://x.com/lucas_flatwhite');
