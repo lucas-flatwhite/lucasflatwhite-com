@@ -1,204 +1,169 @@
-/*
- * Plays the letter the work badge opens (WorkLetter.astro). Each doubt types into a bubble,
- * three dots think, the answer streams in; then "정말이요." settles, the pledge gets its
- * highlighter one word at a time, and the line about meeting again waits with its caret.
- * A click on the letter shows the rest at once, the replay button plays it again, and closing
- * stops every timer. Visitors who asked for less motion get the whole letter at once.
- */
+/** Plays a conversation inside a fixed frame, with space reserved for each message. */
+import { workLetters, type WorkLanguage } from '../data/work';
 
-type Run = { stop: boolean; timers: number[] };
+export function workLetterLanguage(language: string): WorkLanguage {
+  return language.toLowerCase().split('-')[0] === 'ko' ? 'ko' : 'en';
+}
 
-const FADE_MS = 170;
+/** Aborting resolves pending waits too, so a closed or replaced conversation can finish. */
+function wait(ms: number, signal: AbortSignal): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (signal.aborted) { resolve(false); return; }
+    const cancel = () => { window.clearTimeout(timer); resolve(false); };
+    const timer = window.setTimeout(() => {
+      signal.removeEventListener('abort', cancel);
+      resolve(true);
+    }, ms);
+    signal.addEventListener('abort', cancel, { once: true });
+  });
+}
 
 export function bindWorkLetter(
   dialog: HTMLDialogElement,
-  turns: readonly (readonly [string, string])[],
   returnTo?: HTMLElement | null,
 ): () => void {
   const sheet = dialog.querySelector<HTMLElement>('[data-work-letter-sheet]');
-  const turnRows = [...dialog.querySelectorAll<HTMLElement>('.work-letter-turn')];
-  const steps = [...dialog.querySelectorAll<HTMLElement>('[data-work-letter-step]')];
-  const marks = [...dialog.querySelectorAll<HTMLElement>('.work-letter-mark')];
-  const replay = dialog.querySelector<HTMLElement>('[data-work-letter-replay]');
+  const panels = [...dialog.querySelectorAll<HTMLElement>('[data-work-language-panel]')];
+  const buttons = [...dialog.querySelectorAll<HTMLButtonElement>('[data-work-language]')];
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-  let run: Run = { stop: true, timers: [] };
+  let language = workLetterLanguage(navigator.language);
+  let controller = new AbortController();
+  let animations: Animation[] = [];
+  let closeTimer: number | undefined;
+  let following = true;
+  const panel = () => panels.find((panel) => !panel.hidden)!;
 
-  const sleep = (ms: number, r: Run) =>
-    new Promise<void>((resolve) => {
-      r.timers.push(window.setTimeout(resolve, ms));
-    });
-  const halt = () => {
-    run.stop = true;
-    run.timers.forEach((timer) => window.clearTimeout(timer));
+  const stop = () => {
+    controller.abort();
+    animations.forEach((animation) => animation.cancel());
+    animations = [];
   };
-
-  // As the letter grows past the screen, the line being written stays in view.
-  const follow = (element: Element) => {
-    if (!sheet) {
-      return;
-    }
-    const box = element.getBoundingClientRect();
-    const view = sheet.getBoundingClientRect();
-    if (box.bottom > view.bottom - 24) {
-      sheet.scrollBy({ top: box.bottom - view.bottom + 64, behavior: 'smooth' });
-    }
-  };
-
-  const write = (element: HTMLElement, text: string, caret: boolean) => {
-    element.textContent = text;
-    if (caret) {
-      const mark = document.createElement('span');
-      mark.className = 'work-letter-caret';
-      element.append(mark);
-    }
-  };
-
-  const showAll = () => {
-    halt();
-    turnRows.forEach((row, i) => {
-      row.hidden = false;
-      row.classList.remove('is-thinking');
-      write(row.querySelector('.work-letter-q')!, turns[i][0], false);
-      write(row.querySelector('.work-letter-a')!, turns[i][1], false);
-    });
-    steps.forEach((step) => step.classList.add('is-on'));
-    marks.forEach((mark) => mark.classList.add('is-marked'));
-    replay?.classList.add('is-on');
+  const finish = () => {
     dialog.classList.remove('is-playing');
   };
-
-  const reset = () => {
-    turnRows.forEach((row) => {
-      row.hidden = true;
-      row.classList.remove('is-thinking');
-      write(row.querySelector('.work-letter-q')!, '', false);
-      write(row.querySelector('.work-letter-a')!, '', false);
+  const showAll = () => {
+    stop();
+    panel().querySelectorAll<HTMLElement>('[hidden]').forEach((element) => { element.hidden = false; });
+    panel().querySelectorAll('.is-thinking').forEach((row) => row.classList.remove('is-thinking'));
+    panel().querySelectorAll<HTMLElement>('[data-work-text]').forEach((element) => {
+      element.textContent = element.dataset.workText!;
     });
-    steps.forEach((step) => step.classList.remove('is-on'));
-    marks.forEach((mark) => mark.classList.remove('is-marked'));
-    replay?.classList.remove('is-on');
-    if (sheet) {
-      sheet.scrollTop = 0;
-    }
+    finish();
   };
+  // Follow a new message once, rather than scrolling on every typed character.
+  // A manual scroll keeps the reader in control until the conversation is replayed.
+  const follow = (element: HTMLElement) => {
+    if (!sheet || !following) return;
+    const bottom = element.getBoundingClientRect().bottom;
+    const edge = sheet.getBoundingClientRect().bottom;
+    if (bottom > edge - 24) sheet.scrollBy({ top: bottom - edge + 24, behavior: 'smooth' });
+  };
+  sheet?.addEventListener('wheel', () => { following = false; }, { passive: true });
+  sheet?.addEventListener('touchstart', () => { following = false; }, { passive: true });
+  dialog.addEventListener('keydown', (event) => {
+    if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(event.key)) following = false;
+  });
 
-  const play = async () => {
-    halt();
-    if (reduced.matches) {
-      showAll();
-      return;
+  const type = async (element: HTMLElement, signal: AbortSignal, interval: number) => {
+    for (const character of Array.from(element.dataset.workText!)) {
+      if (!await wait(interval, signal)) return false;
+      element.textContent += character;
     }
-
-    const r: Run = { stop: false, timers: [] };
-    run = r;
-    reset();
+    return true;
+  };
+  const play = async () => {
+    stop();
+    if (reduced.matches) { showAll(); return; }
+    controller = new AbortController();
+    const { signal } = controller;
+    const active = panel();
+    const rows = [...active.querySelectorAll<HTMLElement>('.work-letter-turn')];
+    const steps = [...active.querySelectorAll<HTMLElement>('[data-work-letter-step]')];
+    rows.forEach((row) => { row.hidden = true; row.classList.remove('is-thinking'); });
+    steps.forEach((step) => { step.hidden = true; });
+    active.querySelectorAll<HTMLElement>('[data-work-text]').forEach((element) => { element.textContent = ''; });
+    following = true;
+    if (sheet) sheet.scrollTop = 0;
     dialog.classList.add('is-playing');
-    await sleep(500, r);
-
-    for (const [i, [question, answer]] of turns.entries()) {
-      if (r.stop) return;
-      const row = turnRows[i];
-      const bubble = row.querySelector<HTMLElement>('.work-letter-q')!;
-      const line = row.querySelector<HTMLElement>('.work-letter-a')!;
+    if (!await wait(200, signal)) return;
+    for (const row of rows) {
       row.hidden = false;
       follow(row);
-      for (let at = 1; at <= question.length && !r.stop; at += 1) {
-        write(bubble, question.slice(0, at), true);
-        await sleep(50 + Math.random() * 40, r);
-      }
-      write(bubble, question, false);
+      if (!await type(row.querySelector<HTMLElement>('.work-letter-q [data-work-text]')!, signal, 28)) return;
       row.classList.add('is-thinking');
-      await sleep(700, r);
+      if (!await wait(300, signal)) return;
       row.classList.remove('is-thinking');
-      for (let at = 0; at < answer.length && !r.stop; ) {
-        at = Math.min(answer.length, at + 1 + Math.floor(Math.random() * 2));
-        write(line, answer.slice(0, at), true);
-        await sleep(55 + Math.random() * 50, r);
-      }
-      write(line, answer, false);
-      await sleep(500, r);
+      if (!await type(row.querySelector<HTMLElement>('.work-letter-a [data-work-text]')!, signal, 20)) return;
+      if (!await wait(400, signal)) return;
     }
-
-    const [really, pledge, waiting] = steps;
-    if (r.stop) return;
-    await sleep(500, r);
-    really?.classList.add('is-on');
-    if (really) follow(really);
-    await sleep(1200, r);
-    if (r.stop) return;
-    pledge?.classList.add('is-on');
-    if (pledge) follow(pledge);
-    await sleep(800, r);
-    for (const mark of marks) {
-      if (r.stop) return;
-      mark.classList.add('is-marked');
-      await sleep(420, r);
+    for (const step of steps) {
+      step.hidden = false;
+      follow(step);
+      step.querySelectorAll<HTMLElement>('.work-letter-mark-ink').forEach((mark, i) => {
+        animations.push(mark.animate(
+          [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }],
+          { duration: 500, delay: i * 100, easing: 'ease-out', fill: 'backwards' },
+        ));
+      });
+      if (!await wait(step.classList.contains('work-letter-pledge') ? 1000 : 400, signal)) return;
     }
-    await sleep(700, r);
-    if (r.stop) return;
-    waiting?.classList.add('is-on');
-    await sleep(900, r);
-    if (r.stop) return;
-    replay?.classList.add('is-on');
-    if (replay) follow(replay);
-    dialog.classList.remove('is-playing');
+    finish();
   };
-
-  // A highlighted word is marked again when a pointer comes over it.
-  for (const mark of marks) {
-    mark.addEventListener('pointerenter', () => {
-      if (reduced.matches || !mark.classList.contains('is-marked')) {
-        return;
-      }
-      mark.classList.remove('is-marked');
-      window.requestAnimationFrame(() => window.requestAnimationFrame(() => mark.classList.add('is-marked')));
+  const setLanguage = (next: WorkLanguage) => {
+    stop();
+    language = next;
+    dialog.lang = language;
+    dialog.setAttribute('aria-labelledby', `work-letter-title-${language}`);
+    panels.forEach((panel) => { panel.hidden = panel.dataset.workLanguagePanel !== language; });
+    buttons.forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.workLanguage === language));
     });
-  }
+    dialog.querySelector('[data-work-letter-close]')?.setAttribute('aria-label', workLetters[language].close);
+    dialog.querySelector('[data-work-language-group]')?.setAttribute('aria-label', workLetters[language].languageLabel);
+    if (sheet) sheet.scrollTop = 0;
+  };
+  setLanguage(language);
 
   const close = () => {
-    if (!dialog.open || dialog.classList.contains('is-closing')) {
-      return;
-    }
-    halt();
-    if (reduced.matches) {
-      dialog.close();
-      return;
-    }
+    if (!dialog.open || dialog.classList.contains('is-closing')) return;
+    stop();
+    if (reduced.matches) { dialog.close(); return; }
     dialog.classList.add('is-closing');
-    window.setTimeout(() => {
-      dialog.classList.remove('is-closing');
-      dialog.close();
-    }, FADE_MS);
+    closeTimer = window.setTimeout(() => dialog.close(), 170);
   };
-
   dialog.addEventListener('click', (event) => {
     const target = event.target as Element;
+    const toggle = target.closest<HTMLElement>('[data-work-language]');
     if (target === dialog || target.closest('[data-work-letter-close]')) {
       close();
+    } else if (toggle) {
+      const next = toggle.dataset.workLanguage;
+      if ((next === 'en' || next === 'ko') && next !== language) {
+        setLanguage(next);
+        void play();
+      }
     } else if (target.closest('[data-work-letter-replay]')) {
       void play();
-    } else if (dialog.classList.contains('is-playing') && !target.closest('.work-letter-mark')) {
-      showAll();
+      if (!reduced.matches) {
+        buttons.find((button) => button.dataset.workLanguage === language)?.focus({ preventScroll: true });
+      }
     }
   });
-  dialog.addEventListener('cancel', (event) => {
-    event.preventDefault();
-    close();
-  });
+  dialog.addEventListener('cancel', (event) => { event.preventDefault(); close(); });
   dialog.addEventListener('close', () => {
-    halt();
-    dialog.classList.remove('is-playing');
-    // Back to the card's button, even when the click landed on the picture and focused nothing.
+    stop();
+    window.clearTimeout(closeTimer);
+    dialog.classList.remove('is-closing');
+    finish();
     returnTo?.focus({ preventScroll: true });
   });
+  reduced.addEventListener('change', () => { if (reduced.matches && dialog.open) showAll(); });
 
   return () => {
-    // The letter rises a moment after the click; if the command menu or another dialog opened
-    // in that moment, it stays shut rather than landing on top.
-    if (dialog.open || document.querySelector('dialog[open]')) {
-      return;
-    }
+    if (dialog.open || document.querySelector('dialog[open]')) return;
     dialog.showModal();
+    // showModal focuses the first control, EN; start on Close so a stray Enter cannot switch language.
+    dialog.querySelector<HTMLButtonElement>('[data-work-letter-close]')?.focus({ preventScroll: true });
     void play();
   };
 }
