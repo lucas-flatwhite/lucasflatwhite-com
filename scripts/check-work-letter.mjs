@@ -123,6 +123,11 @@ try {
         if (reducedMotion === 'reduce') {
           assert.equal(await dialog.evaluate((el) => el.getAnimations({ subtree: true }).length), 0);
         }
+        // The bar is slim, but each control is a full thumb-sized target.
+        for (const control of await dialog.locator('.work-letter-toolbar button').all()) {
+          const box = await control.boundingBox();
+          assert.ok(box.width >= 44 && box.height >= 43, `toolbar target is ${box.width}x${box.height}`);
+        }
         const toolbar = await dialog.locator('.work-letter-toolbar').boundingBox();
         assert.ok(toolbar.y >= bounds.y && toolbar.y < bounds.y + 60);
         await page.keyboard.press('Escape');

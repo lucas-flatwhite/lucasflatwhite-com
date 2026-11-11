@@ -88,28 +88,30 @@ const rings = Array.from({ length: 44 }, (_, i) => 10 + i * 8);
   .work-letter:focus { outline: none; }
   .work-letter::backdrop { background: rgba(23, 23, 23, 0.4); }
   html:has(.work-letter[open]) { overflow: hidden; }
-  /* A slim bar: the languages are words, and the chosen one carries the letter's highlighter. */
+  /*
+   * A slim bar: the languages are words, and the chosen one carries the letter's highlighter.
+   * Each control looks small but takes the bar's full height and at least 44px across, so a
+   * thumb lands on it easily.
+   */
   .work-letter-toolbar {
     height: 44px;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: flex-end;
-    gap: 6px;
-    padding: 0 8px;
+    padding: 0 4px;
     border-bottom: 1px solid #e8e5dc;
   }
   .work-letter [hidden] { display: none !important; }
-  .work-letter-languages { display: flex; gap: 2px; }
+  .work-letter-languages { display: flex; }
   .work-letter-languages button {
     position: relative;
     z-index: 0;
-    min-width: 32px;
-    height: 30px;
-    padding: 0 6px;
+    min-width: 44px;
+    padding: 0 13px;
     border: 0;
     border-radius: 6px;
     background: transparent;
-    color: #77736a;
+    color: #6b675f;
     font-family: var(--font-display);
     font-size: 12px;
     font-weight: 650;
@@ -122,26 +124,39 @@ const rings = Array.from({ length: 44 }, (_, i) => 10 + i * 8);
     content: '';
     position: absolute;
     z-index: -1;
-    right: 6px;
-    bottom: 8px;
-    left: 6px;
+    top: calc(50% + 1px);
+    right: 13px;
+    left: 13px;
     height: 6px;
     background: #ffeb00;
   }
+  /* Close shows a 30px circle on hover, inside a 44px target. */
   .work-letter-close {
+    position: relative;
+    z-index: 0;
     display: grid;
     place-items: center;
-    width: 30px;
-    height: 30px;
+    width: 44px;
     padding: 0;
     border: 0;
-    border-radius: var(--radius-pill);
+    border-radius: 6px;
     background: transparent;
     color: #171717;
     font-size: 14px;
     cursor: pointer;
   }
-  .work-letter-close:hover { background: rgba(23, 23, 23, 0.06); }
+  .work-letter-close::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    top: calc(50% - 15px);
+    left: calc(50% - 15px);
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-pill);
+  }
+  .work-letter-close:hover::before { background: rgba(23, 23, 23, 0.06); }
+  .work-letter .work-letter-toolbar button:focus-visible { outline-offset: -4px; }
   .work-letter-replay:hover { box-shadow: inset 0 0 0 1px #aaa69c; }
   .work-letter button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
   .work-letter-sheet {
