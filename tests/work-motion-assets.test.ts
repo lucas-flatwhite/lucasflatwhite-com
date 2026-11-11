@@ -52,9 +52,16 @@ describe('ripple films', () => {
   const { tiers } = JSON.parse(read('src/assets/work/motion/ripple.json')) as { tiers: Tier[] };
 
   it('films the ripple once per card size, the widest without a media query', () => {
-    expect(tiers.map((tier) => tier.name)).toEqual(['phone', 'desk', 'wide']);
-    expect(tiers[0].media).toBe('(max-width: 720px)');
+    expect(tiers.map((tier) => tier.name)).toEqual(['desk', 'wide']);
+    expect(tiers[0].media).toBe('(max-width: 1599px)');
     expect(tiers.at(-1)!.media).toBe('');
+  });
+
+  it('plays the desk film on a phone, whose full-width card is about the size it is tuned for', () => {
+    expect(tiers.some((tier) => tier.media.includes('720px'))).toBe(false);
+    for (const file of ['ripple-phone.webp', 'ripple-phone.av1.mp4', 'ripple-phone.h264.mp4']) {
+      expect(existsSync(motion(file)), file).toBe(false);
+    }
   });
 
   it('offers AV1 first and H.264 after it, each typed with its codec, beside a still', () => {

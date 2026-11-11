@@ -325,13 +325,15 @@
 /*
  * A card is one picture with its title. The title link stretches over the whole card,
  * and the Source mark sits above it so the two never nest.
- * On a phone (and any screen without hover) the words sit under a square picture;
- * on a hover screen they rise over the picture as a blue veil.
+ * On a phone the cards run one to a row under the photos, each picture 4:3 like the photo
+ * frame above them; on a touch screen wider than that they run three to a row, square.
+ * Without hover the words sit under the picture; on a hover screen they rise over it as a
+ * blue veil.
  */
 .board-cards {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px 12px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
   align-items: start;
 }
 
@@ -349,7 +351,7 @@
 
 .project-art {
   grid-area: art;
-  aspect-ratio: 1;
+  aspect-ratio: 4 / 3;
   margin-bottom: 2px;
   overflow: hidden;
   border-radius: var(--radius-card);
@@ -563,8 +565,12 @@
   font-size: 1.05rem;
 }
 
+/*
+ * The numbered gaps belong to the board. Where the cards are only listed, on a phone or a
+ * touch screen, the numbers would run out of order around the rail, so the gaps stay out.
+ */
 .board-gap {
-  display: flex;
+  display: none;
   flex-direction: column;
   justify-content: space-between;
   aspect-ratio: 1;
@@ -606,6 +612,10 @@
   .board-cards {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 32px 16px;
+  }
+
+  .project-art {
+    aspect-ratio: 1;
   }
 }
 
@@ -786,6 +796,7 @@
   }
 
   .board-gap {
+    display: flex;
     padding: 16px;
   }
 
@@ -828,8 +839,8 @@
 
 /*
  * The book card stands a CSS book on a pale blue ground (BookStand.astro). The book is sized
- * from the card with container units, so it keeps its place on every board width and on a
- * phone's square. Its cover is hinged at the spine; the first page under it is set in clean type.
+ * from the card with container units, so it keeps its place on every board width and in a
+ * phone's 4:3 card. Its cover is hinged at the spine; the first page under it is set in clean type.
  */
 .claude-mark {
   width: 1em;
@@ -1144,7 +1155,7 @@
 /*
  * The work card hangs my KakaoPay Insurance badge on the company's yellow (WorkBadge.astro).
  * Sizes come from the card (container units), so the badge keeps its place on every board
- * width and on a phone's square. The window is contained: its words change without making
+ * width and in a phone's 4:3 card. The window is contained: its words change without making
  * the page lay out again. The shadow is a still layer behind the badge, never a filter.
  */
 .work-art {

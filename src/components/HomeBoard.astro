@@ -27,9 +27,11 @@ import { work } from '../data/work';
 import { deckOrder } from '../lib/photos';
 import {
   arrangeBoard,
+  listOrder,
   NAME_ROWS,
   PHOTO_ROWS,
   placeProjects,
+  railOf,
   stackBoard,
 } from '../lib/projects';
 import { withBase } from '../lib/paths';
@@ -37,14 +39,18 @@ import '../styles/landing.css';
 
 const placed = placeProjects(await getCollection('projects'));
 const photos = deckOrder(await getCollection('photos'));
-// The book, every pictured project, Daily Shot and the arcade, with pinned projects in their
-// numbered slots and gaps after them (src/lib/projects.ts).
+// The book, every pictured project, Daily Shot, the arcade, the work badge and the checklist,
+// with pinned projects in their numbered slots and gaps after them (src/lib/projects.ts).
 const slots = arrangeBoard(placed.board);
 const count = slots.length;
 const photoRows = photos.length > 0 ? PHOTO_ROWS : 0;
-// The board runs three columns on a mid screen and four on a wide one; the spans match.
-const three = stackBoard(count, 3, NAME_ROWS, photoRows);
-const four = stackBoard(count, 4, NAME_ROWS, photoRows);
+// The board runs three columns on a mid screen and four on a wide one; the spans match. On
+// both, the work badge and the checklist stand under the name.
+const rail = railOf(slots);
+const three = stackBoard(count, 3, NAME_ROWS, photoRows, rail);
+const four = stackBoard(count, 4, NAME_ROWS, photoRows, rail);
+// A phone shows the list as it is: the book, the badge and the checklist, then the rest.
+const listed = listOrder(slots).map((index) => ({ slot: slots[index], index }));
 const place = (index: number) =>
   [
     `--c3: ${three[index].column}; --r3: ${three[index].row}`,
@@ -95,7 +101,7 @@ const year = new Date().getFullYear();
         </div>
         {photoRows > 0 && <BoardPhotos photos={photos} rows={photoRows} />}
         <ol class="board-cards" id="work">
-          {slots.map((slot, index) =>
+          {listed.map(({ slot, index }) =>
             slot.kind === 'book' ? (
               <li class="project-card book-card" style={place(index)}>
                 <div class="project-art book-art">
@@ -170,7 +176,7 @@ const year = new Date().getFullYear();
                 </div>
               </li>
             ) : (
-              <li class="board-gap" style={place(index)} aria-hidden="true">
+              <li class="board-gap" style={place(index)} aria-hidden="true" data-checklist={slot.kind === 'checklist' ? '' : undefined}>
                 <span class="gap-number">{String(index + 1).padStart(2, '0')}</span>
                 <span class="gap-note">{slot.note}</span>
               </li>

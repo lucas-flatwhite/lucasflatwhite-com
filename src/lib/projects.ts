@@ -61,14 +61,25 @@ export function gapNote(index: number): string {
   return GAP_NOTES[index % GAP_NOTES.length];
 }
 
-/** One board slot: the book, a pictured project, Daily Shot, the arcade, the work badge, or a numbered gap. */
+/**
+ * One board slot: the book, a pictured project, Daily Shot, the arcade, the work badge, the
+ * checklist, or a numbered gap. The checklist is still to be built; until it is, its place
+ * shows as a gap with its own note.
+ */
 export type BoardSlot<T> =
   | { kind: 'book' }
   | { kind: 'project'; entry: T }
   | { kind: 'daily' }
   | { kind: 'arcade' }
   | { kind: 'work' }
+  | { kind: 'checklist'; note: string }
   | { kind: 'gap'; note: string };
+
+/**
+ * The checklist keeps the number its place had as a gap, so the numbers, notes and shapes
+ * around it stay as they were. Where it shows on the board is up to the rail, not this number.
+ */
+export const CHECKLIST_SLOT = 8;
 
 /**
  * The gap notes were first handed out from slot 05 on, and each number keeps its note
@@ -79,8 +90,9 @@ const FIRST_NOTE_INDEX = 4;
 /**
  * Lays the board out in reading order. The book leads, then every project without a pinned
  * `slot`, then Daily Shot, the arcade and the work badge; a project with a `slot` sits at that
- * number and the rest flow around it. Gaps pad the board to `slots`, and each number keeps its
- * own note, so a card taking a gap never shifts the notes after it.
+ * number, the checklist holds `CHECKLIST_SLOT`, and the rest flow around them. Gaps pad the
+ * board to `slots`, and each number keeps its own note, so a card taking a gap never shifts
+ * the notes after it.
  */
 export function arrangeBoard<T extends { data: { slot?: number } }>(
   projects: T[],
@@ -93,6 +105,10 @@ export function arrangeBoard<T extends { data: { slot?: number } }>(
 
     if (slot === undefined) {
       continue;
+    }
+
+    if (slot === CHECKLIST_SLOT) {
+      throw new Error(`Board slot ${slot} is kept for the checklist`);
     }
 
     if (pinned.has(slot - 1)) {
@@ -112,8 +128,10 @@ export function arrangeBoard<T extends { data: { slot?: number } }>(
   const board: (BoardSlot<T> | null)[] = [];
   let index = 0;
 
+  const checklist = CHECKLIST_SLOT - 1;
+
   for (const item of flow) {
-    while (pinned.has(index)) {
+    while (pinned.has(index) || index === checklist) {
       index += 1;
     }
 
@@ -124,6 +142,8 @@ export function arrangeBoard<T extends { data: { slot?: number } }>(
   for (const [at, entry] of pinned) {
     board[at] = { kind: 'project', entry };
   }
+
+  board[checklist] = { kind: 'checklist', note: gapNote(checklist - FIRST_NOTE_INDEX) };
 
   const length = Math.max(slots, board.length);
 
@@ -140,24 +160,72 @@ export const PHOTO_ROWS = NAME_ROWS;
 const SHAPE_ROWS = { tall: 5, wide: 3, square: 4 } as const;
 const SHAPE_CYCLE = ['tall', 'wide', 'square', 'square', 'tall', 'wide'] as const;
 
+/**
+ * The cards that stand under the name, top to bottom, on every board: where I work, and the
+ * checklist under it. Each keeps its own shape: the badge hangs in a 4:5 card and the
+ * checklist sits in a 4:3 one.
+ */
+export const RAIL = [
+  { kind: 'work', rows: SHAPE_ROWS.tall },
+  { kind: 'checklist', rows: SHAPE_ROWS.wide },
+] as const;
+
+export type RailSlot = { index: number; span: number };
+
+/** Where the rail's cards are in the board's slots, in the rail's order. */
+export function railOf<T>(slots: BoardSlot<T>[]): RailSlot[] {
+  return RAIL.flatMap(({ kind, rows }) => {
+    const index = slots.findIndex((slot) => slot.kind === kind);
+    return index < 0 ? [] : [{ index, span: rows }];
+  });
+}
+
+/**
+ * The order the page lists the slots in, which is the order a phone shows them: the book,
+ * then the rail, then the rest by number. The board places each slot by its number instead,
+ * so this order never moves a card there.
+ */
+export function listOrder<T>(slots: BoardSlot<T>[]): number[] {
+  const lead = [slots.findIndex((slot) => slot.kind === 'book'), ...railOf(slots).map((slot) => slot.index)]
+    .filter((index) => index >= 0);
+
+  return [...lead, ...slots.map((_, index) => index).filter((index) => !lead.includes(index))];
+}
+
 export type Slot = { column: number; row: number; span: number };
 
 /**
- * Drops each slot, in reading order, into the shortest column, so the first card sits
- * beside the name and the next ones fill across. Columns and rows are 1-based grid lines.
- * The photos push the cards under them down: a column under the photos still takes its
- * turn across the first row, and its first card lands below them.
+ * Stands the rail's slots in the first column under the name, then drops every other slot,
+ * in reading order, into the shortest column, so the first card sits beside the name and
+ * the next ones fill across. Columns and rows are 1-based grid lines. The photos push the
+ * cards under them down: a column under the photos still takes its turn across the first
+ * row, and its first card lands below them. A rail slot keeps the shape `RAIL` gives it.
+ * Every other slot takes its shape from its number, and the rail's slots still count toward
+ * that numbering, so the rail never changes the shapes of the cards around it.
  */
 export function stackBoard(
   count: number,
   columns: number,
   nameRows = NAME_ROWS,
   photoRows = 0,
+  rail: readonly RailSlot[] = [],
 ): Slot[] {
   const heights = Array.from({ length: columns }, (_, column) => (column === 0 ? nameRows : 0));
   const floors = heights.map((_, column) => (column === 1 || column === 2 ? photoRows : 0));
+  const placed = new Map<number, Slot>();
+
+  for (const { index, span } of rail) {
+    placed.set(index, { column: 1, row: heights[0] + 1, span });
+    heights[0] += span;
+  }
 
   return Array.from({ length: count }, (_, index) => {
+    const pinned = placed.get(index);
+
+    if (pinned) {
+      return pinned;
+    }
+
     const span = SHAPE_ROWS[SHAPE_CYCLE[index % SHAPE_CYCLE.length]];
     const column = heights.indexOf(Math.min(...heights));
     const row = Math.max(heights[column], floors[column]) + 1;
