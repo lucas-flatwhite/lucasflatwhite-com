@@ -23,6 +23,8 @@ try {
         await dialog.evaluate((el) => Promise.all(el.getAnimations().map((animation) => animation.finished)));
         const expected = locale === 'ko-KR' ? 'ko' : 'en';
         assert.equal(await dialog.getAttribute('lang'), expected);
+        assert.equal(await dialog.locator('[data-work-letter-close]').evaluate((el) => el === document.activeElement), true,
+          'focus starts on Close, not a language toggle');
         const visiblePanel = dialog.locator('[data-work-language-panel]:not([hidden])');
         assert.equal(await visiblePanel.count(), 1);
         assert.equal(await visiblePanel.locator('.work-letter-a').count(), 3);

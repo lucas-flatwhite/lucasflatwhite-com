@@ -46,7 +46,7 @@ describe('anti-slop contract', () => {
   });
 
   it('keeps the landing corners on its corner tokens', () => {
-    const landing = files.filter((file) => /landing\.css|global\.css|Glyph|CommandPalette|BusinessCard|CardDialog|CardIntro/.test(file.path));
+    const landing = files.filter((file) => /landing\.css|global\.css|Glyph|CommandPalette|BusinessCard|CardDialog|CardIntro|WorkLetter/.test(file.path));
     // Controls stay at 6px; cards, pills, the hover ring and boxes set inside a card read the
     // tokens set in global.css.
     const allowed = /^(?:0(?:px)?|6px|var\(--radius-(?:card|pill)\)|calc\(var\(--radius-card\) [+-] \d+px\))$/;
@@ -55,7 +55,9 @@ describe('anti-slop contract', () => {
       // The X profile picture is the one round shape, as it is on X: in the top bar, and on
       // my card (BusinessCard.astro), where it sits beside my handle and in the QR.
       const source = file.source.replace(/\.(?:topbar|card)-avatar \{[^}]*\}/g, '');
-      const values = [...source.matchAll(/border-radius:\s*([^;]+);/g)].map((match) => match[1].trim());
+      // A shorthand such as `var(--radius-card) var(--radius-card) 0 0` checks each corner.
+      const values = [...source.matchAll(/border-radius:\s*([^;]+);/g)]
+        .flatMap((match) => match[1].trim().startsWith('calc(') ? [match[1].trim()] : match[1].trim().split(/\s+/));
 
       expect(values.filter((value) => !allowed.test(value))).toEqual([]);
     }
