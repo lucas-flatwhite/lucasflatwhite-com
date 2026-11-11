@@ -116,7 +116,7 @@ export const work = {
       ['정확하고', true],
       [', ', false],
       ['꼭 필요한 때', true],
-      [' 당신을 찾아가야 하고, ', false],
+      [' 찾아가야 하고, ', false],
       ['빨라야', true],
       [' 해요.', false],
     ] as const,
