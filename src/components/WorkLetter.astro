@@ -1,5 +1,5 @@
 ---
-// The conversation reserves each message's final size while its words are typed.
+// The conversation reserves each message's final size and line breaks while its words are typed.
 import { workLetters } from '../data/work';
 import Glyph from './Glyph.astro';
 ---
@@ -10,7 +10,7 @@ import Glyph from './Glyph.astro';
       <button type="button" lang="en" aria-label="English" aria-pressed="true" data-work-language="en">EN</button>
       <button type="button" lang="ko" aria-label="한국어" aria-pressed="false" data-work-language="ko">KO</button>
     </div>
-    <button class="work-letter-close" type="button" data-work-letter-close aria-label="Close"><Glyph icon="x" /></button>
+    <button class="work-letter-close" type="button" data-work-letter-close aria-label="Close" autofocus><Glyph icon="x" /></button>
   </div>
   <div class="work-letter-sheet" data-work-letter-sheet>
     {Object.entries(workLetters).map(([language, letter]) => (
@@ -40,10 +40,10 @@ import Glyph from './Glyph.astro';
         </div>
         <p class="work-letter-really" data-work-letter-step aria-hidden="true">{letter.really}</p>
         <p class="work-letter-pledge" data-work-letter-step aria-hidden="true">
-          {letter.pledge.map(([text, marked]) => marked ? <span class="work-letter-mark"><span class="work-letter-mark-ink" aria-hidden="true"></span>{text}</span> : text)}
+          {letter.pledge.map(([text, marked]) => marked ? <span class="work-letter-mark">{text}</span> : text)}
         </p>
         <p class="work-letter-waiting" data-work-letter-step aria-hidden="true">{letter.waiting}</p>
-        <div class="work-letter-foot" data-work-letter-step>
+        <div class="work-letter-foot">
           <a class="work-letter-company" href="https://kakaopayinscorp.co.kr/" target="_blank" rel="noopener noreferrer">kakaopayinscorp.co.kr</a>
           <button class="work-letter-replay" type="button" data-work-letter-replay>{letter.replay} <span aria-hidden="true">↺</span></button>
         </div>
@@ -105,8 +105,9 @@ import Glyph from './Glyph.astro';
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
-    padding: 28px 40px 30px;
+    padding: 28px 40px 0;
   }
+  .work-letter-sheet > section { display: flex; flex-direction: column; min-height: 100%; }
   .work-letter-eyebrow {
     margin: 0;
     color: var(--blue);
@@ -135,21 +136,44 @@ import Glyph from './Glyph.astro';
     font-size: 14px;
     line-height: 1.5;
   }
-  .work-letter-a { font-size: 21px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.4; word-break: keep-all; }
+  .work-letter-a { font-size: 21px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.4; word-break: keep-all; text-wrap: pretty; }
   .work-letter-really { margin: 16px 0 0; color: #68645d; font-size: 15px; }
   .work-letter-pledge, .work-letter-waiting { margin: 24px 0 0; padding-top: 20px; border-top: 1px dotted #c9c5bb; }
-  .work-letter-pledge { font-size: 21px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.7; word-break: keep-all; }
-  .work-letter-mark { position: relative; isolation: isolate; display: inline-block; padding: 0 2px; }
-  .work-letter-mark-ink { position: absolute; inset: auto 0 0.2em; z-index: -1; height: 0.48em; background: #ffeb00; transform-origin: left center; }
-  .work-letter-waiting { font-size: 18px; font-weight: 700; line-height: 1.5; }
-  .work-letter-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-top: 26px; }
+  .work-letter-pledge { font-size: 21px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.7; word-break: keep-all; text-wrap: pretty; }
+  /* Inline, so a phrase such as "when you need it most" wraps like the words around it. */
+  .work-letter-mark {
+    padding: 0 2px;
+    background: linear-gradient(#ffeb00, #ffeb00) left bottom 0.12em / 100% 0.48em no-repeat;
+  }
+  .work-letter-waiting { margin-bottom: 26px; font-size: 18px; font-weight: 700; line-height: 1.5; text-wrap: pretty; }
+  /* The company link stays in view while the conversation plays; Meet again waits for the end. */
+  .work-letter-foot {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    box-sizing: border-box;
+    min-height: 56px;
+    margin-top: auto;
+    padding-bottom: env(safe-area-inset-bottom);
+    border-top: 1px solid #e8e5dc;
+    background: #fbfaf6;
+  }
+  .work-letter.is-playing .work-letter-replay { visibility: hidden; opacity: 0; }
+  /* On a short screen the bar would take too much of the letter, so it rests at the end. */
+  @media (max-height: 560px) {
+    .work-letter-foot { position: static; }
+  }
   .work-letter-company { color: #3a3833; font-size: 13px; text-underline-offset: 3px; }
   .work-letter-company:hover { color: var(--blue); }
   .work-letter-company:focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; }
   .work-letter-replay { padding: 8px 14px; border: 1px solid #d8d4ca; border-radius: var(--radius-pill); background: #fff; color: inherit; font: inherit; font-size: 13px; cursor: pointer; }
   @media (max-width: 720px), (max-height: 560px) {
     .work-letter { width: min(100%, 600px); height: 90dvh; margin: auto auto 0; border-radius: var(--radius-card) var(--radius-card) 0 0; }
-    .work-letter-sheet { padding: 24px 22px max(24px, env(safe-area-inset-bottom)); }
+    .work-letter-sheet { padding: 24px 22px 0; }
     .work-letter-a, .work-letter-pledge { font-size: 19px; }
     .work-letter-waiting { font-size: 17px; }
   }
@@ -159,6 +183,7 @@ import Glyph from './Glyph.astro';
     .work-letter-think i:nth-child(2) { animation-delay: 150ms; }
     .work-letter-think i:nth-child(3) { animation-delay: 300ms; }
     [data-work-letter-step]:not([hidden]) { animation: work-letter-message 400ms var(--ease-out); }
+    .work-letter-replay { transition: opacity 400ms var(--ease-out); }
     .work-letter[open] { animation: work-letter-rise 300ms var(--ease-out); }
     .work-letter.is-closing { animation: work-letter-out 170ms ease-in forwards; }
     .work-letter[open]::backdrop { animation: work-letter-fade 240ms var(--ease-out); }

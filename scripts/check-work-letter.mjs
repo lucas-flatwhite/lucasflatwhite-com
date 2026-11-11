@@ -4,13 +4,19 @@ import { chromium } from 'playwright-core';
 
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 const origin = process.env.WORK_LETTER_URL || 'http://localhost:4322';
+// A landscape phone is short enough that the company bar rests at the end instead of staying pinned.
+const viewports = {
+  desktop: { width: 1280, height: 1000 },
+  mobile: { width: 390, height: 844 },
+  landscape: { width: 844, height: 390 },
+};
 let cases = 0;
 try {
   for (const locale of ['ko-KR', 'en-US', 'ja-JP']) {
-    for (const mobile of [false, true]) {
+    for (const screen of ['desktop', 'mobile', 'landscape']) {
       for (const reducedMotion of ['no-preference', 'reduce']) {
         const context = await browser.newContext({
-          locale, reducedMotion, viewport: mobile ? { width: 390, height: 844 } : { width: 1280, height: 1000 },
+          locale, reducedMotion, viewport: viewports[screen],
         });
         const page = await context.newPage();
         const errors = [];
@@ -25,6 +31,8 @@ try {
         assert.equal(await dialog.getAttribute('lang'), expected);
         assert.equal(await dialog.locator('[data-work-letter-close]').evaluate((el) => el === document.activeElement), true,
           'focus starts on Close, not a language toggle');
+        assert.equal(await dialog.locator('[data-work-letter-close]').evaluate((el) => el.matches(':focus-visible')), false,
+          'opening with a click does not ring Close');
         const visiblePanel = dialog.locator('[data-work-language-panel]:not([hidden])');
         assert.equal(await visiblePanel.count(), 1);
         assert.equal(await visiblePanel.locator('.work-letter-a').count(), 3);
@@ -32,20 +40,27 @@ try {
           assert.equal(await dialog.evaluate((el) => el.classList.contains('is-playing')), true,
             'the letter must open as a conversation, not a complete static page');
           assert.ok(await visiblePanel.locator('.work-letter-turn:not([hidden])').count() < 3);
+          assert.equal(await visiblePanel.locator('.work-letter-company').isVisible(), true,
+            'the company link is there while the conversation plays');
+          assert.equal(await visiblePanel.locator('[data-work-letter-replay]').isVisible(), false);
         }
         const bounds = await dialog.boundingBox();
         await page.waitForTimeout(1400);
         assert.deepEqual(await dialog.boundingBox(), bounds, 'typing must not resize or move the dialog');
-        assert.equal(await dialog.locator('[data-work-letter-sheet]').evaluate((el) => el.scrollTop), 0);
+        if (screen !== 'landscape') {
+          // A landscape letter is short enough to follow the second message within this time.
+          assert.equal(await dialog.locator('[data-work-letter-sheet]').evaluate((el) => el.scrollTop), 0);
+        }
         if (reducedMotion === 'no-preference') {
           const row = visiblePanel.locator('.work-letter-turn').first();
-          const rowBounds = await row.boundingBox();
+          const size = async () => { const { width, height } = await row.boundingBox(); return { width, height }; };
+          const rowSize = await size();
           await page.waitForTimeout(500);
-          assert.deepEqual(await row.boundingBox(), rowBounds, 'typing must not change the current message size');
+          assert.deepEqual(await size(), rowSize, 'typing must not change the current message size');
           const typed = row.locator('.work-letter-q [data-work-text]');
           assert.ok((await typed.textContent()).length > 0);
           assert.equal(await visiblePanel.locator('.work-letter-turn').nth(2).isVisible(), false);
-          if (locale === 'ko-KR' && !mobile) {
+          if (locale === 'ko-KR' && screen === 'desktop') {
             await visiblePanel.locator('.work-letter-turn').nth(1).waitFor({ state: 'visible' });
             const answer = row.locator('.work-letter-a [data-work-text]');
             assert.equal(await answer.textContent(), await answer.getAttribute('data-work-text'),
@@ -77,8 +92,13 @@ try {
         }
         const sheet = dialog.locator('[data-work-letter-sheet]');
         await sheet.evaluate((el) => { el.scrollTop = el.scrollHeight; });
+        const lastStep = await visiblePanel.locator('.work-letter-waiting').boundingBox();
+        const foot = await visiblePanel.locator('.work-letter-foot').boundingBox();
+        assert.ok(lastStep.y + lastStep.height <= foot.y, 'the last line sits above the company bar');
+        assert.equal(await visiblePanel.locator('.work-letter-foot').evaluate((el) => getComputedStyle(el).position),
+          screen === 'landscape' ? 'static' : 'sticky');
         if (locale === 'ko-KR' && reducedMotion === 'no-preference') {
-          await page.screenshot({ path: `/tmp/work-letter-${mobile ? 'mobile' : 'desktop'}.png` });
+          await page.screenshot({ path: `/tmp/work-letter-${screen}.png` });
         }
         await visiblePanel.locator('[data-work-letter-replay]').click();
         if (reducedMotion === 'no-preference') {
@@ -94,6 +114,12 @@ try {
         await page.keyboard.press('Escape');
         await page.waitForFunction(() => !document.querySelector('[data-work-letter]').open);
         assert.equal(await page.locator('[data-work-open]').evaluate((el) => el === document.activeElement), true);
+        await page.keyboard.press('Enter');
+        await dialog.waitFor({ state: 'visible' });
+        assert.equal(await dialog.locator('[data-work-letter-close]').evaluate((el) => el.matches(':focus-visible')), true,
+          'opening from the keyboard rings Close');
+        await page.keyboard.press('Escape');
+        await page.waitForFunction(() => !document.querySelector('[data-work-letter]').open);
         await page.locator('[data-work-open]').click();
         await dialog.waitFor({ state: 'visible' });
         assert.equal(await dialog.getAttribute('lang'), 'ko', 'manual choice survives reopening');
@@ -105,7 +131,7 @@ try {
       }
     }
   }
-  console.log(`${cases} browser scenarios passed: locale, viewport, motion, sequential conversation, reserved message size, stable frame, toggles, company link, replay, and focus.`);
+  console.log(`${cases} browser scenarios passed: locale, viewport, motion, sequential conversation, reserved message size, stable frame, toggles, company bar, replay, focus, and focus ring.`);
 } finally {
   await browser.close();
 }
