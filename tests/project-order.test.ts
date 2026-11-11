@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
   BOARD_SLOTS,
+  CHECKLIST_SLOT,
   GAP_NOTES,
   NAME_ROWS,
   PHOTO_ROWS,
   arrangeBoard,
   gapNote,
+  listOrder,
   placeProjects,
+  railOf,
   sortFeaturedProjects,
   stackBoard,
   type BoardSlot,
@@ -74,8 +77,27 @@ describe('arrangeBoard', () => {
     const slots = arrangeBoard([card('Timeline'), card('Site', 7)]);
 
     expect(kinds(slots)).toEqual([
-      'book', 'Timeline', 'daily', 'arcade', 'work', 'gap', 'Site', 'gap', 'gap', 'gap', 'gap', 'gap',
+      'book', 'Timeline', 'daily', 'arcade', 'work', 'gap', 'Site', 'checklist', 'gap', 'gap', 'gap', 'gap',
     ]);
+  });
+
+  it('keeps the checklist on its number however many cards come before it', () => {
+    const many = ['A', 'B', 'C', 'D', 'E'].map((title) => card(title));
+
+    expect(kinds(arrangeBoard(many))[CHECKLIST_SLOT - 1]).toBe('checklist');
+    expect(kinds(arrangeBoard(many))).toEqual([
+      'book', 'A', 'B', 'C', 'D', 'E', 'daily', 'checklist', 'arcade', 'work', 'gap', 'gap',
+    ]);
+  });
+
+  it('gives the checklist the note its place had as a gap', () => {
+    const checklist = arrangeBoard([card('Timeline'), card('Site', 7)])[CHECKLIST_SLOT - 1];
+
+    expect(checklist).toEqual({ kind: 'checklist', note: 'Still brewing' });
+  });
+
+  it('refuses a project pinned to the checklist', () => {
+    expect(() => arrangeBoard([card('A', CHECKLIST_SLOT)])).toThrow(/checklist/);
   });
 
   it('keeps each gap note on its number when a pinned card takes a gap', () => {
@@ -85,7 +107,6 @@ describe('arrangeBoard', () => {
 
     expect(notes).toEqual([
       'Warming up',
-      'Still brewing',
       'Stretching first',
       'Pulling a shot',
       'Letting it bloom',
@@ -94,7 +115,9 @@ describe('arrangeBoard', () => {
   });
 
   it('flows around a pin that lands among the first cards', () => {
-    expect(kinds(arrangeBoard([card('A'), card('B', 2)], 6))).toEqual(['book', 'B', 'A', 'daily', 'arcade', 'work']);
+    expect(kinds(arrangeBoard([card('A'), card('B', 2)], 6))).toEqual([
+      'book', 'B', 'A', 'daily', 'arcade', 'work', 'gap', 'checklist',
+    ]);
   });
 
   it('grows past the slot count to fit a late pin', () => {
@@ -184,5 +207,66 @@ describe('stackBoard', () => {
       expect(underPhotos.length).toBeGreaterThan(0);
       expect(underPhotos.every((slot) => slot.row > PHOTO_ROWS)).toBe(true);
     }
+  });
+});
+
+describe('the rail under the name', () => {
+  const card = (title: string, slot?: number) => ({ data: { title, slot } });
+  const today = () => arrangeBoard([card('Timeline'), card('Site', 7)]);
+  const label = (slot: BoardSlot<ReturnType<typeof card>>) => (slot.kind === 'project' ? slot.entry.data.title : slot.kind);
+  const underName = (slots: BoardSlot<ReturnType<typeof card>>[], columns: number) => {
+    const placed = stackBoard(slots.length, columns, NAME_ROWS, PHOTO_ROWS, railOf(slots));
+
+    return placed
+      .map((slot, index) => ({ ...slot, name: label(slots[index]) }))
+      .filter((slot) => slot.column === 1)
+      .sort((left, right) => left.row - right.row);
+  };
+
+  it('stands the work badge, then the checklist, right under the name on every board', () => {
+    for (const columns of [3, 4]) {
+      const [work, checklist] = underName(today(), columns);
+
+      expect(work).toMatchObject({ name: 'work', row: NAME_ROWS + 1, span: 5 });
+      expect(checklist).toMatchObject({ name: 'checklist', row: NAME_ROWS + 6, span: 3 });
+    }
+  });
+
+  it('keeps them there when more projects join the board', () => {
+    const slots = arrangeBoard(['A', 'B', 'C', 'D'].map((title) => card(title)));
+
+    for (const columns of [3, 4]) {
+      expect(underName(slots, columns).slice(0, 2).map((slot) => slot.name)).toEqual(['work', 'checklist']);
+    }
+  });
+
+  it('leaves the four-column board as it was before the rail', () => {
+    const slots = today();
+    const withRail = stackBoard(slots.length, 4, NAME_ROWS, PHOTO_ROWS, railOf(slots));
+
+    expect(withRail).toEqual(stackBoard(slots.length, 4, NAME_ROWS, PHOTO_ROWS));
+  });
+
+  it('never stacks two slots over the same rows of a column', () => {
+    const slots = today();
+
+    for (const columns of [3, 4]) {
+      const placed = stackBoard(slots.length, columns, NAME_ROWS, PHOTO_ROWS, railOf(slots));
+
+      for (const [index, slot] of placed.entries()) {
+        for (const other of placed.slice(index + 1)) {
+          if (other.column !== slot.column) continue;
+          expect(other.row >= slot.row + slot.span || slot.row >= other.row + other.span).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('lists the book, the badge and the checklist first, then the rest by number', () => {
+    const slots = today();
+
+    expect(listOrder(slots).map((index) => label(slots[index]))).toEqual([
+      'book', 'work', 'checklist', 'Timeline', 'daily', 'arcade', 'gap', 'Site', 'gap', 'gap', 'gap', 'gap',
+    ]);
   });
 });

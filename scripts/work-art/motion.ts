@@ -44,13 +44,14 @@ type Tier = { name: string; media: string; width: number; height: number; square
 
 /*
  * cardScale is the card's CSS pixels per picture unit the film is tuned for; the card shows
- * the picture's full 480 units of height. Measured on the board: phones show a 158 to 192px
- * square; the board's ripple card is a tall one, 357 to 454px high from 1024 to 1599px wide
- * and 554 (1920) to 754px (2560) beyond. A tall or square card never shows more than the
- * middle 480 units across, so every film is that square, which keeps them small.
+ * the picture's full 480 units of height. Measured on the board: the ripple card is a tall
+ * one, 357 to 454px high from 1024 to 1599px wide and 554 (1920) to 754px (2560) beyond. A
+ * phone runs the card the full width, 4:3, so the square film covers it at 328 to 396px
+ * across 480 units: the desk film's size, so phones play that one. A tall or square card
+ * never shows more than the middle 480 units across, so every film is that square, which
+ * keeps them small.
  */
 const TIERS: Tier[] = [
-  { name: 'phone', media: '(max-width: 720px)', width: 576, height: 576, square: true, cardScale: 0.36 },
   { name: 'desk', media: '(max-width: 1599px)', width: 816, height: 816, square: true, cardScale: 0.82 },
   { name: 'wide', media: '', width: 1024, height: 1024, square: true, cardScale: 1.3 },
 ];
