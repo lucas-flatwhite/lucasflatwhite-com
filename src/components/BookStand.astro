@@ -14,9 +14,16 @@ import ClaudeMark from './ClaudeMark.astro';
 type Props = { alt: string };
 
 const { alt } = Astro.props;
-// The cover is about a fifth of the board's width on a wide screen. On a phone the card runs
-// the full width and the cover is laid out 36.4 to 36.7vw wide from 360 to 720px.
-const sizes = '(min-width: 1100px) 16vw, (min-width: 721px) 21vw, 36.5vw';
+// The cover's laid-out width, measured before the book turns: 12.8 to 13.6vw on a four-column
+// board (1100 to 2560px), 17.1 to 17.3vw on a three-column one, 15.5 to 15.9vw on a touch
+// screen's three-to-a-row list, and 36.4 to 36.7vw in a phone's full-width card. The board's
+// columns need a hover screen, as in landing.css.
+const sizes = [
+  '(min-width: 1100px) and (hover: hover) 13.2vw',
+  '(min-width: 721px) and (hover: hover) 17.2vw',
+  '(min-width: 721px) 15.7vw',
+  '36.5vw',
+].join(', ');
 ---
 
 <div class="project-motion book-stand" role="img" aria-label={alt}>
