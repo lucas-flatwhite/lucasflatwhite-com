@@ -199,8 +199,9 @@ export type Slot = { column: number; row: number; span: number };
  * in reading order, into the shortest column, so the first card sits beside the name and
  * the next ones fill across. Columns and rows are 1-based grid lines. The photos push the
  * cards under them down: a column under the photos still takes its turn across the first
- * row, and its first card lands below them. A slot's shape follows its number, rail or not,
- * so the rail never changes the shapes of the cards around it.
+ * row, and its first card lands below them. A rail slot keeps the shape `RAIL` gives it.
+ * Every other slot takes its shape from its number, and the rail's slots still count toward
+ * that numbering, so the rail never changes the shapes of the cards around it.
  */
 export function stackBoard(
   count: number,

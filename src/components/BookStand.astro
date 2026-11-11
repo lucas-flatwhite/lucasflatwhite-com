@@ -14,9 +14,9 @@ import ClaudeMark from './ClaudeMark.astro';
 type Props = { alt: string };
 
 const { alt } = Astro.props;
-// The cover is about a fifth of the board's width on a wide screen and over a third of a
-// phone's, where the card runs the full width.
-const sizes = '(min-width: 1100px) 16vw, (min-width: 721px) 21vw, 37vw';
+// The cover is about a fifth of the board's width on a wide screen. On a phone the card runs
+// the full width and the cover is laid out 36.4 to 36.7vw wide from 360 to 720px.
+const sizes = '(min-width: 1100px) 16vw, (min-width: 721px) 21vw, 36.5vw';
 ---
 
 <div class="project-motion book-stand" role="img" aria-label={alt}>
