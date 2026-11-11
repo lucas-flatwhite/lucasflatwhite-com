@@ -55,9 +55,10 @@ export function bindWorkLetter(
   const follow = (element: HTMLElement) => {
     if (!sheet || !following) return;
     const bottom = element.getBoundingClientRect().bottom;
-    // The company bar stays pinned over the bottom of the sheet, so read up to its top edge.
-    const edge = panel().querySelector('.work-letter-foot')?.getBoundingClientRect().top
-      ?? sheet.getBoundingClientRect().bottom;
+    // Where the company bar is pinned over the bottom of the sheet, read up to its top edge.
+    const foot = panel().querySelector<HTMLElement>('.work-letter-foot');
+    const pinned = foot && foot !== element && getComputedStyle(foot).position === 'sticky';
+    const edge = pinned ? foot.getBoundingClientRect().top : sheet.getBoundingClientRect().bottom;
     if (bottom > edge - 24) sheet.scrollBy({ top: bottom - edge + 24, behavior: 'smooth' });
   };
   sheet?.addEventListener('wheel', () => { following = false; }, { passive: true });
@@ -119,6 +120,9 @@ export function bindWorkLetter(
       if (!await wait(step.classList.contains('work-letter-pledge') ? 1000 : 400, signal)) return;
     }
     finish();
+    // On a short screen the bar rests at the end, so bring it up beside Meet again.
+    const foot = active.querySelector<HTMLElement>('.work-letter-foot');
+    if (foot) follow(foot);
   };
   const setLanguage = (next: WorkLanguage) => {
     stop();
@@ -172,9 +176,9 @@ export function bindWorkLetter(
 
   return () => {
     if (dialog.open || document.querySelector('dialog[open]')) return;
+    // Close carries autofocus, so a stray Enter cannot switch language, and the browser decides
+    // whether to ring it: from the keyboard, not after a click or tap.
     dialog.showModal();
-    // showModal focuses the first control, EN; start on Close so a stray Enter cannot switch language.
-    dialog.querySelector<HTMLButtonElement>('[data-work-letter-close]')?.focus({ preventScroll: true });
     void play();
   };
 }

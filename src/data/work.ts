@@ -140,7 +140,7 @@ export const workLetters = {
     pledge: [
       ['Insurance should be ', false], ['simple', true], [', ', false],
       ['approachable', true], [', and ', false], ['accurate', true],
-      ['. It should reach you ', false], ['when you need it most', true],
+      ['. It\u00a0should reach you ', false], ['when you need it most', true],
       [', and it should be ', false], ['fast', true], ['.', false],
     ],
     waiting: 'And leave you wanting to meet again.',

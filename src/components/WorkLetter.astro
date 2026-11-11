@@ -10,7 +10,7 @@ import Glyph from './Glyph.astro';
       <button type="button" lang="en" aria-label="English" aria-pressed="true" data-work-language="en">EN</button>
       <button type="button" lang="ko" aria-label="한국어" aria-pressed="false" data-work-language="ko">KO</button>
     </div>
-    <button class="work-letter-close" type="button" data-work-letter-close aria-label="Close"><Glyph icon="x" /></button>
+    <button class="work-letter-close" type="button" data-work-letter-close aria-label="Close" autofocus><Glyph icon="x" /></button>
   </div>
   <div class="work-letter-sheet" data-work-letter-sheet>
     {Object.entries(workLetters).map(([language, letter]) => (
@@ -163,6 +163,10 @@ import Glyph from './Glyph.astro';
     background: #fbfaf6;
   }
   .work-letter.is-playing .work-letter-replay { visibility: hidden; opacity: 0; }
+  /* On a short screen the bar would take too much of the letter, so it rests at the end. */
+  @media (max-height: 560px) {
+    .work-letter-foot { position: static; }
+  }
   .work-letter-company { color: #3a3833; font-size: 13px; text-underline-offset: 3px; }
   .work-letter-company:hover { color: var(--blue); }
   .work-letter-company:focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; }
