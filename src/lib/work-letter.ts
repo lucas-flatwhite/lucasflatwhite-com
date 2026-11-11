@@ -5,6 +5,66 @@ export function workLetterLanguage(language: string): WorkLanguage {
   return language.toLowerCase().split('-')[0] === 'ko' ? 'ko' : 'en';
 }
 
+type Move = { keyframes: Keyframe[]; options: KeyframeAnimationOptions };
+
+/** When the light crosses each pane, a glint runs over it. */
+const GLINTS = [950, 1250, 1700];
+/** The glass hands the eye to the company link once its light has come to rest. */
+const GLASS_SETTLES_MS = 1300;
+const GLASS_HANDS_OVER_MS = 2600;
+
+/**
+ * The glass that closes the letter, for a stage `width` wide with panes `pitch` apart: three
+ * panes drop in and settle, a glint crosses each, the yellow light sweeps in from the left past
+ * the middle and glides back to rest behind it, and the crema light drifts in from the right.
+ * Only transform and opacity move, so the browser composites every frame without redrawing,
+ * and each part ends where the stylesheet already places it.
+ */
+export function glassMotion(width: number, pitch: number) {
+  const lean = [-5, 3, -2];
+  const panes: Move[] = lean.map((deg, i) => ({
+    keyframes: [
+      { transform: `translateY(-120px) rotate(${deg}deg)`, opacity: 0 },
+      { opacity: 1, offset: 0.3 },
+      { transform: 'translateY(0px) rotate(0deg)', opacity: 1 },
+    ],
+    options: { duration: 720, delay: 150 + i * 170, easing: 'cubic-bezier(0.34, 1.4, 0.64, 1)', fill: 'backwards' },
+  }));
+  const sheens: Move[] = GLINTS.map((delay) => ({
+    keyframes: [{ transform: 'translateX(-120%)' }, { transform: 'translateX(120%)' }],
+    options: { duration: 900, delay, easing: 'ease-in-out', fill: 'backwards' },
+  }));
+  const sun: Move = {
+    keyframes: [
+      { transform: `translateX(${Math.round(-(width / 2 + 140))}px)` },
+      { transform: `translateX(${Math.round(width * 0.22)}px)`, offset: 0.62 },
+      { transform: 'translateX(0px)' },
+    ],
+    options: { duration: 3200, delay: 250, easing: 'cubic-bezier(0.45, 0, 0.25, 1)', fill: 'backwards' },
+  };
+  const crema: Move = {
+    keyframes: [{ transform: `translateX(${Math.round(width / 2 - pitch + 120)}px)` }, { transform: 'translateX(0px)' }],
+    options: { duration: 3400, delay: 700, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'backwards' },
+  };
+  return { panes, sheens, sun, crema };
+}
+
+/** Plays the glass; the same light behind and inside each pane moves as one. */
+function playGlass(glass: HTMLElement): Animation[] {
+  const pitch = parseFloat(getComputedStyle(glass).getPropertyValue('--glass-pitch')) || 0;
+  const { panes, sheens, sun, crema } = glassMotion(glass.clientWidth, pitch);
+  const run = (elements: Iterable<Element>, { keyframes, options }: Move) =>
+    [...elements].map((element) => element.animate(keyframes, options));
+  return [
+    ...[...glass.querySelectorAll('.work-letter-pane')].flatMap((pane, i) => [
+      ...run([pane], panes[i]),
+      ...run(pane.querySelectorAll('.work-letter-sheen'), sheens[i]),
+    ]),
+    ...run(glass.querySelectorAll('.work-letter-light.is-sun'), sun),
+    ...run(glass.querySelectorAll('.work-letter-light.is-crema'), crema),
+  ];
+}
+
 /** Aborting resolves pending waits too, so a closed or replaced conversation can finish. */
 function wait(ms: number, signal: AbortSignal): Promise<boolean> {
   return new Promise((resolve) => {
@@ -41,8 +101,12 @@ export function bindWorkLetter(
   const finish = () => {
     dialog.classList.remove('is-playing');
   };
+  const mark = (on: boolean) => {
+    dialog.querySelectorAll('.work-letter-company').forEach((link) => link.classList.toggle('is-marked', on));
+  };
   const showAll = () => {
     stop();
+    mark(true);
     panel().querySelectorAll<HTMLElement>('[hidden]').forEach((element) => { element.hidden = false; });
     panel().querySelectorAll('.is-thinking').forEach((row) => row.classList.remove('is-thinking'));
     panel().querySelectorAll<HTMLElement>('[data-work-text]').forEach((element) => {
@@ -95,6 +159,7 @@ export function bindWorkLetter(
     steps.forEach((step) => { step.hidden = true; });
     active.querySelectorAll<HTMLElement>('[data-work-text]').forEach((element) => { element.textContent = ''; });
     following = true;
+    mark(false);
     if (sheet) sheet.scrollTop = 0;
     dialog.classList.add('is-playing');
     if (!await wait(200, signal)) return;
@@ -117,12 +182,17 @@ export function bindWorkLetter(
           { duration: 500, delay: i * 100, easing: 'ease-out', fill: 'backwards' },
         ));
       });
-      if (!await wait(step.classList.contains('work-letter-pledge') ? 1000 : 400, signal)) return;
+      const glass = step.classList.contains('work-letter-glass');
+      if (glass) animations.push(...playGlass(step));
+      const pause = step.classList.contains('work-letter-pledge') ? 1000 : glass ? GLASS_SETTLES_MS : 400;
+      if (!await wait(pause, signal)) return;
     }
     finish();
     // On a short screen the bar rests at the end, so bring it up beside Meet again.
     const foot = active.querySelector<HTMLElement>('.work-letter-foot');
     if (foot) follow(foot);
+    if (!await wait(GLASS_HANDS_OVER_MS - GLASS_SETTLES_MS, signal)) return;
+    mark(true);
   };
   const setLanguage = (next: WorkLanguage) => {
     stop();

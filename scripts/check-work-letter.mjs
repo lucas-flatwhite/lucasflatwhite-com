@@ -76,13 +76,15 @@ try {
           assert.deepEqual(await dialog.boundingBox(), bounds, 'switching language must keep the frame stable');
           const close = dialog.locator('[data-work-letter-close]');
           assert.equal(await close.getAttribute('aria-label'), language === 'ko' ? '닫기' : 'Close');
-          assert.equal(await visiblePanel.evaluate((el) => el.scrollWidth > el.clientWidth), false);
+          // The glass bleeds into the sheet's side padding on purpose; the sheet itself never scrolls sideways.
+          assert.equal(await dialog.locator('[data-work-letter-sheet]').evaluate((el) => el.scrollWidth > el.clientWidth), false);
         }
         assert.equal(await dialog.locator('[data-work-letter-skip]').count(), 0);
         await visiblePanel.locator('[data-work-letter-replay]').waitFor({ state: 'visible', timeout: 30000 });
         await page.waitForFunction(() => !document.querySelector('[data-work-letter]').classList.contains('is-playing'));
         const company = visiblePanel.locator('.work-letter-company');
-        assert.equal(await company.textContent(), 'kakaopayinscorp.co.kr');
+        assert.equal(await company.locator('.work-letter-company-text').textContent(), 'kakaopayinscorp.co.kr');
+        assert.equal((await company.getAttribute('aria-label')) ?? (await company.innerText()).trim(), 'kakaopayinscorp.co.kr');
         assert.equal(await company.getAttribute('href'), 'https://kakaopayinscorp.co.kr/');
         assert.equal(await company.getAttribute('target'), '_blank');
         assert.equal(await visiblePanel.locator('.work-letter-sign, .work-letter-mark-logo').count(), 0);
@@ -95,6 +97,17 @@ try {
         const lastStep = await visiblePanel.locator('.work-letter-waiting').boundingBox();
         const foot = await visiblePanel.locator('.work-letter-foot').boundingBox();
         assert.ok(lastStep.y + lastStep.height <= foot.y, 'the last line sits above the company bar');
+        const glass = visiblePanel.locator('.work-letter-glass');
+        assert.equal(await glass.isVisible(), true, 'the letter closes on the glass');
+        assert.equal(await glass.getAttribute('aria-hidden'), 'true');
+        const glassBox = await glass.boundingBox();
+        assert.ok(glassBox.y + glassBox.height <= foot.y + 1, 'the glass sits above the company bar');
+        // The glass hands over to the company link with the highlighter once its light rests.
+        await company.evaluate((el) => new Promise((resolve) => {
+          if (el.classList.contains('is-marked')) resolve();
+          else new MutationObserver((_, observer) => { observer.disconnect(); resolve(); }).observe(el, { attributeFilter: ['class'] });
+        }));
+        assert.equal(await company.evaluate((el) => el.classList.contains('is-marked')), true);
         assert.equal(await visiblePanel.locator('.work-letter-foot').evaluate((el) => getComputedStyle(el).position),
           screen === 'landscape' ? 'static' : 'sticky');
         if (locale === 'ko-KR' && reducedMotion === 'no-preference') {
@@ -102,12 +115,18 @@ try {
         }
         await visiblePanel.locator('[data-work-letter-replay]').click();
         if (reducedMotion === 'no-preference') {
+          assert.equal(await company.evaluate((el) => el.classList.contains('is-marked')), false, 'replay lifts the highlighter');
           assert.equal(await dialog.evaluate((el) => el.classList.contains('is-playing')), true);
           assert.equal(await visiblePanel.locator('.work-letter-turn:not([hidden])').count(), 0);
           assert.deepEqual(await dialog.boundingBox(), bounds, 'replay must keep the frame stable');
         }
         if (reducedMotion === 'reduce') {
           assert.equal(await dialog.evaluate((el) => el.getAnimations({ subtree: true }).length), 0);
+        }
+        // The bar is slim, but each control is a full thumb-sized target.
+        for (const control of await dialog.locator('.work-letter-toolbar button').all()) {
+          const box = await control.boundingBox();
+          assert.ok(box.width >= 44 && box.height >= 43, `toolbar target is ${box.width}x${box.height}`);
         }
         const toolbar = await dialog.locator('.work-letter-toolbar').boundingBox();
         assert.ok(toolbar.y >= bounds.y && toolbar.y < bounds.y + 60);
@@ -131,7 +150,7 @@ try {
       }
     }
   }
-  console.log(`${cases} browser scenarios passed: locale, viewport, motion, sequential conversation, reserved message size, stable frame, toggles, company bar, replay, focus, and focus ring.`);
+  console.log(`${cases} browser scenarios passed: locale, viewport, motion, sequential conversation, reserved message size, stable frame, toggles, company bar, closing glass and its hand-over, replay, focus, and focus ring.`);
 } finally {
   await browser.close();
 }
