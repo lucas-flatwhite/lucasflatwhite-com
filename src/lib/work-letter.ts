@@ -162,6 +162,8 @@ export function bindWorkLetter(
   return () => {
     if (dialog.open || document.querySelector('dialog[open]')) return;
     dialog.showModal();
+    // showModal focuses the first control, EN; start on Close so a stray Enter cannot switch language.
+    dialog.querySelector<HTMLButtonElement>('[data-work-letter-close]')?.focus({ preventScroll: true });
     void play();
   };
 }

@@ -61,7 +61,7 @@ import Glyph from './Glyph.astro';
     padding: 0;
     overflow: hidden;
     border: 0;
-    border-radius: 12px;
+    border-radius: 6px;
     background: #fbfaf6;
     color: #171717;
     font-family: var(--font-ko);
@@ -124,7 +124,7 @@ import Glyph from './Glyph.astro';
   .work-letter-typed { align-self: start; }
   .work-letter-think { position: absolute; inset: 0 auto auto 0; display: none; align-items: center; gap: 6px; height: 1.4em; }
   .work-letter-turn.is-thinking .work-letter-think { display: flex; }
-  .work-letter-think i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.4; }
+  .work-letter-think i { width: 6px; height: 6px; border-radius: var(--radius-pill); background: currentColor; opacity: 0.4; }
   .work-letter-q {
     justify-self: end;
     max-width: 85%;
