@@ -32,6 +32,9 @@ try {
           assert.equal(await dialog.evaluate((el) => el.classList.contains('is-playing')), true,
             'the letter must open as a conversation, not a complete static page');
           assert.ok(await visiblePanel.locator('.work-letter-turn:not([hidden])').count() < 3);
+          assert.equal(await visiblePanel.locator('.work-letter-company').isVisible(), true,
+            'the company link is there while the conversation plays');
+          assert.equal(await visiblePanel.locator('[data-work-letter-replay]').isVisible(), false);
         }
         const bounds = await dialog.boundingBox();
         await page.waitForTimeout(1400);
@@ -77,6 +80,9 @@ try {
         }
         const sheet = dialog.locator('[data-work-letter-sheet]');
         await sheet.evaluate((el) => { el.scrollTop = el.scrollHeight; });
+        const lastStep = await visiblePanel.locator('.work-letter-waiting').boundingBox();
+        const foot = await visiblePanel.locator('.work-letter-foot').boundingBox();
+        assert.ok(lastStep.y + lastStep.height <= foot.y, 'the last line sits above the company bar');
         if (locale === 'ko-KR' && reducedMotion === 'no-preference') {
           await page.screenshot({ path: `/tmp/work-letter-${mobile ? 'mobile' : 'desktop'}.png` });
         }
@@ -105,7 +111,7 @@ try {
       }
     }
   }
-  console.log(`${cases} browser scenarios passed: locale, viewport, motion, sequential conversation, reserved message size, stable frame, toggles, company link, replay, and focus.`);
+  console.log(`${cases} browser scenarios passed: locale, viewport, motion, sequential conversation, reserved message size, stable frame, toggles, company bar, replay, and focus.`);
 } finally {
   await browser.close();
 }

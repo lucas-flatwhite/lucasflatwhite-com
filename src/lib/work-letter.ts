@@ -55,7 +55,9 @@ export function bindWorkLetter(
   const follow = (element: HTMLElement) => {
     if (!sheet || !following) return;
     const bottom = element.getBoundingClientRect().bottom;
-    const edge = sheet.getBoundingClientRect().bottom;
+    // The company bar stays pinned over the bottom of the sheet, so read up to its top edge.
+    const edge = panel().querySelector('.work-letter-foot')?.getBoundingClientRect().top
+      ?? sheet.getBoundingClientRect().bottom;
     if (bottom > edge - 24) sheet.scrollBy({ top: bottom - edge + 24, behavior: 'smooth' });
   };
   sheet?.addEventListener('wheel', () => { following = false; }, { passive: true });
@@ -64,11 +66,20 @@ export function bindWorkLetter(
     if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(event.key)) following = false;
   });
 
+  // The untyped rest is laid out but invisible, so every line already breaks where it will end.
   const type = async (element: HTMLElement, signal: AbortSignal, interval: number) => {
-    for (const character of Array.from(element.dataset.workText!)) {
+    const characters = Array.from(element.dataset.workText!);
+    const typed = document.createTextNode('');
+    const rest = document.createElement('span');
+    rest.style.visibility = 'hidden';
+    rest.textContent = characters.join('');
+    element.replaceChildren(typed, rest);
+    for (const [i, character] of characters.entries()) {
       if (!await wait(interval, signal)) return false;
-      element.textContent += character;
+      typed.data += character;
+      rest.textContent = characters.slice(i + 1).join('');
     }
+    element.textContent = element.dataset.workText!; // one text node again, as reduced motion shows it
     return true;
   };
   const play = async () => {
@@ -99,9 +110,9 @@ export function bindWorkLetter(
     for (const step of steps) {
       step.hidden = false;
       follow(step);
-      step.querySelectorAll<HTMLElement>('.work-letter-mark-ink').forEach((mark, i) => {
+      step.querySelectorAll<HTMLElement>('.work-letter-mark').forEach((mark, i) => {
         animations.push(mark.animate(
-          [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }],
+          [{ backgroundSize: '0% 0.48em' }, { backgroundSize: '100% 0.48em' }],
           { duration: 500, delay: i * 100, easing: 'ease-out', fill: 'backwards' },
         ));
       });
