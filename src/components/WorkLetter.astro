@@ -4,8 +4,6 @@
 import { workLetters } from '../data/work';
 import Glyph from './Glyph.astro';
 
-// Each pane holds its own copy of the lights, lined up with the ones behind it, so the glass
-// looks frosted without a live blur that a phone would have to redraw on every frame.
 const lights = ['is-cool', 'is-sun', 'is-crema'];
 ---
 
@@ -19,12 +17,6 @@ const lights = ['is-cool', 'is-sun', 'is-crema'];
   </div>
   <div class="work-letter-glow" aria-hidden="true" data-work-letter-glow data-stage="0">
     {lights.map((light) => <span class={`work-letter-light ${light}`}></span>)}
-    {[-1, 0, 1].map((i) => (
-      <span class="work-letter-pane" style={`--i: ${i}`}>
-        {lights.map((light) => <span class={`work-letter-light ${light}`}></span>)}
-        <span class="work-letter-sheen"></span>
-      </span>
-    ))}
   </div>
   <div class="work-letter-sheet" data-work-letter-sheet>
     {Object.entries(workLetters).map(([language, letter]) => (
@@ -68,10 +60,7 @@ const lights = ['is-cool', 'is-sun', 'is-crema'];
 
 <style is:global>
   .work-letter {
-    /* The panes' size and spacing, shared by the light and the space the letter leaves for them. */
-    --pane-w: 118px;
-    --pane-h: 88px;
-    --pitch: 134px;
+    /* The company bar's height, which the light fades to paper under. */
     --foot-h: 56px;
     width: min(600px, calc(100vw - 32px));
     height: min(860px, calc(100dvh - 48px));
@@ -209,17 +198,16 @@ const lights = ['is-cool', 'is-sun', 'is-crema'];
     padding: 0 2px;
     background: linear-gradient(#ffeb00, #ffeb00) left bottom 0.12em / 100% 0.48em no-repeat;
   }
-  /* The space below the last line is where the panes come to rest. */
-  .work-letter-waiting { margin-bottom: calc(var(--pane-h) + 56px); font-size: 18px; font-weight: 700; line-height: 1.5; text-wrap: pretty; }
+  /* The letter ends on this line, with a little paper before the bar. */
+  .work-letter-waiting { margin-bottom: 32px; font-size: 18px; font-weight: 700; line-height: 1.5; text-wrap: pretty; }
   /*
    * A soft light behind the letter grows as the conversation plays. It lies under the scrolling
    * sheet, below the toolbar, and takes no taps, so text and controls always sit above it.
-   * src/lib/work-letter.ts sets data-stage: the three turns bring in the cool glow, the sun
-   * rising and the crema light (1 to 3), and the pledge settles the sun in the centre and fades
-   * the panes in (4). Each pane carries its own copy of the lights, placed where the same light
-   * stands behind it, under a paper veil, so the glass reads as frosted without a live blur.
-   * Positions use the layer's own size (cqw, cqh), so a copy lines up wherever its pane sits.
-   * Every part rests where its stage puts it; only transform and opacity change between them.
+   * It is already there, faint, when the letter opens (stage 0), and src/lib/work-letter.ts
+   * raises it with data-stage: the three turns brighten the cool glow, lift the sun and warm
+   * the crema light (1 to 3), and the pledge settles the sun in the centre (4).
+   * Positions use the layer's own size (cqw, cqh), so the lights fit any screen.
+   * Every light rests where its stage puts it; only transform and opacity change between them.
    */
   .work-letter-glow {
     position: absolute;
@@ -245,75 +233,36 @@ const lights = ['is-cool', 'is-sun', 'is-crema'];
     left: calc(var(--x) - var(--size) / 2);
     width: var(--size);
     height: var(--size);
-    opacity: 0;
   }
   .work-letter-light.is-cool {
     --x: 12cqw;
     --y: 16cqh;
     --size: max(120cqw, 70cqh);
     background: radial-gradient(closest-side, rgba(184, 193, 238, 0.28), rgba(184, 193, 238, 0.12) 55%, rgba(184, 193, 238, 0));
-    transform: translate(-10cqw, -8cqh) scale(0.8);
+    opacity: 0.65;
+    transform: translate(-5cqw, -4cqh) scale(0.9);
   }
   .work-letter-light.is-sun {
     --x: 50cqw;
     --y: 52cqh;
     --size: max(110cqw, 64cqh);
     background: radial-gradient(closest-side, rgba(255, 235, 0, 0.27), rgba(255, 221, 64, 0.15) 50%, rgba(255, 196, 87, 0));
-    transform: translateY(56cqh) scale(0.6);
+    opacity: 0.4;
+    transform: translateY(40cqh) scale(0.7);
   }
   .work-letter-light.is-crema {
     --x: 88cqw;
     --y: 82cqh;
     --size: max(90cqw, 56cqh);
     background: radial-gradient(closest-side, rgba(255, 196, 87, 0.2), rgba(255, 160, 70, 0.08) 60%, rgba(255, 160, 70, 0));
-    transform: translate(12cqw, 10cqh) scale(0.8);
+    opacity: 0.45;
+    transform: translate(6cqw, 5cqh) scale(0.9);
   }
   .work-letter-glow:not([data-stage="0"]) .is-cool { opacity: 1; transform: none; }
   .work-letter-glow[data-stage="2"] .is-sun { opacity: 0.6; transform: translateY(30cqh) scale(0.78); }
   .work-letter-glow[data-stage="3"] .is-sun { opacity: 0.8; transform: translateY(14cqh) scale(0.9); }
   .work-letter-glow[data-stage="4"] .is-sun { opacity: 1; transform: none; }
   .work-letter-glow:is([data-stage="3"], [data-stage="4"]) .is-crema { opacity: 1; transform: none; }
-  /* Three faint panes rest in the space the letter leaves above the company bar. */
-  .work-letter-pane {
-    --pane-x: calc(50cqw + var(--i) * var(--pitch) - var(--pane-w) / 2);
-    --pane-y: calc(100cqh - var(--foot-h) - var(--pane-h) - 28px);
-    position: absolute;
-    z-index: 1;
-    top: var(--pane-y);
-    left: var(--pane-x);
-    width: var(--pane-w);
-    height: var(--pane-h);
-    overflow: hidden;
-    isolation: isolate;
-    border-radius: var(--radius-card);
-    background: rgba(251, 250, 246, 0.9);
-    box-shadow: 0 12px 24px rgba(23, 23, 23, 0.05);
-    opacity: 0;
-  }
-  .work-letter-glow[data-stage="4"] .work-letter-pane { opacity: 0.6; }
-  /* Inside a pane, a light sits where the same light stands behind the glass. */
-  .work-letter-pane .work-letter-light {
-    top: calc(var(--y) - var(--size) / 2 - var(--pane-y));
-    left: calc(var(--x) - var(--size) / 2 - var(--pane-x));
-  }
-  .work-letter-pane::before {
-    content: '';
-    position: absolute;
-    z-index: 1;
-    inset: 0;
-    border-radius: var(--radius-card);
-    background: linear-gradient(140deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.16) 60%, rgba(255, 255, 255, 0.3));
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -10px 24px rgba(255, 255, 255, 0.18);
-  }
-  /* A glint crosses each pane as it arrives and rests outside it. */
-  .work-letter-sheen {
-    position: absolute;
-    z-index: 2;
-    inset: -40%;
-    background: linear-gradient(115deg, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0.75) 50%, rgba(255, 255, 255, 0) 60%);
-    transform: translateX(-120%);
-  }
-  .work-letter-glow[data-stage="4"] .work-letter-sheen { transform: translateX(120%); }
   /*
    * The company link stays in view while the conversation plays; Meet again waits for the end.
    * The bar runs the sheet's full width on solid paper, above the light.
@@ -368,7 +317,6 @@ const lights = ['is-cool', 'is-sun', 'is-crema'];
     .work-letter-a, .work-letter-pledge { font-size: 19px; }
     .work-letter-waiting { font-size: 17px; }
     .work-letter-foot { margin-inline: -22px; padding-inline: 22px; }
-    .work-letter { --pane-w: 86px; --pane-h: 70px; --pitch: 98px; }
   }
   @media (prefers-reduced-motion: no-preference) {
     .work-letter-turn { animation: work-letter-message 300ms var(--ease-out); }
@@ -378,9 +326,7 @@ const lights = ['is-cool', 'is-sun', 'is-crema'];
     [data-work-letter-step]:not([hidden]) { animation: work-letter-message 400ms var(--ease-out); }
     .work-letter-replay { transition: opacity 400ms var(--ease-out); }
     .work-letter-light { transition: opacity 1400ms var(--ease-out), transform 2200ms cubic-bezier(0.22, 1, 0.36, 1); }
-    .work-letter-pane { transition: opacity 900ms var(--ease-out) calc(300ms + (var(--i) + 1) * 160ms); }
-    .work-letter-sheen { transition: transform 1100ms ease-in-out calc(800ms + (var(--i) + 1) * 220ms); }
-    /* Replay and a language switch start the light again from nothing, without fading back. */
+    /* Opening the letter, or showing it whole, puts the light in place without moving it. */
     .work-letter-glow.is-instant, .work-letter-glow.is-instant * { transition: none; }
     .work-letter-company-text { transition: background-size 650ms var(--ease-out); }
     .work-letter-company.is-marked .work-letter-company-arrow { animation: work-letter-nudge 620ms var(--ease-out) 2; }

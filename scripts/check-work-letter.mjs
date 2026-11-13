@@ -23,6 +23,7 @@ try {
         const errors = [];
         page.on('pageerror', (error) => errors.push(error.message));
         await page.goto(origin);
+        await armStartingLight(page);
         await page.locator('[data-work-open]').click();
         const dialog = page.locator('[data-work-letter]');
         await dialog.waitFor({ state: 'visible' });
@@ -44,6 +45,7 @@ try {
           assert.equal(await visiblePanel.locator('.work-letter-company').isVisible(), true,
             'the company link is there while the conversation plays');
           assert.equal(await visiblePanel.locator('[data-work-letter-replay]').isVisible(), false);
+          await startingLight(page, 'the first opening');
         }
         const bounds = await dialog.boundingBox();
         await page.waitForTimeout(1400);
@@ -98,7 +100,8 @@ try {
         const lastStep = await visiblePanel.locator('.work-letter-waiting').boundingBox();
         const foot = await visiblePanel.locator('.work-letter-foot').boundingBox();
         assert.ok(lastStep.y + lastStep.height <= foot.y, 'the last line sits above the company bar');
-        assert.equal(await visiblePanel.locator('.work-letter-glass').count(), 0, 'no glass section in the flow');
+        assert.equal(await dialog.locator('.work-letter-glass, .work-letter-pane, .work-letter-sheen').count(), 0, 'no glass, in the flow or in the light');
+        assert.equal(await visiblePanel.locator('.work-letter-waiting + .work-letter-foot').count(), 1, 'the letter ends on its last line');
         const glow = dialog.locator('[data-work-letter-glow]');
         assert.equal(await glow.getAttribute('aria-hidden'), 'true');
         assert.equal(await glow.getAttribute('data-stage'), '4', 'the light ends on its last stage');
@@ -140,11 +143,17 @@ try {
         await dialog.waitFor({ state: 'visible' });
         assert.equal(await dialog.locator('[data-work-letter-close]').evaluate((el) => el.matches(':focus-visible')), true,
           'opening from the keyboard rings Close');
+        if (reducedMotion === 'no-preference') {
+          // Close once the light has grown, so the next opening shows whether it starts over.
+          await page.waitForFunction(() => document.querySelector('[data-work-letter-glow]').dataset.stage !== '0');
+        }
         await page.keyboard.press('Escape');
         await page.waitForFunction(() => !document.querySelector('[data-work-letter]').open);
+        await armStartingLight(page);
         await page.locator('[data-work-open]').click();
         await dialog.waitFor({ state: 'visible' });
         assert.equal(await dialog.getAttribute('lang'), 'ko', 'manual choice survives reopening');
+        if (reducedMotion === 'no-preference') await startingLight(page, 'reopening after the light had grown');
         await dialog.locator('[data-work-letter-close]').click();
         await page.waitForFunction(() => !document.querySelector('[data-work-letter]').open);
         assert.deepEqual(errors, []);
@@ -158,6 +167,36 @@ try {
   await checkRestingPaint();
 } finally {
   await browser.close();
+}
+
+// The light is already there, faint, as the letter opens, and does not fade in or back from
+// where an earlier conversation left it. The first message comes 200ms later, so the light is
+// read as soon as the dialog opens, once the letter's own handler has run.
+async function armStartingLight(page) {
+  await page.evaluate(() => {
+    const dialog = document.querySelector('[data-work-letter]');
+    new MutationObserver((_, observer) => {
+      if (!dialog.open) return;
+      observer.disconnect();
+      const el = dialog.querySelector('[data-work-letter-glow]');
+      const opacities = [...el.querySelectorAll('.work-letter-light')].map((light) => Number(getComputedStyle(light).opacity));
+      window.__startingLight = {
+        open: dialog.open,
+        stage: el.dataset.stage,
+        opacities,
+        running: el.getAnimations({ subtree: true }).length,
+      };
+    }).observe(dialog, { attributeFilter: ['open'] });
+  });
+}
+
+async function startingLight(page, when) {
+  const state = await page.evaluate(() => window.__startingLight);
+  assert.equal(state.open, true, `${when}: the light is read once the letter is open`);
+  assert.equal(state.stage, '0', `${when}: the light starts at its first stage`);
+  assert.equal(state.running, 0, `${when}: the light is in place without a transition`);
+  assert.equal(state.opacities.length, 3);
+  for (const opacity of state.opacities) assert.ok(opacity >= 0.3, `${when}: every light shows from the start (${opacity})`);
 }
 
 async function openFinished(context) {
