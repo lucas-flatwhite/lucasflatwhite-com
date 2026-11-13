@@ -5,64 +5,19 @@ export function workLetterLanguage(language: string): WorkLanguage {
   return language.toLowerCase().split('-')[0] === 'ko' ? 'ko' : 'en';
 }
 
-type Move = { keyframes: Keyframe[]; options: KeyframeAnimationOptions };
-
-/** When the light crosses each pane, a glint runs over it. */
-const GLINTS = [950, 1250, 1700];
-/** The glass hands the eye to the company link once its light has come to rest. */
-const GLASS_SETTLES_MS = 1300;
-const GLASS_HANDS_OVER_MS = 2600;
-
 /**
- * The glass that closes the letter, for a stage `width` wide with panes `pitch` apart: three
- * panes drop in and settle, a glint crosses each, the yellow light sweeps in from the left past
- * the middle and glides back to rest behind it, and the crema light drifts in from the right.
- * Only transform and opacity move, so the browser composites every frame without redrawing,
- * and each part ends where the stylesheet already places it.
+ * The light behind the letter grows in stages: 0 before the first message, one stage per turn
+ * (the cool glow, then the sun rising, then the crema light), and the last for the pledge, which
+ * settles the sun in the centre and fades the panes in. The stylesheet draws each stage and moves
+ * between them by transform and opacity alone.
  */
-export function glassMotion(width: number, pitch: number) {
-  const lean = [-5, 3, -2];
-  const panes: Move[] = lean.map((deg, i) => ({
-    keyframes: [
-      { transform: `translateY(-120px) rotate(${deg}deg)`, opacity: 0 },
-      { opacity: 1, offset: 0.3 },
-      { transform: 'translateY(0px) rotate(0deg)', opacity: 1 },
-    ],
-    options: { duration: 720, delay: 150 + i * 170, easing: 'cubic-bezier(0.34, 1.4, 0.64, 1)', fill: 'backwards' },
-  }));
-  const sheens: Move[] = GLINTS.map((delay) => ({
-    keyframes: [{ transform: 'translateX(-120%)' }, { transform: 'translateX(120%)' }],
-    options: { duration: 900, delay, easing: 'ease-in-out', fill: 'backwards' },
-  }));
-  const sun: Move = {
-    keyframes: [
-      { transform: `translateX(${Math.round(-(width / 2 + 140))}px)` },
-      { transform: `translateX(${Math.round(width * 0.22)}px)`, offset: 0.62 },
-      { transform: 'translateX(0px)' },
-    ],
-    options: { duration: 3200, delay: 250, easing: 'cubic-bezier(0.45, 0, 0.25, 1)', fill: 'backwards' },
-  };
-  const crema: Move = {
-    keyframes: [{ transform: `translateX(${Math.round(width / 2 - pitch + 120)}px)` }, { transform: 'translateX(0px)' }],
-    options: { duration: 3400, delay: 700, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'backwards' },
-  };
-  return { panes, sheens, sun, crema };
-}
+export const FINAL_STAGE = 4;
+/** The company link takes the highlighter once the light has settled behind the pledge. */
+export const LIGHT_SETTLES_MS = 2600;
 
-/** Plays the glass; the same light behind and inside each pane moves as one. */
-function playGlass(glass: HTMLElement): Animation[] {
-  const pitch = parseFloat(getComputedStyle(glass).getPropertyValue('--glass-pitch')) || 0;
-  const { panes, sheens, sun, crema } = glassMotion(glass.clientWidth, pitch);
-  const run = (elements: Iterable<Element>, { keyframes, options }: Move) =>
-    [...elements].map((element) => element.animate(keyframes, options));
-  return [
-    ...[...glass.querySelectorAll('.work-letter-pane')].flatMap((pane, i) => [
-      ...run([pane], panes[i]),
-      ...run(pane.querySelectorAll('.work-letter-sheen'), sheens[i]),
-    ]),
-    ...run(glass.querySelectorAll('.work-letter-light.is-sun'), sun),
-    ...run(glass.querySelectorAll('.work-letter-light.is-crema'), crema),
-  ];
+/** The stage a turn brings in; any turn past the third keeps the crema light. */
+export function turnStage(index: number): number {
+  return Math.min(index + 1, FINAL_STAGE - 1);
 }
 
 /** Aborting resolves pending waits too, so a closed or replaced conversation can finish. */
@@ -83,6 +38,7 @@ export function bindWorkLetter(
   returnTo?: HTMLElement | null,
 ): () => void {
   const sheet = dialog.querySelector<HTMLElement>('[data-work-letter-sheet]');
+  const glow = dialog.querySelector<HTMLElement>('[data-work-letter-glow]');
   const panels = [...dialog.querySelectorAll<HTMLElement>('[data-work-language-panel]')];
   const buttons = [...dialog.querySelectorAll<HTMLButtonElement>('[data-work-language]')];
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -98,6 +54,16 @@ export function bindWorkLetter(
     animations.forEach((animation) => animation.cancel());
     animations = [];
   };
+  // Going back to the start, or straight to the end, skips the transitions between stages.
+  const stage = (next: number, instant = false) => {
+    if (!glow) return;
+    glow.classList.toggle('is-instant', instant);
+    glow.dataset.stage = String(next);
+    if (instant) {
+      void glow.offsetWidth;
+      glow.classList.remove('is-instant');
+    }
+  };
   const finish = () => {
     dialog.classList.remove('is-playing');
   };
@@ -106,6 +72,7 @@ export function bindWorkLetter(
   };
   const showAll = () => {
     stop();
+    stage(FINAL_STAGE, true);
     mark(true);
     panel().querySelectorAll<HTMLElement>('[hidden]').forEach((element) => { element.hidden = false; });
     panel().querySelectorAll('.is-thinking').forEach((row) => row.classList.remove('is-thinking'));
@@ -121,7 +88,7 @@ export function bindWorkLetter(
     const bottom = element.getBoundingClientRect().bottom;
     // Where the company bar is pinned over the bottom of the sheet, read up to its top edge.
     const foot = panel().querySelector<HTMLElement>('.work-letter-foot');
-    const pinned = foot && foot !== element && getComputedStyle(foot).position === 'sticky';
+    const pinned = foot && getComputedStyle(foot).position === 'sticky';
     const edge = pinned ? foot.getBoundingClientRect().top : sheet.getBoundingClientRect().bottom;
     if (bottom > edge - 24) sheet.scrollBy({ top: bottom - edge + 24, behavior: 'smooth' });
   };
@@ -160,11 +127,13 @@ export function bindWorkLetter(
     active.querySelectorAll<HTMLElement>('[data-work-text]').forEach((element) => { element.textContent = ''; });
     following = true;
     mark(false);
+    stage(0, true);
     if (sheet) sheet.scrollTop = 0;
     dialog.classList.add('is-playing');
     if (!await wait(200, signal)) return;
-    for (const row of rows) {
+    for (const [i, row] of rows.entries()) {
       row.hidden = false;
+      stage(turnStage(i));
       follow(row);
       if (!await type(row.querySelector<HTMLElement>('.work-letter-q [data-work-text]')!, signal, 28)) return;
       row.classList.add('is-thinking');
@@ -173,8 +142,14 @@ export function bindWorkLetter(
       if (!await type(row.querySelector<HTMLElement>('.work-letter-a [data-work-text]')!, signal, 20)) return;
       if (!await wait(400, signal)) return;
     }
+    let settled = 0;
     for (const step of steps) {
       step.hidden = false;
+      const pledge = step.classList.contains('work-letter-pledge');
+      if (pledge) {
+        stage(FINAL_STAGE);
+        settled = performance.now() + LIGHT_SETTLES_MS;
+      }
       follow(step);
       step.querySelectorAll<HTMLElement>('.work-letter-mark').forEach((mark, i) => {
         animations.push(mark.animate(
@@ -182,16 +157,13 @@ export function bindWorkLetter(
           { duration: 500, delay: i * 100, easing: 'ease-out', fill: 'backwards' },
         ));
       });
-      const glass = step.classList.contains('work-letter-glass');
-      if (glass) animations.push(...playGlass(step));
-      const pause = step.classList.contains('work-letter-pledge') ? 1000 : glass ? GLASS_SETTLES_MS : 400;
-      if (!await wait(pause, signal)) return;
+      if (!await wait(pledge ? 1000 : 400, signal)) return;
     }
     finish();
-    // On a short screen the bar rests at the end, so bring it up beside Meet again.
-    const foot = active.querySelector<HTMLElement>('.work-letter-foot');
-    if (foot) follow(foot);
-    if (!await wait(GLASS_HANDS_OVER_MS - GLASS_SETTLES_MS, signal)) return;
+    // Bring up the rest of the letter: the space where the panes rest and, on a short screen,
+    // where the bar rests too, beside Meet again.
+    if (sheet && following) sheet.scrollTo({ top: sheet.scrollHeight, behavior: 'smooth' });
+    if (!await wait(Math.max(0, settled - performance.now()), signal)) return;
     mark(true);
   };
   const setLanguage = (next: WorkLanguage) => {
@@ -205,6 +177,7 @@ export function bindWorkLetter(
     });
     dialog.querySelector('[data-work-letter-close]')?.setAttribute('aria-label', workLetters[language].close);
     dialog.querySelector('[data-work-language-group]')?.setAttribute('aria-label', workLetters[language].languageLabel);
+    stage(0, true);
     if (sheet) sheet.scrollTop = 0;
   };
   setLanguage(language);

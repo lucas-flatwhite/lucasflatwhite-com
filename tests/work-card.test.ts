@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { work } from '../src/data/work';
 import { artCells, commonStart, lastWordSplit } from '../src/lib/work-badge';
-import { glassMotion } from '../src/lib/work-letter';
+import { FINAL_STAGE, turnStage } from '../src/lib/work-letter';
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), 'utf8');
 
@@ -120,31 +120,64 @@ describe('the letter on how I see insurance', () => {
     expect(read('src/lib/work-letter.ts')).toMatch(/prefers-reduced-motion: reduce/);
   });
 
-  it('closes on panes of glass that stay cheap to draw on a phone', () => {
+  it('grows a soft light behind the letter that never covers its text or controls', () => {
     const source = letter();
-    const glass = source.slice(source.indexOf('.work-letter-glass'));
+    const rule = (selector: string) => {
+      const start = source.indexOf(`\n  ${selector} {`);
+      expect(start, selector).toBeGreaterThan(0);
+      return source.slice(start, source.indexOf('\n  }', start));
+    };
 
-    // The glass is a picture for the eye only, shown as the last step of the letter.
-    expect(source).toMatch(/<div class="work-letter-glass" data-work-letter-step aria-hidden="true">/);
+    // The old glass section is gone from the letter's flow.
+    expect(source).not.toMatch(/work-letter-glass|work-letter-rings/);
+    // One decorative layer, inside the dialog and outside the scrolling sheet, shared by both languages.
+    expect(source).toMatch(/<div class="work-letter-glow" aria-hidden="true" data-work-letter-glow data-stage="0">/);
+    expect(source.indexOf('data-work-letter-glow')).toBeLessThan(source.indexOf('data-work-letter-sheet'));
     expect(source.match(/class="work-letter-pane"/g)).toHaveLength(1);
-    // No live blur: the frosted light inside each pane is its own copy, so nothing is redrawn.
-    expect(source).not.toMatch(/backdrop-filter|filter:\s*blur|mask-image/);
-    expect(glass).not.toMatch(/will-change/);
-    // The light and the panes move by transform and opacity alone, on desktop and phone widths.
-    for (const [width, pitch] of [[680, 134], [390, 98]]) {
-      const { panes, sheens, sun, crema } = glassMotion(width, pitch);
-      const moves = [...panes, ...sheens, sun, crema];
-      expect(panes).toHaveLength(3);
-      expect(sheens).toHaveLength(3);
-      for (const { keyframes, options } of moves) {
-        for (const frame of keyframes) {
-          expect(Object.keys(frame).every((key) => ['transform', 'opacity', 'offset'].includes(key))).toBe(true);
-        }
-        // Each part rests where the stylesheet puts it, so a cancelled or reduced-motion letter looks finished.
-        expect(options.fill).toBe('backwards');
-      }
-      expect(sun.keyframes.at(-1)?.transform).toBe('translateX(0px)');
-      expect(crema.keyframes.at(-1)?.transform).toBe('translateX(0px)');
+    expect(source.match(/class="work-letter-glow"/g)).toHaveLength(1);
+    const glow = rule('.work-letter-glow');
+    for (const declaration of ['position: absolute', 'z-index: 0', 'inset: 44px 0 0', 'overflow: hidden', 'contain: strict', 'pointer-events: none']) {
+      expect(glow).toContain(declaration);
     }
+    // Every text and control sits in the sheet, above the light; the bar keeps its solid paper.
+    expect(rule('.work-letter-sheet')).toMatch(/position: relative;\s*z-index: 1;/);
+    const foot = rule('.work-letter-foot');
+    expect(foot).toMatch(/position: sticky;\s*z-index: 1;/);
+    expect(foot).toContain('margin: auto -40px 0');
+    expect(foot).toContain('padding: 0 40px env(safe-area-inset-bottom)');
+    expect(foot).toContain('background: #fbfaf6');
+    // No live blur, mask or layer hints anywhere in the letter.
+    expect(source).not.toMatch(/backdrop-filter|filter:\s*blur|mask-image|will-change/);
+  });
+
+  it('moves the light by stage, with transform and opacity alone', () => {
+    const source = letter();
+    // The turns bring in the cool glow, the sun rising and the crema light; the pledge ends it.
+    expect([0, 1, 2].map(turnStage)).toEqual([1, 2, 3]);
+    expect(turnStage(5)).toBe(FINAL_STAGE - 1);
+    expect(FINAL_STAGE).toBe(4);
+    for (const stage of [2, 3, 4]) expect(source).toContain(`[data-stage="${stage}"] .is-sun`);
+    expect(source).toContain('.work-letter-glow:not([data-stage="0"]) .is-cool');
+    expect(source).toContain('.work-letter-glow[data-stage="4"] .work-letter-pane');
+    // Each stage changes only transform and opacity.
+    for (const [, body] of source.matchAll(/\[data-stage[^{]*\{([^}]*)\}/g)) {
+      const properties = body.split(';').map((part) => part.split(':')[0].trim()).filter(Boolean);
+      expect(properties.every((property) => ['transform', 'opacity'].includes(property)), body).toBe(true);
+    }
+    // Its transitions run only for visitors who did not ask for less motion, on transform and opacity.
+    const motion = source.slice(source.indexOf('@media (prefers-reduced-motion: no-preference)'));
+    const before = source.slice(0, source.indexOf('@media (prefers-reduced-motion: no-preference)'));
+    expect(before).not.toMatch(/transition:/);
+    for (const selector of ['.work-letter-light', '.work-letter-pane', '.work-letter-sheen']) {
+      const declaration = motion.match(new RegExp(`\\n    \\${selector} \\{ transition: ([^}]*)\\}`))?.[1] ?? '';
+      expect(declaration, selector).not.toBe('');
+      const properties = declaration.split(/,(?![^(]*\))/).map((part) => part.trim().split(/\s+/)[0]);
+      expect(properties.every((property) => ['transform', 'opacity'].includes(property)), declaration).toBe(true);
+    }
+    // Replay and a language switch reset to the start; reduced motion jumps to the end.
+    const script = read('src/lib/work-letter.ts');
+    expect(script).toContain('stage(0, true)');
+    expect(script).toContain('stage(FINAL_STAGE, true)');
+    expect(script).not.toMatch(/\.animate\([^)]*(?:pane|light|sheen)/);
   });
 });
