@@ -1,13 +1,12 @@
 ---
 // The conversation reserves each message's final size and line breaks while its words are typed.
-// It closes on three panes of glass with light passing behind them (src/lib/work-letter.ts plays it).
+// Behind it, a soft light grows with each stage of the conversation (src/lib/work-letter.ts plays it).
 import { workLetters } from '../data/work';
 import Glyph from './Glyph.astro';
 
 // Each pane holds its own copy of the lights, lined up with the ones behind it, so the glass
 // looks frosted without a live blur that a phone would have to redraw on every frame.
 const lights = ['is-cool', 'is-sun', 'is-crema'];
-const rings = Array.from({ length: 44 }, (_, i) => 10 + i * 8);
 ---
 
 <dialog id="work-letter" class="work-letter" lang="en" aria-labelledby="work-letter-title-en" data-work-letter>
@@ -17,6 +16,15 @@ const rings = Array.from({ length: 44 }, (_, i) => 10 + i * 8);
       <button type="button" lang="ko" aria-label="한국어" aria-pressed="false" data-work-language="ko">KO</button>
     </div>
     <button class="work-letter-close" type="button" data-work-letter-close aria-label="Close" autofocus><Glyph icon="x" /></button>
+  </div>
+  <div class="work-letter-glow" aria-hidden="true" data-work-letter-glow data-stage="0">
+    {lights.map((light) => <span class={`work-letter-light ${light}`}></span>)}
+    {[-1, 0, 1].map((i) => (
+      <span class="work-letter-pane" style={`--i: ${i}`}>
+        {lights.map((light) => <span class={`work-letter-light ${light}`}></span>)}
+        <span class="work-letter-sheen"></span>
+      </span>
+    ))}
   </div>
   <div class="work-letter-sheet" data-work-letter-sheet>
     {Object.entries(workLetters).map(([language, letter]) => (
@@ -49,18 +57,6 @@ const rings = Array.from({ length: 44 }, (_, i) => 10 + i * 8);
           {letter.pledge.map(([text, marked]) => marked ? <span class="work-letter-mark">{text}</span> : text)}
         </p>
         <p class="work-letter-waiting" data-work-letter-step aria-hidden="true">{letter.waiting}</p>
-        <div class="work-letter-glass" data-work-letter-step aria-hidden="true">
-          <svg class="work-letter-rings" width="100%" height="100%">
-            {rings.map((r) => <circle cx="50%" cy="50%" r={r} />)}
-          </svg>
-          {lights.map((light) => <span class={`work-letter-light ${light}`}></span>)}
-          {[-1, 0, 1].map((i) => (
-            <span class="work-letter-pane" style={`--i: ${i}`}>
-              {lights.map((light) => <span class={`work-letter-light ${light}`}></span>)}
-              <span class="work-letter-sheen"></span>
-            </span>
-          ))}
-        </div>
         <div class="work-letter-foot">
           <a class="work-letter-company" href="https://kakaopayinscorp.co.kr/" target="_blank" rel="noopener noreferrer"><span class="work-letter-company-text">kakaopayinscorp.co.kr</span><span class="work-letter-company-arrow" aria-hidden="true"><Glyph icon="arrow-up-right" /></span></a>
           <button class="work-letter-replay" type="button" data-work-letter-replay>{letter.replay} <span aria-hidden="true">↺</span></button>
@@ -72,6 +68,11 @@ const rings = Array.from({ length: 44 }, (_, i) => 10 + i * 8);
 
 <style is:global>
   .work-letter {
+    /* The panes' size and spacing, shared by the light and the space the letter leaves for them. */
+    --pane-w: 118px;
+    --pane-h: 88px;
+    --pitch: 134px;
+    --foot-h: 56px;
     width: min(600px, calc(100vw - 32px));
     height: min(860px, calc(100dvh - 48px));
     max-width: none;
@@ -159,7 +160,10 @@ const rings = Array.from({ length: 44 }, (_, i) => 10 + i * 8);
   .work-letter .work-letter-toolbar button:focus-visible { outline-offset: -4px; }
   .work-letter-replay:hover { box-shadow: inset 0 0 0 1px #aaa69c; }
   .work-letter button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  /* The sheet and everything in it sit above the light. */
   .work-letter-sheet {
+    position: relative;
+    z-index: 1;
     height: calc(100% - 44px);
     box-sizing: border-box;
     overflow-y: auto;
@@ -205,76 +209,92 @@ const rings = Array.from({ length: 44 }, (_, i) => 10 + i * 8);
     padding: 0 2px;
     background: linear-gradient(#ffeb00, #ffeb00) left bottom 0.12em / 100% 0.48em no-repeat;
   }
-  .work-letter-waiting { font-size: 18px; font-weight: 700; line-height: 1.5; text-wrap: pretty; }
+  /* The space below the last line is where the panes come to rest. */
+  .work-letter-waiting { margin-bottom: calc(var(--pane-h) + 56px); font-size: 18px; font-weight: 700; line-height: 1.5; text-wrap: pretty; }
   /*
-   * The glass that closes the letter runs to both edges of the sheet. Behind it, fine rings
-   * and three lights; each pane carries its own copy of the lights, placed so they line up
-   * with the ones behind it, and a veil over them, so the glass reads as frosted without a
-   * live blur. The light is a radial gradient, already soft. Paper-coloured fades melt the
-   * edges into the sheet. Everything rests where it ends, so a reduced-motion visitor sees
-   * the finished picture; src/lib/work-letter.ts moves it in by transform and opacity only.
+   * A soft light behind the letter grows as the conversation plays. It lies under the scrolling
+   * sheet, below the toolbar, and takes no taps, so text and controls always sit above it.
+   * src/lib/work-letter.ts sets data-stage: the three turns bring in the cool glow, the sun
+   * rising and the crema light (1 to 3), and the pledge settles the sun in the centre and fades
+   * the panes in (4). Each pane carries its own copy of the lights, placed where the same light
+   * stands behind it, under a paper veil, so the glass reads as frosted without a live blur.
+   * Positions use the layer's own size (cqw, cqh), so a copy lines up wherever its pane sits.
+   * Every part rests where its stage puts it; only transform and opacity change between them.
    */
-  .work-letter-glass {
-    --pane-w: 118px;
-    --pane-h: 88px;
-    --glass-pitch: 134px;
-    position: relative;
-    height: 168px;
-    margin: 8px -40px 0;
-    overflow: hidden;
-  }
-  .work-letter-glass::before,
-  .work-letter-glass::after {
-    content: '';
+  .work-letter-glow {
     position: absolute;
-    z-index: 3;
-    inset: 0;
+    z-index: 0;
+    inset: 44px 0 0;
+    overflow: hidden;
+    contain: strict;
+    container-type: size;
     pointer-events: none;
   }
-  .work-letter-glass::before { background: linear-gradient(to right, #fbfaf6, rgba(251, 250, 246, 0) 10%, rgba(251, 250, 246, 0) 90%, #fbfaf6); }
-  .work-letter-glass::after { background: linear-gradient(#fbfaf6, rgba(251, 250, 246, 0) 21%, rgba(251, 250, 246, 0) 79%, #fbfaf6); }
-  .work-letter-rings { position: absolute; inset: 0; fill: none; stroke: rgba(23, 23, 23, 0.085); stroke-width: 1; }
+  /* Paper under the company bar, which also covers the scrollbar's lane beside it. */
+  .work-letter-glow::after {
+    content: '';
+    position: absolute;
+    z-index: 2;
+    inset: auto 0 0;
+    height: calc(var(--foot-h) + 20px);
+    background: linear-gradient(to top, #fbfaf6 var(--foot-h), rgba(251, 250, 246, 0));
+  }
   .work-letter-light {
     position: absolute;
-    top: 50%;
-    left: calc(50% + var(--light-x));
+    top: calc(var(--y) - var(--size) / 2);
+    left: calc(var(--x) - var(--size) / 2);
     width: var(--size);
     height: var(--size);
-    margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
-    border-radius: var(--radius-pill);
-  }
-  .work-letter-light.is-sun {
-    --light-x: 0px;
-    --size: 230px;
-    background: radial-gradient(closest-side, #fff27a 0%, #ffeb00 42%, rgba(255, 196, 87, 0.75) 74%, rgba(255, 196, 87, 0) 100%);
-  }
-  .work-letter-light.is-crema {
-    --light-x: var(--glass-pitch);
-    --size: 170px;
-    background: radial-gradient(closest-side, rgba(255, 196, 87, 0.95) 0%, rgba(255, 160, 70, 0.55) 60%, rgba(255, 160, 70, 0) 100%);
+    opacity: 0;
   }
   .work-letter-light.is-cool {
-    --light-x: calc(var(--glass-pitch) * -1.3);
-    --size: 190px;
-    background: radial-gradient(closest-side, rgba(184, 193, 238, 0.8) 0%, rgba(184, 193, 238, 0) 100%);
+    --x: 12cqw;
+    --y: 16cqh;
+    --size: max(120cqw, 70cqh);
+    background: radial-gradient(closest-side, rgba(184, 193, 238, 0.28), rgba(184, 193, 238, 0.12) 55%, rgba(184, 193, 238, 0));
+    transform: translate(-10cqw, -8cqh) scale(0.8);
   }
+  .work-letter-light.is-sun {
+    --x: 50cqw;
+    --y: 52cqh;
+    --size: max(110cqw, 64cqh);
+    background: radial-gradient(closest-side, rgba(255, 235, 0, 0.27), rgba(255, 221, 64, 0.15) 50%, rgba(255, 196, 87, 0));
+    transform: translateY(56cqh) scale(0.6);
+  }
+  .work-letter-light.is-crema {
+    --x: 88cqw;
+    --y: 82cqh;
+    --size: max(90cqw, 56cqh);
+    background: radial-gradient(closest-side, rgba(255, 196, 87, 0.2), rgba(255, 160, 70, 0.08) 60%, rgba(255, 160, 70, 0));
+    transform: translate(12cqw, 10cqh) scale(0.8);
+  }
+  .work-letter-glow:not([data-stage="0"]) .is-cool { opacity: 1; transform: none; }
+  .work-letter-glow[data-stage="2"] .is-sun { opacity: 0.6; transform: translateY(30cqh) scale(0.78); }
+  .work-letter-glow[data-stage="3"] .is-sun { opacity: 0.8; transform: translateY(14cqh) scale(0.9); }
+  .work-letter-glow[data-stage="4"] .is-sun { opacity: 1; transform: none; }
+  .work-letter-glow:is([data-stage="3"], [data-stage="4"]) .is-crema { opacity: 1; transform: none; }
+  /* Three faint panes rest in the space the letter leaves above the company bar. */
   .work-letter-pane {
+    --pane-x: calc(50cqw + var(--i) * var(--pitch) - var(--pane-w) / 2);
+    --pane-y: calc(100cqh - var(--foot-h) - var(--pane-h) - 28px);
     position: absolute;
     z-index: 1;
-    top: calc(50% - var(--pane-h) / 2);
-    left: calc(50% + var(--i) * var(--glass-pitch) - var(--pane-w) / 2);
+    top: var(--pane-y);
+    left: var(--pane-x);
     width: var(--pane-w);
     height: var(--pane-h);
     overflow: hidden;
     isolation: isolate;
     border-radius: var(--radius-card);
     background: rgba(251, 250, 246, 0.9);
-    box-shadow: 0 14px 28px rgba(23, 23, 23, 0.09);
+    box-shadow: 0 12px 24px rgba(23, 23, 23, 0.05);
+    opacity: 0;
   }
+  .work-letter-glow[data-stage="4"] .work-letter-pane { opacity: 0.6; }
   /* Inside a pane, a light sits where the same light stands behind the glass. */
   .work-letter-pane .work-letter-light {
-    top: calc(var(--pane-h) / 2);
-    left: calc(var(--light-x) - var(--i) * var(--glass-pitch) + var(--pane-w) / 2);
+    top: calc(var(--y) - var(--size) / 2 - var(--pane-y));
+    left: calc(var(--x) - var(--size) / 2 - var(--pane-x));
   }
   .work-letter-pane::before {
     content: '';
@@ -285,6 +305,7 @@ const rings = Array.from({ length: 44 }, (_, i) => 10 + i * 8);
     background: linear-gradient(140deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.16) 60%, rgba(255, 255, 255, 0.3));
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -10px 24px rgba(255, 255, 255, 0.18);
   }
+  /* A glint crosses each pane as it arrives and rests outside it. */
   .work-letter-sheen {
     position: absolute;
     z-index: 2;
@@ -292,9 +313,14 @@ const rings = Array.from({ length: 44 }, (_, i) => 10 + i * 8);
     background: linear-gradient(115deg, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0.75) 50%, rgba(255, 255, 255, 0) 60%);
     transform: translateX(-120%);
   }
-  /* The company link stays in view while the conversation plays; Meet again waits for the end. */
+  .work-letter-glow[data-stage="4"] .work-letter-sheen { transform: translateX(120%); }
+  /*
+   * The company link stays in view while the conversation plays; Meet again waits for the end.
+   * The bar runs the sheet's full width on solid paper, above the light.
+   */
   .work-letter-foot {
     position: sticky;
+    z-index: 1;
     bottom: 0;
     display: flex;
     flex-wrap: wrap;
@@ -303,8 +329,8 @@ const rings = Array.from({ length: 44 }, (_, i) => 10 + i * 8);
     gap: 16px;
     box-sizing: border-box;
     min-height: 56px;
-    margin-top: auto;
-    padding-bottom: env(safe-area-inset-bottom);
+    margin: auto -40px 0;
+    padding: 0 40px env(safe-area-inset-bottom);
     border-top: 1px solid #e8e5dc;
     background: #fbfaf6;
   }
@@ -313,7 +339,7 @@ const rings = Array.from({ length: 44 }, (_, i) => 10 + i * 8);
   @media (max-height: 560px) {
     .work-letter-foot { position: static; }
   }
-  /* The company link: bold, with an arrow, and the highlighter once the glass hands over to it. */
+  /* The company link: bold, with an arrow, and the highlighter once the light has settled. */
   .work-letter-company { display: inline-flex; align-items: center; gap: 8px; color: #171717; font-size: 14px; font-weight: 700; text-decoration: none; }
   .work-letter-company-text {
     padding: 0 2px;
@@ -333,13 +359,16 @@ const rings = Array.from({ length: 44 }, (_, i) => 10 + i * 8);
   }
   .work-letter-company:hover .work-letter-company-arrow { background: var(--blue); }
   .work-letter-company:focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; }
-  .work-letter-replay { padding: 8px 14px; border: 1px solid #d8d4ca; border-radius: var(--radius-pill); background: #fff; color: inherit; font: inherit; font-size: 13px; cursor: pointer; }
+  .work-letter-replay { position: relative; padding: 8px 14px; border: 1px solid #d8d4ca; border-radius: var(--radius-pill); background: #fff; color: inherit; font: inherit; font-size: 13px; cursor: pointer; }
+  /* The pill draws small, but its whole box and a little around it take a thumb, corners too. */
+  .work-letter-replay::before { content: ''; position: absolute; inset: -5px -1px; }
   @media (max-width: 720px), (max-height: 560px) {
     .work-letter { width: min(100%, 600px); height: 90dvh; margin: auto auto 0; border-radius: var(--radius-card) var(--radius-card) 0 0; }
     .work-letter-sheet { padding: 24px 22px 0; }
     .work-letter-a, .work-letter-pledge { font-size: 19px; }
     .work-letter-waiting { font-size: 17px; }
-    .work-letter-glass { --pane-w: 86px; --pane-h: 70px; --glass-pitch: 98px; height: 150px; margin: 6px -22px 0; }
+    .work-letter-foot { margin-inline: -22px; padding-inline: 22px; }
+    .work-letter { --pane-w: 86px; --pane-h: 70px; --pitch: 98px; }
   }
   @media (prefers-reduced-motion: no-preference) {
     .work-letter-turn { animation: work-letter-message 300ms var(--ease-out); }
@@ -348,6 +377,11 @@ const rings = Array.from({ length: 44 }, (_, i) => 10 + i * 8);
     .work-letter-think i:nth-child(3) { animation-delay: 300ms; }
     [data-work-letter-step]:not([hidden]) { animation: work-letter-message 400ms var(--ease-out); }
     .work-letter-replay { transition: opacity 400ms var(--ease-out); }
+    .work-letter-light { transition: opacity 1400ms var(--ease-out), transform 2200ms cubic-bezier(0.22, 1, 0.36, 1); }
+    .work-letter-pane { transition: opacity 900ms var(--ease-out) calc(300ms + (var(--i) + 1) * 160ms); }
+    .work-letter-sheen { transition: transform 1100ms ease-in-out calc(800ms + (var(--i) + 1) * 220ms); }
+    /* Replay and a language switch start the light again from nothing, without fading back. */
+    .work-letter-glow.is-instant, .work-letter-glow.is-instant * { transition: none; }
     .work-letter-company-text { transition: background-size 650ms var(--ease-out); }
     .work-letter-company.is-marked .work-letter-company-arrow { animation: work-letter-nudge 620ms var(--ease-out) 2; }
     .work-letter[open] { animation: work-letter-rise 300ms var(--ease-out); }
