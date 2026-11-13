@@ -143,6 +143,15 @@
   line-height: 1.2;
 }
 
+/*
+ * Centring puts the icon on the middle of the line box, but Anybody's cap height
+ * centres 0.0625em above it ((ascent 0.79 - descent 0.24) / 2 against cap 0.675 / 2).
+ * Lift the icon onto the capitals. `translate` so it adds to the hover transform.
+ */
+.name-links .glyph {
+  translate: 0 -0.0625em;
+}
+
 .name-links a,
 .project-title a,
 .project-title button,
