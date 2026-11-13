@@ -120,7 +120,7 @@ describe('the letter on how I see insurance', () => {
     expect(read('src/lib/work-letter.ts')).toMatch(/prefers-reduced-motion: reduce/);
   });
 
-  it('grows a soft light behind the letter that never covers its text or controls', () => {
+  it('ends on its last line, under a soft light that never covers its text or controls', () => {
     const source = letter();
     const rule = (selector: string) => {
       const start = source.indexOf(`\n  ${selector} {`);
@@ -128,12 +128,12 @@ describe('the letter on how I see insurance', () => {
       return source.slice(start, source.indexOf('\n  }', start));
     };
 
-    // The old glass section is gone from the letter's flow.
-    expect(source).not.toMatch(/work-letter-glass|work-letter-rings/);
+    // No glass, in the flow or in the light: the letter ends on "and make you want to meet again".
+    expect(source).not.toMatch(/work-letter-(?:glass|rings|pane|sheen)/);
+    expect(source).toMatch(/<p class="work-letter-waiting"[^>]*>\{letter\.waiting\}<\/p>\s*<div class="work-letter-foot">/);
     // One decorative layer, inside the dialog and outside the scrolling sheet, shared by both languages.
     expect(source).toMatch(/<div class="work-letter-glow" aria-hidden="true" data-work-letter-glow data-stage="0">/);
     expect(source.indexOf('data-work-letter-glow')).toBeLessThan(source.indexOf('data-work-letter-sheet'));
-    expect(source.match(/class="work-letter-pane"/g)).toHaveLength(1);
     expect(source.match(/class="work-letter-glow"/g)).toHaveLength(1);
     const glow = rule('.work-letter-glow');
     for (const declaration of ['position: absolute', 'z-index: 0', 'inset: 44px 0 0', 'overflow: hidden', 'contain: strict', 'pointer-events: none']) {
@@ -158,8 +158,13 @@ describe('the letter on how I see insurance', () => {
     expect(FINAL_STAGE).toBe(4);
     for (const stage of [2, 3, 4]) expect(source).toContain(`[data-stage="${stage}"] .is-sun`);
     expect(source).toContain('.work-letter-glow:not([data-stage="0"]) .is-cool');
-    expect(source).toContain('.work-letter-glow[data-stage="4"] .work-letter-pane');
-    // Each stage changes only transform and opacity.
+    // The light is already there, faint, when the letter opens.
+    for (const light of ['is-cool', 'is-sun', 'is-crema']) {
+      const start = source.indexOf(`.work-letter-light.${light} {`);
+      const opacity = Number(source.slice(start, source.indexOf('}', start)).match(/opacity: ([\d.]+)/)?.[1]);
+      expect(opacity, light).toBeGreaterThan(0);
+      expect(opacity, light).toBeLessThan(1);
+    }    // Each stage changes only transform and opacity.
     for (const [, body] of source.matchAll(/\[data-stage[^{]*\{([^}]*)\}/g)) {
       const properties = body.split(';').map((part) => part.split(':')[0].trim()).filter(Boolean);
       expect(properties.every((property) => ['transform', 'opacity'].includes(property)), body).toBe(true);
@@ -168,16 +173,16 @@ describe('the letter on how I see insurance', () => {
     const motion = source.slice(source.indexOf('@media (prefers-reduced-motion: no-preference)'));
     const before = source.slice(0, source.indexOf('@media (prefers-reduced-motion: no-preference)'));
     expect(before).not.toMatch(/transition:/);
-    for (const selector of ['.work-letter-light', '.work-letter-pane', '.work-letter-sheen']) {
-      const declaration = motion.match(new RegExp(`\\n    \\${selector} \\{ transition: ([^}]*)\\}`))?.[1] ?? '';
-      expect(declaration, selector).not.toBe('');
-      const properties = declaration.split(/,(?![^(]*\))/).map((part) => part.trim().split(/\s+/)[0]);
-      expect(properties.every((property) => ['transform', 'opacity'].includes(property)), declaration).toBe(true);
-    }
-    // Replay and a language switch reset to the start; reduced motion jumps to the end.
+    const declaration = motion.match(/\n    \.work-letter-light \{ transition: ([^}]*)\}/)?.[1] ?? '';
+    expect(declaration).not.toBe('');
+    const properties = declaration.split(/,(?![^(]*\))/).map((part) => part.trim().split(/\s+/)[0]);
+    expect(properties.every((property) => ['transform', 'opacity'].includes(property)), declaration).toBe(true);
+    // Replay and a language switch ease back to the start, a closed letter is reset out of
+    // sight, and reduced motion jumps to the end.
     const script = read('src/lib/work-letter.ts');
+    expect(script).toContain('stage(0);');
     expect(script).toContain('stage(0, true)');
     expect(script).toContain('stage(FINAL_STAGE, true)');
-    expect(script).not.toMatch(/\.animate\([^)]*(?:pane|light|sheen)/);
+    expect(script).not.toMatch(/\.animate\([^)]*light/);
   });
 });

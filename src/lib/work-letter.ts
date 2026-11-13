@@ -6,10 +6,10 @@ export function workLetterLanguage(language: string): WorkLanguage {
 }
 
 /**
- * The light behind the letter grows in stages: 0 before the first message, one stage per turn
- * (the cool glow, then the sun rising, then the crema light), and the last for the pledge, which
- * settles the sun in the centre and fades the panes in. The stylesheet draws each stage and moves
- * between them by transform and opacity alone.
+ * The light behind the letter grows in stages: 0, already faint, before the first message, one
+ * stage per turn (the cool glow, then the sun rising, then the crema light), and the last for the
+ * pledge, which settles the sun in the centre. The stylesheet draws each stage and moves between
+ * them by transform and opacity alone.
  */
 export const FINAL_STAGE = 4;
 /** The company link takes the highlighter once the light has settled behind the pledge. */
@@ -54,7 +54,7 @@ export function bindWorkLetter(
     animations.forEach((animation) => animation.cancel());
     animations = [];
   };
-  // Going back to the start, or straight to the end, skips the transitions between stages.
+  // Out of sight (a closed letter) or straight to the end, the light moves without a transition.
   const stage = (next: number, instant = false) => {
     if (!glow) return;
     glow.classList.toggle('is-instant', instant);
@@ -127,7 +127,8 @@ export function bindWorkLetter(
     active.querySelectorAll<HTMLElement>('[data-work-text]').forEach((element) => { element.textContent = ''; });
     following = true;
     mark(false);
-    stage(0, true);
+    // On replay or a language switch the light eases back to its start as the letter begins.
+    stage(0);
     if (sheet) sheet.scrollTop = 0;
     dialog.classList.add('is-playing');
     if (!await wait(200, signal)) return;
@@ -160,8 +161,7 @@ export function bindWorkLetter(
       if (!await wait(pledge ? 1000 : 400, signal)) return;
     }
     finish();
-    // Bring up the rest of the letter: the space where the panes rest and, on a short screen,
-    // where the bar rests too, beside Meet again.
+    // Bring up the end of the letter and, on a short screen, the bar resting below it.
     if (sheet && following) sheet.scrollTo({ top: sheet.scrollHeight, behavior: 'smooth' });
     if (!await wait(Math.max(0, settled - performance.now()), signal)) return;
     mark(true);
@@ -177,7 +177,6 @@ export function bindWorkLetter(
     });
     dialog.querySelector('[data-work-letter-close]')?.setAttribute('aria-label', workLetters[language].close);
     dialog.querySelector('[data-work-language-group]')?.setAttribute('aria-label', workLetters[language].languageLabel);
-    stage(0, true);
     if (sheet) sheet.scrollTop = 0;
   };
   setLanguage(language);
@@ -213,6 +212,8 @@ export function bindWorkLetter(
     window.clearTimeout(closeTimer);
     dialog.classList.remove('is-closing');
     finish();
+    // The next opening starts from the faint light it opens with.
+    stage(0, true);
     returnTo?.focus({ preventScroll: true });
   });
   reduced.addEventListener('change', () => { if (reduced.matches && dialog.open) showAll(); });
