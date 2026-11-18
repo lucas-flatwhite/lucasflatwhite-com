@@ -18,6 +18,7 @@ function destinationFor(path: string): string | undefined {
 describe('route source contract', () => {
   it('inherits the upstream release cache policy instead of caching every response', () => {
     expect((vercel.headers ?? []).filter((rule: { source: string }) => rule.source.startsWith('/arcade/suika/releases'))).toEqual([]);
+    expect((vercel.headers ?? []).filter((rule: { source: string }) => rule.source.startsWith('/terrarium'))).toEqual([]);
   });
   it('lets the arcade read the command menu from its own deployment too', () => {
     expect(vercel.headers).toContainEqual({
@@ -33,6 +34,16 @@ describe('route source contract', () => {
   it.each(['', 'index.js', 'index.wasm', 'index.pck', 'loader-duck.webp', 'mushies.webmanifest', 'assets/share/og.png'])(
     'sends Suika %s to its own deployment before any Arcade wildcard', (asset) => {
       expect(destinationFor(`/arcade/suika/${asset}`)).toBe(`https://suika-balls.vercel.app/${asset || 'index.html'}`);
+    },
+  );
+
+  it('normalizes the terrarium entry to a directory so Vite relative asset URLs resolve below it', () => {
+    expect(vercel.redirects).toContainEqual({ source: '/terrarium', destination: '/terrarium/', permanent: true });
+  });
+
+  it.each(['', 'assets/index.js', 'manifest.webmanifest', 'og.png'])(
+    'sends terrarium %s to its own deployment', (asset) => {
+      expect(destinationFor(`/terrarium/${asset}`)).toBe(`https://terrarium-umber-alpha.vercel.app/${asset || 'index.html'}`);
     },
   );
 

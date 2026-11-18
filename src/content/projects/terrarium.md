@@ -5,7 +5,7 @@ tags:
   - Claude Code
   - Codex
   - Terminal
-href: https://terrarium-umber-alpha.vercel.app/
+href: https://lucasflatwhite.com/terrarium/
 order: 3
 featured: true
 motion: terrarium

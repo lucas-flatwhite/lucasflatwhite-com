@@ -7,6 +7,7 @@
     { "source": "/ai-timeline-log/en/", "destination": "/ai-timeline-log/", "permanent": true },
     { "source": "/arcade", "destination": "/arcade/", "permanent": true },
     { "source": "/arcade/suika", "destination": "/arcade/suika/", "permanent": true },
+    { "source": "/terrarium", "destination": "/terrarium/", "permanent": true },
     { "source": "/ai-timeline-log/en", "destination": "/ai-timeline-log/", "permanent": true },
     { "source": "/ai-timeline-log/en/:path*", "destination": "/ai-timeline-log/:path*", "permanent": true },
     { "source": "/ai-timeline-log", "destination": "/ai-timeline-log/", "permanent": true },
@@ -22,6 +23,8 @@
     { "source": "/arcade/suika/", "destination": "https://suika-balls.vercel.app/index.html" },
     { "source": "/arcade/suika/:path*", "destination": "https://suika-balls.vercel.app/:path*" },
     { "source": "/arcade/:path*/", "destination": "https://flatwhite-arcade.vercel.app/arcade/:path*/index.html" },
-    { "source": "/arcade/:path*", "destination": "https://flatwhite-arcade.vercel.app/arcade/:path*" }
+    { "source": "/arcade/:path*", "destination": "https://flatwhite-arcade.vercel.app/arcade/:path*" },
+    { "source": "/terrarium/", "destination": "https://terrarium-umber-alpha.vercel.app/index.html" },
+    { "source": "/terrarium/:path*", "destination": "https://terrarium-umber-alpha.vercel.app/:path*" }
   ]
 }
