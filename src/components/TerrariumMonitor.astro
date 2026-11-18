@@ -11,37 +11,51 @@ const { alt } = Astro.props;
 <style>
   /* The illustration itself is the still. The board starts its clock on first sight. */
   @media (prefers-reduced-motion: no-preference) {
+    .monitor[data-motion] :global(.terr-claude),
+    .monitor[data-motion] :global(.terr-codex),
+    .monitor[data-motion] :global(.terr-output) {
+      animation-duration: 8s;
+      animation-iteration-count: infinite;
+    }
+
     .monitor[data-motion] :global(.terr-claude) {
-      animation: claude-session 8s ease infinite;
+      animation-name: terr-claude-session;
     }
 
     .monitor[data-motion] :global(.terr-codex) {
-      animation: codex-session 8s ease infinite;
+      animation-name: terr-codex-session;
     }
 
     .monitor[data-motion] :global(.terr-output) {
-      animation: print-result 4s steps(1, end) infinite;
+      animation-timing-function: steps(1, end);
     }
 
-    .monitor[data-motion='paused'] :global(.terr-claude),
-    .monitor[data-motion='paused'] :global(.terr-codex),
-    .monitor[data-motion='paused'] :global(.terr-output) {
-      animation-play-state: paused;
+    .monitor[data-motion] :global(.terr-claude .terr-output) {
+      animation-name: terr-read-result;
     }
 
-    @keyframes claude-session {
+    .monitor[data-motion] :global(.terr-codex .terr-output) {
+      animation-name: terr-test-result;
+    }
+
+    @keyframes terr-claude-session {
       0%, 44%, 100% { opacity: 1; }
       49%, 95% { opacity: 0; }
     }
 
-    @keyframes codex-session {
+    @keyframes terr-codex-session {
       0%, 49%, 100% { opacity: 0; }
       54%, 95% { opacity: 1; }
     }
 
-    @keyframes print-result {
+    @keyframes terr-read-result {
+      0%, 50%, 100% { opacity: 0; }
+      14% { opacity: 1; }
+    }
+
+    @keyframes terr-test-result {
       0% { opacity: 0; }
-      28%, 100% { opacity: 1; }
+      64%, 100% { opacity: 1; }
     }
   }
 </style>

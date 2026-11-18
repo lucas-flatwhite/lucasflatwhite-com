@@ -35,6 +35,12 @@ describe('Work pictures', () => {
     }
   });
 
+  it('pins the featured terrarium monitor to board slot 06', () => {
+    const terrarium = projects.find(project => project.name === 'terrarium.md');
+    expect(terrarium?.source).toMatch(/^slot: 6$/m);
+    expect(terrarium?.source).toMatch(/^motion: terrarium$/m);
+  });
+
   it.each(Object.entries(pictures))('prints the %s as a standalone 720 by 480 document', (_, svg) => {
     expect(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg"')).toBe(true);
     expect(svg).toContain('viewBox="0 0 720 480"');
