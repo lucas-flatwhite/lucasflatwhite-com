@@ -5,7 +5,7 @@ tags:
   - Astro
   - TypeScript
   - Canvas
-href: https://www.lucasflatwhite.com/ai-timeline-log
+href: https://lucasflatwhite.com/ai-timeline-log/
 repo: https://github.com/lucas-flatwhite/ai-timeline-log
 order: 1
 featured: true
