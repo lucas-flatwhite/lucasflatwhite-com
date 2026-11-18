@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="terr-paper" cx=".33" cy=".18" r=".96">
+      <stop stop-color="#fffbef"/><stop offset=".67" stop-color="#efe7d7"/><stop offset="1" stop-color="#dbd2c2"/>
+    </radialGradient>
+    <linearGradient id="terr-shell" x2=".6" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#565550"/><stop offset=".38" stop-color="#3c3b36"/><stop offset="1" stop-color="#272923"/>
+    </linearGradient>
+    <linearGradient id="terr-glass" x2=".6" y2="1">
+      <stop stop-color="#262921"/><stop offset=".7" stop-color="#151916"/><stop offset="1" stop-color="#191d19"/>
+    </linearGradient>
+    <linearGradient id="terr-neck" x2=".15" y2="1">
+      <stop stop-color="#242620"/><stop offset=".6" stop-color="#69685e"/><stop offset="1" stop-color="#494a42"/>
+    </linearGradient>
+    <radialGradient id="terr-shadow">
+      <stop stop-color="#524634" stop-opacity=".35"/><stop offset="1" stop-color="#524634" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="terr-grille" width="5" height="4" patternUnits="userSpaceOnUse">
+      <rect width="2" height="2" rx="1" fill="#141610"/>
+    </pattern>
+  </defs>
+
+  <rect width="640" height="480" fill="url(#terr-paper)"/>
+  <ellipse cx="329" cy="372" rx="186" ry="20" fill="url(#terr-shadow)"/>
+  <path d="M294 295h52l7 56h-66z" fill="url(#terr-neck)"/>
+  <path d="M271 346h98l19 11q3 3 0 7H252q-3-4 0-7z" fill="#45463f"/>
+  <path d="M271 346h98l17 10H254z" fill="#717269"/>
+  <rect x="117" y="57" width="406" height="258" rx="21" fill="#24251f"/>
+  <rect x="117" y="53" width="406" height="256" rx="21" fill="url(#terr-shell)" stroke="#74746a" stroke-width="2"/>
+  <rect x="131" y="67" width="378" height="205" rx="12" fill="#121410"/>
+  <rect x="136" y="72" width="368" height="195" rx="8" fill="url(#terr-glass)"/>
+  <rect x="141" y="285" width="68" height="8" rx="2" fill="url(#terr-grille)"/>
+  <circle cx="492" cy="288" r="3.5" fill="#c1d694"/>
+
+  <g font-family="ui-monospace, Menlo, Consolas, monospace">
+    <g class="terr-claude">
+      <g transform="translate(158 100) scale(3)" fill="#f19470">
+        <path d="M2 0h18v3h2v5h-2v2h-2v3h-2v-3h-2v3h-2v-3H8v3H6v-3H4v3H2V8H0V4h2z"/>
+        <path d="M6 3h2v3H6zm9 0h2v3h-2z" fill="#22251f"/>
+      </g>
+      <text x="238" y="128" font-size="24" fill="#efbb9e">Claude Code</text>
+      <text x="158" y="185" font-size="27" fill="#f0eee2">Read(src/app.ts)</text>
+      <text class="terr-output" x="158" y="225" font-size="23" fill="#c1c4b6">└ Read 212 lines</text>
+    </g>
+    <g class="terr-codex" opacity="0">
+      <text x="158" y="132" font-size="45" font-weight="bold" fill="#95c8ed">&gt;_</text>
+      <text x="238" y="128" font-size="24" fill="#b6d4ea">Codex</text>
+      <text x="158" y="185" font-size="27" fill="#f0eee2">Ran npm test</text>
+      <text class="terr-output" x="158" y="225" font-size="23" fill="#bdd49f">└ 9 passed</text>
+    </g>
+  </g>
+</svg>
