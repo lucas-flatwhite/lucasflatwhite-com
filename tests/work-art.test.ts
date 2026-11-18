@@ -39,6 +39,7 @@ describe('Work pictures', () => {
     const terrarium = projects.find(project => project.name === 'terrarium.md');
     expect(terrarium?.source).toMatch(/^slot: 6$/m);
     expect(terrarium?.source).toMatch(/^motion: terrarium$/m);
+    expect(terrarium?.source).toMatch(/^href: https:\/\/lucasflatwhite\.com\/terrarium\/$/m);
   });
 
   it.each(Object.entries(pictures))('prints the %s as a standalone 720 by 480 document', (_, svg) => {
