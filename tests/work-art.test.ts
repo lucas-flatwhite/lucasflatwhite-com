@@ -42,6 +42,11 @@ describe('Work pictures', () => {
     expect(terrarium?.source).toMatch(/^href: https:\/\/lucasflatwhite\.com\/terrarium\/$/m);
   });
 
+  it('points featured internal projects directly at their canonical lucasflatwhite.com trailing-slash URLs', () => {
+    const timeline = projects.find(project => project.name === 'ai-timeline-log.md');
+    expect(timeline?.source).toMatch(/^href: https:\/\/lucasflatwhite\.com\/ai-timeline-log\/$/m);
+  });
+
   it.each(Object.entries(pictures))('prints the %s as a standalone 720 by 480 document', (_, svg) => {
     expect(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg"')).toBe(true);
     expect(svg).toContain('viewBox="0 0 720 480"');
