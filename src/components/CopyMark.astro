@@ -18,10 +18,7 @@ const { icon, motion, class: className } = Astro.props;
 </span>
 
 <style is:global>
-  /*
-   * A copy link's icon. While its host carries [data-copied] the icon gives way to a
-   * crema check, in step with the "Copied" line in CopyRoll.
-   */
+  /* Show a checkmark while the host carries the copied state. */
   .copy-mark {
     display: inline-grid;
     flex: none;

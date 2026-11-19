@@ -1,5 +1,4 @@
-// A copy link writes its text to the clipboard instead of following its href, then rolls a
-// "Copied" line over the text for a moment. The markup comes from CopyMark and CopyRoll.
+// A successful copy briefly marks the trigger and announces the copied text.
 
 export const COPIED_MS = 1600;
 

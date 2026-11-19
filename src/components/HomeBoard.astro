@@ -32,7 +32,7 @@ import {
   placeProjects,
   railOf,
   stackBoard,
-  type Slot,
+  slotPositionStyle,
 } from '../lib/projects';
 import { withBase } from '../lib/paths';
 import '../styles/landing.css';
@@ -51,14 +51,8 @@ const three = stackBoard(count, 3, NAME_ROWS, photoRows, rail);
 const four = stackBoard(count, 4, NAME_ROWS, photoRows, rail);
 // A phone shows the list as it is: the book, the badge and the checklist, then the rest.
 const listed = listOrder(slots).map((index) => ({ slot: slots[index], index }));
-// First-column offsets start below the profile. All other columns start at the board top.
-const position = ({ column, row }: Slot, columns: number) => {
-  const underProfile = column === 1;
-  const offset = row - 1 - (underProfile ? NAME_ROWS : 0);
-  return `--c${columns}: ${column}; --r${columns}: ${underProfile ? '2' : '1 / 3'}; --offset${columns}: ${offset}`;
-};
 const place = (index: number) =>
-  [position(three[index], 3), position(four[index], 4), `--span: ${four[index].span}`].join('; ');
+  [slotPositionStyle(three[index], 3), slotPositionStyle(four[index], 4), `--span: ${four[index].span}`].join('; ');
 const arcadeHref = withBase('arcade/');
 // The book icon stays with the last word of the name, so it never wraps onto a line alone.
 const bookWords = book.name.split(' ');
@@ -87,11 +81,17 @@ const year = new Date().getFullYear();
             {featuredLinks.map((link) => (
               <li>
                 {link.copy !== null ? (
-                  <a class="glyph-host" href={link.href} data-copy={link.copy} aria-label="Copy email address">
+                  <a
+                    class="glyph-host"
+                    href={link.href}
+                    data-copy={link.copy}
+                    aria-label={`Copy email address ${link.copy}`}
+                    title="Copy email address"
+                  >
                     <CopyMark icon={link.icon} motion={link.motion} />
                   </a>
                 ) : (
-                  <a class="glyph-host" href={link.href} target="_blank" rel="noreferrer me" aria-label={link.label}>
+                  <a class="glyph-host" href={link.href} target="_blank" rel="noreferrer me" aria-label={link.label} title={link.label}>
                     <Glyph icon={link.icon} motion={link.motion} />
                   </a>
                 )}

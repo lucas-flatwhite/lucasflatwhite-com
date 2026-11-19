@@ -194,6 +194,18 @@ export function listOrder<T>(slots: BoardSlot<T>[]): number[] {
 
 export type Slot = { column: number; row: number; span: number };
 
+/** CSS measures the first column from the bottom of the profile and the others from the board top. */
+export function slotPositionStyle({ column, row }: Slot, columns: 3 | 4) {
+  const underProfile = column === 1;
+  const firstRow = underProfile ? NAME_ROWS + 1 : 1;
+
+  return [
+    `--c${columns}: ${column}`,
+    `--r${columns}: ${underProfile ? '2' : '1 / 3'}`,
+    `--offset${columns}: ${row - firstRow}`,
+  ].join('; ');
+}
+
 /**
  * Stands the rail's slots in the first column under the name, then drops every other slot,
  * in reading order, into the shortest column, so the first card sits beside the name and

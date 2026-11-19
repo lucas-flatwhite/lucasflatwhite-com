@@ -132,6 +132,8 @@
 }
 
 .name-links {
+  /* Align the 24px glyph with the intro inside its 44px hit target. */
+  margin-inline-start: -10px;
   display: flex;
   gap: 4px;
 }
