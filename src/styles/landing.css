@@ -139,6 +139,7 @@
 }
 
 .name-links a {
+  outline-offset: 2px;
   display: grid;
   place-items: center;
   width: 44px;
