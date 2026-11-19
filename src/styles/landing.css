@@ -132,24 +132,16 @@
 }
 
 .name-links {
-  display: grid;
-  gap: 8px;
+  display: flex;
+  gap: 4px;
 }
 
 .name-links a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5em;
-  line-height: 1.2;
-}
-
-/*
- * Centring puts the icon on the middle of the line box, but Anybody's cap height
- * centres 0.0625em above it ((ascent 0.79 - descent 0.24) / 2 against cap 0.675 / 2).
- * Lift the icon onto the capitals. `translate` so it adds to the hover transform.
- */
-.name-links .glyph {
-  translate: 0 -0.0625em;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  font-size: 24px;
 }
 
 .name-links a,
@@ -630,8 +622,8 @@
 
 /*
  * Masonry: the name heads the first column and projects.ts drops every slot into a
- * column and a run of rows beside and under it. Four rows make one column width, so a
- * square is four rows tall and the picture keeps its shape. Rows may grow to fit the name.
+ * column and gives it a vertical offset. Only the first column starts below the profile.
+ * A square takes four steps, including the gaps between them.
  */
 @media (min-width: 721px) and (hover: hover) {
   .board {
@@ -643,7 +635,8 @@
     --cols: 3;
     --col: calc((100cqw - (var(--cols) - 1) * var(--gap)) / var(--cols));
     grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
-    grid-auto-rows: minmax(calc(var(--col) / 4 - var(--gap) * 3 / 4), auto);
+    --step: calc((var(--col) + var(--gap)) / 4);
+    grid-template-rows: max-content 1fr;
     gap: var(--gap);
   }
 
@@ -653,14 +646,15 @@
 
   .board-copy {
     grid-column: 1;
-    grid-row: 1 / span var(--span);
+    grid-row: 1;
     padding-right: 8px;
   }
 
-  /* The rows set the height, so a tall photo is cropped instead of stretching them. */
+  /* The photo keeps its five-step frame independently of the profile height. */
   .board-photos {
     grid-column: 2 / span 2;
-    grid-row: 1 / span var(--span);
+    grid-row: 1 / 3;
+    height: calc(var(--span) * var(--step) - var(--gap));
     aspect-ratio: auto;
     contain: size;
   }
@@ -672,7 +666,11 @@
   .project-card,
   .board-gap {
     grid-column: var(--c3);
-    grid-row: var(--r3) / span var(--span);
+    grid-row: var(--r3);
+    --offset: var(--offset3);
+    align-self: start;
+    margin-top: calc(var(--offset) * var(--step));
+    height: calc(var(--span) * var(--step) - var(--gap));
     aspect-ratio: auto;
   }
 
@@ -822,7 +820,8 @@
   .project-card,
   .board-gap {
     grid-column: var(--c4);
-    grid-row: var(--r4) / span var(--span);
+    grid-row: var(--r4);
+    --offset: var(--offset4);
   }
 }
 

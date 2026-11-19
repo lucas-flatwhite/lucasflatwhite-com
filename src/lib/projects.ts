@@ -150,11 +150,11 @@ export function arrangeBoard<T extends { data: { slot?: number } }>(
   return Array.from({ length }, (_, at) => board[at] ?? { kind: 'gap', note: gapNote(Math.max(0, at - FIRST_NOTE_INDEX)) });
 }
 
-/** The name heads the first column and takes this many rows before any card lands under it. */
+/** Estimated profile height for assigning slots to columns. CSS measures its actual height. */
 export const NAME_ROWS = 5;
 
-/** The photos span the second and third columns beside the name, as tall as the name. */
-export const PHOTO_ROWS = NAME_ROWS;
+/** The photos span the second and third columns beside the name. */
+export const PHOTO_ROWS = 5;
 
 /** Rows each shape spans; a column is four rows wide, so these read as 4:5, 4:3 and 1:1. */
 const SHAPE_ROWS = { tall: 5, wide: 3, square: 4 } as const;
