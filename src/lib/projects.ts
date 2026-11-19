@@ -150,11 +150,11 @@ export function arrangeBoard<T extends { data: { slot?: number } }>(
   return Array.from({ length }, (_, at) => board[at] ?? { kind: 'gap', note: gapNote(Math.max(0, at - FIRST_NOTE_INDEX)) });
 }
 
-/** The name heads the first column and takes this many rows before any card lands under it. */
+/** Estimated profile height for assigning slots to columns. CSS measures its actual height. */
 export const NAME_ROWS = 5;
 
-/** The photos span the second and third columns beside the name, as tall as the name. */
-export const PHOTO_ROWS = NAME_ROWS;
+/** The photos span the second and third columns beside the name. */
+export const PHOTO_ROWS = 5;
 
 /** Rows each shape spans; a column is four rows wide, so these read as 4:5, 4:3 and 1:1. */
 const SHAPE_ROWS = { tall: 5, wide: 3, square: 4 } as const;
@@ -193,6 +193,18 @@ export function listOrder<T>(slots: BoardSlot<T>[]): number[] {
 }
 
 export type Slot = { column: number; row: number; span: number };
+
+/** CSS measures the first column from the bottom of the profile and the others from the board top. */
+export function slotPositionStyle({ column, row }: Slot, columns: 3 | 4) {
+  const underProfile = column === 1;
+  const firstRow = underProfile ? NAME_ROWS + 1 : 1;
+
+  return [
+    `--c${columns}: ${column}`,
+    `--r${columns}: ${underProfile ? '2' : '1 / 3'}`,
+    `--offset${columns}: ${row - firstRow}`,
+  ].join('; ');
+}
 
 /**
  * Stands the rail's slots in the first column under the name, then drops every other slot,

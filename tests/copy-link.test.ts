@@ -35,7 +35,8 @@ describe('copy link source contract', () => {
 
     expect(landing).toContain('mountCopyLinks()');
     expect(landing.match(/data-copy=\{link\.copy\}/g)).toHaveLength(1);
-    expect(landing.match(/<CopyRoll text=\{link\.label\} \/>/g)).toHaveLength(1);
+    expect(landing).toContain('aria-label={`Copy email address ${link.copy}`}');
+    expect(landing).toContain('<CopyMark icon={link.icon} motion={link.motion} />');
     expect(landing).not.toContain('Set in Anybody');
     expect(landing).not.toContain('colophon-links');
   });

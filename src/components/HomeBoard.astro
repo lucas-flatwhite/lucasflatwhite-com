@@ -16,7 +16,6 @@ import SiteHeader from './SiteHeader.astro';
 import WorkBadge from './WorkBadge.astro';
 import WorkLetter from './WorkLetter.astro';
 import CopyMark from './CopyMark.astro';
-import CopyRoll from './CopyRoll.astro';
 import DailyShotReceipt from './DailyShotReceipt.astro';
 import Glyph from './Glyph.astro';
 import { book } from '../data/book';
@@ -33,6 +32,7 @@ import {
   placeProjects,
   railOf,
   stackBoard,
+  slotPositionStyle,
 } from '../lib/projects';
 import { withBase } from '../lib/paths';
 import '../styles/landing.css';
@@ -52,11 +52,7 @@ const four = stackBoard(count, 4, NAME_ROWS, photoRows, rail);
 // A phone shows the list as it is: the book, the badge and the checklist, then the rest.
 const listed = listOrder(slots).map((index) => ({ slot: slots[index], index }));
 const place = (index: number) =>
-  [
-    `--c3: ${three[index].column}; --r3: ${three[index].row}`,
-    `--c4: ${four[index].column}; --r4: ${four[index].row}`,
-    `--span: ${four[index].span}`,
-  ].join('; ');
+  [slotPositionStyle(three[index], 3), slotPositionStyle(four[index], 4), `--span: ${four[index].span}`].join('; ');
 const arcadeHref = withBase('arcade/');
 // The book icon stays with the last word of the name, so it never wraps onto a line alone.
 const bookWords = book.name.split(' ');
@@ -69,7 +65,7 @@ const year = new Date().getFullYear();
   <main id="top">
     <section class="board">
       <div class="board-grid">
-        <div class="board-copy" style={`--span: ${NAME_ROWS}`}>
+        <div class="board-copy">
           <h1 id="name" class="name" data-name aria-label={siteProfile.name}>
             {['Lucas', 'Flatwhite'].map((word) => (
               <span class="name-line" aria-hidden="true">
@@ -85,14 +81,18 @@ const year = new Date().getFullYear();
             {featuredLinks.map((link) => (
               <li>
                 {link.copy !== null ? (
-                  <a class="glyph-host" href={link.href} data-copy={link.copy}>
+                  <a
+                    class="glyph-host"
+                    href={link.href}
+                    data-copy={link.copy}
+                    aria-label={`Copy email address ${link.copy}`}
+                    title="Copy email address"
+                  >
                     <CopyMark icon={link.icon} motion={link.motion} />
-                    <CopyRoll text={link.label} />
                   </a>
                 ) : (
-                  <a class="glyph-host" href={link.href} target="_blank" rel="noreferrer me">
+                  <a class="glyph-host" href={link.href} target="_blank" rel="noreferrer me" title={link.label}>
                     <Glyph icon={link.icon} motion={link.motion} />
-                    {link.label}
                   </a>
                 )}
               </li>

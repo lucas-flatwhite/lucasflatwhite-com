@@ -10,6 +10,7 @@ import {
   listOrder,
   placeProjects,
   railOf,
+  slotPositionStyle,
   sortFeaturedProjects,
   stackBoard,
   type BoardSlot,
@@ -138,6 +139,17 @@ describe('gapNote', () => {
 
     expect(new Set(notes).size).toBe(GAP_NOTES.length);
     expect(gapNote(GAP_NOTES.length)).toBe(GAP_NOTES[0]);
+  });
+});
+
+describe('slotPositionStyle', () => {
+  it.each([3, 4] as const)('positions cards from their column origin on a %i-column board', (columns) => {
+    const style = (column: number, row: number) => slotPositionStyle({ column, row, span: 4 }, columns);
+
+    expect(style(1, NAME_ROWS + 1)).toBe(`--c${columns}: 1; --r${columns}: 2; --offset${columns}: 0`);
+    expect(style(1, NAME_ROWS + 6)).toContain(`--offset${columns}: 5`);
+    expect(style(2, 1)).toBe(`--c${columns}: 2; --r${columns}: 1 / 3; --offset${columns}: 0`);
+    expect(style(2, PHOTO_ROWS + 1)).toContain(`--offset${columns}: ${PHOTO_ROWS}`);
   });
 });
 
