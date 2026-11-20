@@ -1,0 +1,85 @@
+<div class="board-space paw-trail" aria-hidden="true"></div>
+<div class="board-space cartridge" aria-hidden="true"></div>
+
+<style>
+  .board-space {
+    display: none;
+    pointer-events: none;
+  }
+
+  @media (min-width: 721px) and (hover: hover) {
+    .board-space {
+      position: absolute;
+      inset: 0;
+      grid-row: 1 / -1;
+      display: block;
+    }
+
+    .board-space::after {
+      content: '';
+      position: absolute;
+      inset: var(--below-cards, 100%) 7% 0;
+      margin-inline: auto;
+      background-position: center;
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+
+    .paw-trail {
+      grid-column: 1 / span 1;
+    }
+
+    .paw-trail::after {
+      max-width: 460px;
+      background-image: url('../assets/board/bamtori-trail.webp');
+    }
+
+    .cartridge {
+      grid-column: 2 / span 1;
+    }
+
+    .cartridge::after {
+      max-width: 174px;
+      background-image: url('../assets/board/arcade-cartridge.webp');
+    }
+  }
+
+  @media (min-width: 1100px) and (hover: hover) {
+    .paw-trail {
+      grid-column: 1 / span 2;
+    }
+
+    .cartridge {
+      grid-column: 3 / span 1;
+    }
+  }
+</style>
+
+<script>
+  const grid = document.querySelector<HTMLElement>('.board-grid');
+  if (grid) {
+    const spaces = [...grid.querySelectorAll<HTMLElement>('.board-space')];
+    const contents = grid.querySelectorAll('.board-copy, .board-photos, .project-card');
+
+    // The profile wraps independently of the masonry steps. Measure the actual
+    // lower edges so adding cards or changing the font cannot cover either object.
+    const positionObjects = () => {
+      const cards = Array.from(contents, (item) => item.getBoundingClientRect());
+      for (const space of spaces) {
+        const bounds = space.getBoundingClientRect();
+        if (!bounds.width) continue;
+        let bottom = bounds.top;
+        for (const card of cards) {
+          if (card.left < bounds.right && card.right > bounds.left) {
+            bottom = Math.max(bottom, card.bottom);
+          }
+        }
+        space.style.setProperty('--below-cards', `${Math.ceil(bottom - bounds.top) + 16}px`);
+      }
+    };
+    const observer = new ResizeObserver(positionObjects);
+    observer.observe(grid);
+    const profile = grid.querySelector('.board-copy');
+    if (profile) observer.observe(profile);
+  }
+</script>

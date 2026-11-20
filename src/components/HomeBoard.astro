@@ -5,6 +5,7 @@
  */
 import { getCollection } from 'astro:content';
 import ArcadeHandheld from './ArcadeHandheld.astro';
+import BoardObjects from './BoardObjects.astro';
 import BoardPhotos from './BoardPhotos.astro';
 import BookDialog from './BookDialog.astro';
 import BookStand from './BookStand.astro';
@@ -39,17 +40,15 @@ import '../styles/landing.css';
 
 const placed = placeProjects(await getCollection('projects'));
 const photos = deckOrder(await getCollection('photos'));
-// The book, every pictured project, Daily Shot, the arcade, the work badge and the checklist,
-// with pinned projects in their numbered slots and gaps after them (src/lib/projects.ts).
 const slots = arrangeBoard(placed.board);
 const count = slots.length;
 const photoRows = photos.length > 0 ? PHOTO_ROWS : 0;
 // The board runs three columns on a mid screen and four on a wide one; the spans match. On
-// both, the work badge and the checklist stand under the name.
+// both, the work badge stands under the name.
 const rail = railOf(slots);
 const three = stackBoard(count, 3, NAME_ROWS, photoRows, rail);
 const four = stackBoard(count, 4, NAME_ROWS, photoRows, rail);
-// A phone shows the list as it is: the book, the badge and the checklist, then the rest.
+// A phone shows the list as it is: the book and badge, then the rest.
 const listed = listOrder(slots).map((index) => ({ slot: slots[index], index }));
 const place = (index: number) =>
   [slotPositionStyle(three[index], 3), slotPositionStyle(four[index], 4), `--span: ${four[index].span}`].join('; ');
@@ -162,7 +161,7 @@ const year = new Date().getFullYear();
                   <p class="project-summary">{work.summary}</p>
                 </div>
               </li>
-            ) : slot.kind === 'arcade' ? (
+            ) : (
               <li class="project-card arcade-card" style={place(index)}>
                 <div class="project-art arcade-art">
                   <ArcadeHandheld />
@@ -175,14 +174,10 @@ const year = new Date().getFullYear();
                   <p class="project-summary">Small games, one cartridge at a time.</p>
                 </div>
               </li>
-            ) : (
-              <li class="board-gap" style={place(index)} aria-hidden="true" data-checklist={slot.kind === 'checklist' ? '' : undefined}>
-                <span class="gap-number">{String(index + 1).padStart(2, '0')}</span>
-                <span class="gap-note">{slot.note}</span>
-              </li>
             ),
           )}
         </ol>
+        <BoardObjects />
       </div>
     </section>
   </main>
