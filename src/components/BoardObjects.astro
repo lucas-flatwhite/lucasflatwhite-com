@@ -31,7 +31,10 @@
 
     .paw-trail::after {
       max-width: 460px;
-      background-image: url('../assets/board/bamtori-trail.webp');
+      background-image: image-set(
+        url('../assets/board/bamtori-trail.webp?no-inline') 1x,
+        url('../assets/board/bamtori-trail@2x.webp?no-inline') 2x
+      );
     }
 
     .cartridge {
@@ -40,7 +43,10 @@
 
     .cartridge::after {
       max-width: 174px;
-      background-image: url('../assets/board/arcade-cartridge.webp');
+      background-image: image-set(
+        url('../assets/board/arcade-cartridge.webp?no-inline') 1x,
+        url('../assets/board/arcade-cartridge@2x.webp?no-inline') 2x
+      );
     }
   }
 
@@ -56,6 +62,8 @@
 </style>
 
 <script>
+  import { decorationTop } from '../lib/board-objects';
+
   const grid = document.querySelector<HTMLElement>('.board-grid');
   if (grid) {
     const spaces = [...grid.querySelectorAll<HTMLElement>('.board-space')];
@@ -68,13 +76,7 @@
       for (const space of spaces) {
         const bounds = space.getBoundingClientRect();
         if (!bounds.width) continue;
-        let bottom = bounds.top;
-        for (const card of cards) {
-          if (card.left < bounds.right && card.right > bounds.left) {
-            bottom = Math.max(bottom, card.bottom);
-          }
-        }
-        space.style.setProperty('--below-cards', `${Math.ceil(bottom - bounds.top) + 16}px`);
+        space.style.setProperty('--below-cards', `${decorationTop(bounds, cards)}px`);
       }
     };
     const observer = new ResizeObserver(positionObjects);

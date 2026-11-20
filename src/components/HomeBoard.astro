@@ -161,7 +161,7 @@ const year = new Date().getFullYear();
                   <p class="project-summary">{work.summary}</p>
                 </div>
               </li>
-            ) : (
+            ) : slot.kind === 'arcade' ? (
               <li class="project-card arcade-card" style={place(index)}>
                 <div class="project-art arcade-art">
                   <ArcadeHandheld />
@@ -174,7 +174,7 @@ const year = new Date().getFullYear();
                   <p class="project-summary">Small games, one cartridge at a time.</p>
                 </div>
               </li>
-            ),
+            ) : null,
           )}
         </ol>
         <BoardObjects />
