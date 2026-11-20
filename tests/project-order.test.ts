@@ -1,12 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
-  BOARD_SLOTS,
-  CHECKLIST_SLOT,
-  GAP_NOTES,
   NAME_ROWS,
   PHOTO_ROWS,
   arrangeBoard,
-  gapNote,
   listOrder,
   placeProjects,
   railOf,
@@ -74,71 +70,26 @@ describe('arrangeBoard', () => {
   const kinds = (slots: BoardSlot<ReturnType<typeof card>>[]) =>
     slots.map((slot) => (slot.kind === 'project' ? slot.entry.data.title : slot.kind));
 
-  it('leads with the book, then the projects, Daily Shot, the arcade and the work badge, and pins a project to its slot', () => {
-    const slots = arrangeBoard([card('Timeline'), card('Site', 7)]);
-
-    expect(kinds(slots)).toEqual([
-      'book', 'Timeline', 'daily', 'arcade', 'work', 'gap', 'Site', 'checklist', 'gap', 'gap', 'gap', 'gap',
-    ]);
-  });
-
-  it('keeps the checklist on its number however many cards come before it', () => {
-    const many = ['A', 'B', 'C', 'D', 'E'].map((title) => card(title));
-
-    expect(kinds(arrangeBoard(many))[CHECKLIST_SLOT - 1]).toBe('checklist');
-    expect(kinds(arrangeBoard(many))).toEqual([
-      'book', 'A', 'B', 'C', 'D', 'E', 'daily', 'checklist', 'arcade', 'work', 'gap', 'gap',
-    ]);
-  });
-
-  it('gives the checklist the note its place had as a gap', () => {
-    const checklist = arrangeBoard([card('Timeline'), card('Site', 7)])[CHECKLIST_SLOT - 1];
-
-    expect(checklist).toEqual({ kind: 'checklist', note: 'Still brewing' });
-  });
-
-  it('refuses a project pinned to the checklist', () => {
-    expect(() => arrangeBoard([card('A', CHECKLIST_SLOT)])).toThrow(/checklist/);
-  });
-
-  it('keeps each gap note on its number when a pinned card takes a gap', () => {
-    const notes = arrangeBoard([card('Timeline'), card('Site', 7)]).flatMap((slot) =>
-      slot.kind === 'gap' ? [slot.note] : [],
-    );
-
-    expect(notes).toEqual([
-      'Warming up',
-      'Stretching first',
-      'Pulling a shot',
-      'Letting it bloom',
-      'Sketched on a napkin',
+  it('orders real cards around pins and omits unoccupied positions', () => {
+    expect(kinds(arrangeBoard([card('Timeline'), card('Site', 7)]))).toEqual([
+      'book', 'Timeline', 'daily', 'arcade', 'work', 'Site',
     ]);
   });
 
   it('flows around a pin that lands among the first cards', () => {
-    expect(kinds(arrangeBoard([card('A'), card('B', 2)], 6))).toEqual([
-      'book', 'B', 'A', 'daily', 'arcade', 'work', 'gap', 'checklist',
+    expect(kinds(arrangeBoard([card('A'), card('B', 2)]))).toEqual([
+      'book', 'B', 'A', 'daily', 'arcade', 'work',
     ]);
   });
 
-  it('grows past the slot count to fit a late pin', () => {
-    const slots = arrangeBoard([card('Far', 15)]);
-
-    expect(slots).toHaveLength(15);
-    expect(kinds(slots)[14]).toBe('Far');
+  it('orders late pins by number without reserving space between them', () => {
+    expect(kinds(arrangeBoard([card('Last', 15), card('Earlier', 8)]))).toEqual([
+      'book', 'daily', 'arcade', 'work', 'Earlier', 'Last',
+    ]);
   });
 
   it('refuses two projects pinned to one slot', () => {
     expect(() => arrangeBoard([card('A', 7), card('B', 7)])).toThrow(/slot 7/);
-  });
-});
-
-describe('gapNote', () => {
-  it('gives each gap its own line and starts over when they run out', () => {
-    const notes = Array.from({ length: GAP_NOTES.length }, (_, index) => gapNote(index));
-
-    expect(new Set(notes).size).toBe(GAP_NOTES.length);
-    expect(gapNote(GAP_NOTES.length)).toBe(GAP_NOTES[0]);
   });
 });
 
@@ -173,7 +124,7 @@ describe('stackBoard', () => {
   });
 
   it('starts the cards beside the name and lands later ones under it', () => {
-    const slots = stackBoard(BOARD_SLOTS, 4);
+    const slots = stackBoard(12, 4);
 
     expect(slots.slice(0, 3).map((slot) => [slot.column, slot.row])).toEqual([
       [2, 1],
@@ -189,7 +140,7 @@ describe('stackBoard', () => {
   it('never stacks two slots over the same rows of a column', () => {
     for (const columns of [3, 4]) {
       for (const photoRows of [0, PHOTO_ROWS]) {
-        const slots = stackBoard(BOARD_SLOTS, columns, NAME_ROWS, photoRows);
+        const slots = stackBoard(12, columns, NAME_ROWS, photoRows);
 
         for (const [index, slot] of slots.entries()) {
           for (const other of slots.slice(index + 1)) {
@@ -202,7 +153,7 @@ describe('stackBoard', () => {
   });
 
   it('pushes the cards beside the name down under the photos and leaves the last column be', () => {
-    const slots = stackBoard(BOARD_SLOTS, 4, NAME_ROWS, PHOTO_ROWS);
+    const slots = stackBoard(12, 4, NAME_ROWS, PHOTO_ROWS);
 
     expect(slots.slice(0, 3).map((slot) => [slot.column, slot.row])).toEqual([
       [2, PHOTO_ROWS + 1],
@@ -213,7 +164,7 @@ describe('stackBoard', () => {
 
   it('keeps every slot off the rows the photos cover', () => {
     for (const columns of [3, 4]) {
-      const slots = stackBoard(BOARD_SLOTS, columns, NAME_ROWS, PHOTO_ROWS);
+      const slots = stackBoard(12, columns, NAME_ROWS, PHOTO_ROWS);
       const underPhotos = slots.filter((slot) => slot.column === 2 || slot.column === 3);
 
       expect(underPhotos.length).toBeGreaterThan(0);
@@ -224,7 +175,7 @@ describe('stackBoard', () => {
 
 describe('the rail under the name', () => {
   const card = (title: string, slot?: number) => ({ data: { title, slot } });
-  const today = () => arrangeBoard([card('Timeline'), card('Site', 7)]);
+  const today = () => arrangeBoard([card('Timeline'), card('terrarium', 6), card('Site', 7)]);
   const label = (slot: BoardSlot<ReturnType<typeof card>>) => (slot.kind === 'project' ? slot.entry.data.title : slot.kind);
   const underName = (slots: BoardSlot<ReturnType<typeof card>>[], columns: number) => {
     const placed = stackBoard(slots.length, columns, NAME_ROWS, PHOTO_ROWS, railOf(slots));
@@ -235,28 +186,28 @@ describe('the rail under the name', () => {
       .sort((left, right) => left.row - right.row);
   };
 
-  it('stands the work badge, then the checklist, right under the name on every board', () => {
+  it('stands the work badge right under the name on every board', () => {
     for (const columns of [3, 4]) {
-      const [work, checklist] = underName(today(), columns);
+      const [work] = underName(today(), columns);
 
       expect(work).toMatchObject({ name: 'work', row: NAME_ROWS + 1, span: 5 });
-      expect(checklist).toMatchObject({ name: 'checklist', row: NAME_ROWS + 6, span: 3 });
     }
   });
 
-  it('keeps them there when more projects join the board', () => {
+  it('keeps the badge there when more projects join the board', () => {
     const slots = arrangeBoard(['A', 'B', 'C', 'D'].map((title) => card(title)));
 
     for (const columns of [3, 4]) {
-      expect(underName(slots, columns).slice(0, 2).map((slot) => slot.name)).toEqual(['work', 'checklist']);
+      expect(underName(slots, columns)[0].name).toBe('work');
     }
   });
 
-  it('leaves the four-column board as it was before the rail', () => {
+  it('preserves the columns and proportions of the seven cards on the wide board', () => {
     const slots = today();
-    const withRail = stackBoard(slots.length, 4, NAME_ROWS, PHOTO_ROWS, railOf(slots));
-
-    expect(withRail).toEqual(stackBoard(slots.length, 4, NAME_ROWS, PHOTO_ROWS));
+    const placed = stackBoard(slots.length, 4, NAME_ROWS, PHOTO_ROWS, railOf(slots));
+    expect(placed.map(({ column, span }) => [column, span])).toEqual([
+      [2, 5], [3, 3], [4, 4], [4, 4], [1, 5], [3, 3], [4, 5],
+    ]);
   });
 
   it('never stacks two slots over the same rows of a column', () => {
@@ -274,11 +225,11 @@ describe('the rail under the name', () => {
     }
   });
 
-  it('lists the book, the badge and the checklist first, then the rest by number', () => {
+  it('lists the book and badge first, then the rest by number', () => {
     const slots = today();
 
     expect(listOrder(slots).map((index) => label(slots[index]))).toEqual([
-      'book', 'work', 'checklist', 'Timeline', 'daily', 'arcade', 'gap', 'Site', 'gap', 'gap', 'gap', 'gap',
+      'book', 'work', 'Timeline', 'daily', 'arcade', 'terrarium', 'Site',
     ]);
   });
 });
